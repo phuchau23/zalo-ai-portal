@@ -1,8 +1,8 @@
 @AGENTS.md
 
-# CLAUDE.md — Trợ lý Zalo AI (Frontend admin)
+# CLAUDE.md — Trợ lý Zalo AI (Frontend: zalo-ai-portal)
 
-Repo này là **frontend admin** (Next.js) của dự án Trợ lý Zalo AI.
+Repo này là **frontend `zalo-ai-portal`** (Next.js, trang quản trị) của dự án Trợ lý Zalo AI.
 Nguồn chính của dự án (nguyên tắc sản phẩm, kiến trúc, quy trình làm việc, kế hoạch module, tiến độ) nằm ở repo backend:
 
 - `../zalo-ai-assistant/CLAUDE.md` — **đọc file này trước mỗi phiên**
