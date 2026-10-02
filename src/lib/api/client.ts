@@ -1,0 +1,14 @@
+import createClient from "openapi-fetch";
+import type { components, paths } from "./schema";
+
+/**
+ * Client gọi BE. Luôn qua đường dẫn tương đối /api (Next.js rewrite sang BE), nên trình duyệt tự gửi
+ * cookie phiên đăng nhập (httpOnly, cùng domain). FE không đọc, không lưu token nào.
+ * Type sinh từ OpenAPI của BE: chạy `pnpm gen:api` khi BE đổi API.
+ */
+export const api = createClient<paths>({ baseUrl: "/api" });
+
+export type Schemas = components["schemas"];
+export type Me = Schemas["MeResponse"];
+export type TenantSettings = Schemas["TenantSettingsResponse"];
+export type Industry = Schemas["IndustryResponse"];
