@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# zalo-ai-portal
 
-## Getting Started
+Trang quản trị (Next.js) của **Trợ lý Zalo AI**. Backend và tài liệu dự án ở repo `../zalo-ai-assistant`.
 
-First, run the development server:
+## Chạy local
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Cần BE đang chạy ở cổng 4000 (xem README của `zalo-ai-assistant`).
+
+```
+cp .env.example .env.local     # Windows cmd: copy .env.example .env.local
+pnpm install
+pnpm dev                       # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tài khoản mẫu (sau khi chạy `dotnet run --project src/ZaloAi.Api -- seed` ở BE), mật khẩu `Dev@123456`:
+`owner@nguyetdao.local`, `owner@anphat.local`, `admin@zaloai.local` (super admin).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Lệnh
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+pnpm gen:api      # sinh type từ OpenAPI của BE (BE phải đang chạy) → src/lib/api/schema.d.ts
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
-## Learn More
+## Cách FE nói chuyện với BE
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Trình duyệt chỉ gọi `/api/*` trên domain của FE; `next.config.ts` chuyển tiếp sang `API_INTERNAL_URL`.
+  Cookie phiên `zaloai.session` (httpOnly) vì vậy cùng domain, JavaScript không đọc được.
+- `src/proxy.ts` chỉ kiểm tra sơ bộ (có cookie chưa). Quyền thật luôn do BE kiểm.
+- Gọi API bằng `api` trong `src/lib/api/client.ts` (type sinh tự động, không viết tay), bọc trong `call()` để nhận lỗi dạng `ApiProblem`.
