@@ -2,6 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { CircleAlert, LoaderCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { call, type ApiResult } from "@/lib/api/call";
 import { api, type Me } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
@@ -64,17 +66,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   if (problem) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-4 text-center">
-        <p className="text-destructive">{problemMessage(problem)}</p>
-        <button className="text-sm underline" onClick={() => void load()}>
+      <div role="alert" className="flex flex-1 flex-col items-center justify-center gap-3 p-4 text-center">
+        <CircleAlert className="size-6 text-destructive" aria-hidden />
+        <p className="text-sm text-destructive">{problemMessage(problem)}</p>
+        <Button variant="outline" onClick={() => void load()}>
           Thử lại
-        </button>
+        </Button>
       </div>
     );
   }
 
   if (!me) {
-    return <div className="flex flex-1 items-center justify-center text-muted-foreground">Đang tải...</div>;
+    return (
+      <div role="status" className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+        <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
+        Đang tải...
+      </div>
+    );
   }
 
   return <SessionContext value={{ me, reload: load }}>{children}</SessionContext>;
