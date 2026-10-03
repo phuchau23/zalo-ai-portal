@@ -15,6 +15,18 @@ pnpm dev                       # http://localhost:3000
 Tài khoản mẫu (sau khi chạy `dotnet run --project src/ZaloAi.Api -- seed` ở BE), mật khẩu `Dev@123456`:
 `owner@khoahochuyetdao.local`, `owner@anphat.local`, `admin@zaloai.local` (super admin).
 
+## Trang
+
+| Trang | Nội dung |
+| --- | --- |
+| `/login` | Đăng nhập |
+| `/` | Tổng quan |
+| `/knowledge` | Kho kiến thức: dữ liệu, nhập file, lịch sử nhập, tài liệu tham khảo, thử tìm kiếm |
+| `/knowledge/imports/[id]` | Duyệt bản so sánh khi nhập file (chọn từng mục rồi áp dụng) |
+| `/settings` | Cài đặt doanh nghiệp |
+
+Bộ dữ liệu mẫu để thử: `C:\Zalo_Tool\sample-docs\khoa-hoc-huyet-dao\` (xem README trong đó).
+
 ## Lệnh
 
 ```

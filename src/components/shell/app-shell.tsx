@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Tổng quan" },
+  { href: "/knowledge", label: "Kho kiến thức" },
   { href: "/settings", label: "Cài đặt" },
 ] as const;
 
@@ -86,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               href={item.href}
               className={cn(
                 "rounded-md px-3 py-2 text-sm hover:bg-muted",
-                pathname === item.href && "bg-muted font-medium",
+                (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) && "bg-muted font-medium",
               )}
             >
               {item.label}
