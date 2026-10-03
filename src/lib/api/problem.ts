@@ -8,7 +8,11 @@ export type ApiProblem = {
   title?: string;
   /** Lỗi theo từng trường (camelCase), chỉ có khi code = "validation_failed". */
   fieldErrors: Record<string, string>;
+  /** Lỗi trong file nhập (sheet/dòng/cột), chỉ có khi code = "invalid_file". */
+  fileErrors: FileError[];
 };
+
+export type FileError = { location: string; row: number | null; column: string | null; message: string };
 
 const messages: Record<string, string> = {
   invalid_credentials: "Email hoặc mật khẩu không đúng.",
@@ -38,20 +42,33 @@ export function toProblem(error: unknown, status: number): ApiProblem {
     }
   }
 
+  const fileErrors: FileError[] = Array.isArray(body.fileErrors)
+    ? body.fileErrors.filter(isRecord).map((e) => ({
+        location: typeof e.location === "string" ? e.location : "",
+        row: typeof e.row === "number" ? e.row : null,
+        column: typeof e.column === "string" ? e.column : null,
+        message: typeof e.message === "string" ? e.message : "",
+      }))
+    : [];
+
   const code = typeof body.code === "string" ? body.code : status >= 500 ? "internal_error" : `http_${status}`;
   return {
     status,
     code,
     title: typeof body.title === "string" ? body.title : undefined,
     fieldErrors,
+    fileErrors,
   };
 }
 
 export function networkProblem(): ApiProblem {
-  return { status: 0, code: "network_error", fieldErrors: {} };
+  return { status: 0, code: "network_error", fieldErrors: {}, fileErrors: [] };
 }
 
-/** Câu thông báo cho người dùng: ưu tiên câu dịch sẵn theo code, sau đó tới title của BE. */
+/**
+ * Câu thông báo cho người dùng: ưu tiên câu dịch sẵn theo code, sau đó tới title của BE.
+ * Các code nghiệp vụ (conflict, invalid_input, document_exists, invalid_file, ai_unavailable) dùng title của BE vì cụ thể hơn.
+ */
 export function problemMessage(problem: ApiProblem): string {
   return messages[problem.code] ?? problem.title ?? messages.internal_error;
 }

@@ -12,7 +12,7 @@ describe("toProblem", () => {
       400,
     );
 
-    expect(problem).toEqual({
+    expect(problem).toMatchObject({
       status: 400,
       code: "validation_failed",
       title: "Dữ liệu không hợp lệ.",
@@ -36,5 +36,21 @@ describe("problemMessage", () => {
 
   it("uses BE title for unknown codes", () => {
     expect(problemMessage(toProblem({ code: "new_code", title: "Câu từ BE" }, 409))).toBe("Câu từ BE");
+  });
+});
+
+describe("fileErrors", () => {
+  it("reads located file errors", () => {
+    const problem = toProblem(
+      {
+        code: "invalid_file",
+        title: "File có 1 lỗi",
+        fileErrors: [{ location: "Dịch vụ", row: 5, column: "Giá (VNĐ)", message: "Giá phải là số" }, "rác"],
+      },
+      400,
+    );
+
+    expect(problem.fileErrors).toEqual([{ location: "Dịch vụ", row: 5, column: "Giá (VNĐ)", message: "Giá phải là số" }]);
+    expect(problemMessage(problem)).toBe("File có 1 lỗi");
   });
 });
