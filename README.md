@@ -13,7 +13,7 @@ pnpm dev                       # http://localhost:3000
 ```
 
 Tài khoản mẫu (sau khi chạy `dotnet run --project src/ZaloAi.Api -- seed` ở BE), mật khẩu `Dev@123456`:
-`owner@nguyetdao.local`, `owner@anphat.local`, `admin@zaloai.local` (super admin).
+`owner@khoahochuyetdao.local`, `owner@anphat.local`, `admin@zaloai.local` (super admin).
 
 ## Lệnh
 
