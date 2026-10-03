@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { Check, CircleAlert, Copy, Lock, ShieldCheck } from "lucide-react";
+import { FileDrop } from "@/components/common/file-drop";
+import { SectionHeader } from "@/components/common/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { call } from "@/lib/api/call";
@@ -14,19 +16,23 @@ import { uploadFile } from "@/lib/api/upload";
 import { useApiData } from "@/lib/use-api-data";
 import { DownloadButtons } from "./download-buttons";
 
+const steps = [
+  { title: "Tải file mẫu", text: "Hoặc bấm Xuất Excel để lấy dữ liệu đang có." },
+  { title: "Điền / sửa trong Excel", text: "Giữ nguyên cột Mã để hệ thống nhận ra mục cũ." },
+  { title: "Nhập file lên", text: "Hệ thống chưa đổi gì ngay." },
+  { title: "Duyệt và áp dụng", text: "Xem thêm mới, thay đổi, trùng — chọn từng mục." },
+];
+
 export function ImportTab({ canEdit }: { canEdit: boolean }) {
   const router = useRouter();
-  const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [problem, setProblem] = useState<ApiProblem | null>(null);
 
-  async function onFile(file: File | undefined) {
-    if (!file) return;
+  async function onFile(file: File) {
     setUploading(true);
     setProblem(null);
     const result = await uploadFile<KnowledgeImport>("/knowledge/imports", file);
     setUploading(false);
-    if (input.current) input.current.value = "";
 
     if (result.ok) {
       router.push(`/knowledge/imports/${result.data.id}`);
@@ -36,45 +42,55 @@ export function ImportTab({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Nhập file theo mẫu</CardTitle>
-          <CardDescription>
-            Nhận file Excel (.xlsx) hoặc JSON theo mẫu. Hệ thống <strong>chưa đổi gì ngay</strong>: bạn sẽ thấy bản so sánh với dữ liệu đang
-            có (thêm mới, thay đổi, có thể trùng, không còn trong file) và chọn từng mục trước khi áp dụng.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-10">
+      <section className="flex flex-col gap-5">
+        <ol className="grid overflow-hidden rounded-md border sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((step, i) => (
+            <li key={step.title} className="-mt-px -ml-px flex gap-3 border-t border-l px-4 py-3">
+              <span className="tabular flex size-6 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-semibold text-primary-foreground">
+                {i + 1}
+              </span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium">{step.title}</span>
+                <span className="text-xs text-muted-foreground">{step.text}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
+          <div className="flex flex-col gap-3">
             {canEdit ? (
-              <>
-                <input
-                  ref={input}
-                  type="file"
-                  accept=".xlsx,.json"
-                  className="sr-only"
-                  id="knowledge-import-file"
-                  onChange={(e) => void onFile(e.target.files?.[0])}
-                />
-                <Button onClick={() => input.current?.click()} disabled={uploading}>
-                  {uploading ? "Đang đọc file..." : "Chọn file để nhập"}
-                </Button>
-              </>
+              <FileDrop
+                accept=".xlsx,.json"
+                formats="Excel (.xlsx) hoặc JSON theo mẫu"
+                busy={uploading}
+                busyLabel="Đang đọc file..."
+                onFile={(file) => void onFile(file)}
+              />
             ) : (
-              <p className="text-sm text-muted-foreground">Chỉ chủ doanh nghiệp được nhập dữ liệu.</p>
+              <div className="flex items-center gap-3 rounded-md border border-dashed px-4 py-8 text-sm text-muted-foreground">
+                <Lock className="size-4 shrink-0" aria-hidden />
+                Chỉ chủ doanh nghiệp được nhập dữ liệu. Bạn vẫn tải được file mẫu và xuất dữ liệu.
+              </div>
             )}
-            <DownloadButtons />
+            {problem && <ImportErrors problem={problem} />}
           </div>
-          <p className="text-sm text-muted-foreground">
-            Muốn sửa dữ liệu đang có: bấm <strong>Xuất Excel</strong>, sửa trong file (giữ nguyên cột Mã), rồi nhập lại.
-          </p>
 
-          {problem && <ImportErrors problem={problem} />}
-        </CardContent>
-      </Card>
+          <aside className="flex flex-col gap-3 border-t pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-5">
+            <h3 className="text-sm font-semibold">Lấy file để điền</h3>
+            <p className="text-sm text-muted-foreground">
+              File mẫu có sẵn các sheet Dịch vụ, Gói liệu trình, Câu hỏi thường gặp, Chính sách. Muốn sửa dữ liệu đang có: xuất Excel, sửa, rồi
+              nhập lại.
+            </p>
+            <div className="flex flex-col gap-2 [&>a]:justify-start">
+              <DownloadButtons />
+            </div>
+          </aside>
+        </div>
+      </section>
 
-      <AiPromptCard />
+      <AiPrompt />
     </div>
   );
 }
@@ -82,15 +98,17 @@ export function ImportTab({ canEdit }: { canEdit: boolean }) {
 function ImportErrors({ problem }: { problem: ApiProblem }) {
   return (
     <Alert variant="destructive">
+      <CircleAlert aria-hidden />
       <AlertTitle>{problemMessage(problem)}</AlertTitle>
       {problem.fileErrors.length > 0 && (
         <AlertDescription>
-          <div className="mt-2 max-h-80 w-full overflow-auto rounded-md border bg-background text-foreground">
+          <p className="mb-2">Sửa các ô dưới đây trong file rồi nhập lại ({problem.fileErrors.length} lỗi).</p>
+          <div className="max-h-80 w-full overflow-auto rounded-md border bg-background text-foreground">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0">
                 <TableRow>
                   <TableHead>Sheet / nhóm</TableHead>
-                  <TableHead>Dòng</TableHead>
+                  <TableHead className="text-right">Dòng</TableHead>
                   <TableHead>Cột</TableHead>
                   <TableHead>Lỗi</TableHead>
                 </TableRow>
@@ -99,9 +117,9 @@ function ImportErrors({ problem }: { problem: ApiProblem }) {
                 {problem.fileErrors.map((e, i) => (
                   <TableRow key={i}>
                     <TableCell>{e.location}</TableCell>
-                    <TableCell>{e.row ?? ""}</TableCell>
-                    <TableCell>{e.column ?? ""}</TableCell>
-                    <TableCell className="whitespace-normal">{e.message}</TableCell>
+                    <TableCell className="text-right font-mono text-xs">{e.row ?? "—"}</TableCell>
+                    <TableCell>{e.column ? <span className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-xs">{e.column}</span> : "—"}</TableCell>
+                    <TableCell className="whitespace-normal text-destructive">{e.message}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -113,7 +131,7 @@ function ImportErrors({ problem }: { problem: ApiProblem }) {
   );
 }
 
-function AiPromptCard() {
+function AiPrompt() {
   const { data } = useApiData(() => call(() => api.GET("/knowledge/ai-prompt")));
   const [copied, setCopied] = useState(false);
 
@@ -124,28 +142,37 @@ function AiPromptCard() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Nhờ AI chuyển tài liệu có sẵn sang mẫu</CardTitle>
-        <CardDescription>
-          Có bảng giá dạng ảnh, Word, hoặc nội dung trên website? Mở ChatGPT, Claude hoặc Gemini, dán câu lệnh dưới đây kèm tài liệu của bạn,
-          lưu kết quả thành file <code>.json</code> rồi nhập ở trên. Luôn kiểm tra lại giá trong bản so sánh — AI có thể đọc sai.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2">
-        <Alert>
-          <AlertDescription>
-            Chỉ đưa cho AI bên ngoài tài liệu công khai (bảng giá, dịch vụ, câu hỏi thường gặp). Không đưa danh sách khách hàng, số điện
-            thoại, hồ sơ bệnh.
-          </AlertDescription>
-        </Alert>
-        <Textarea readOnly value={data?.prompt ?? "Đang tải..."} rows={10} className="font-mono text-xs" aria-label="Câu lệnh mẫu cho AI" />
-        <div>
-          <Button variant="outline" size="sm" onClick={() => void copy()} disabled={!data}>
+    <section className="flex flex-col gap-4 border-t pt-8">
+      <SectionHeader
+        title="Nhờ AI chuyển tài liệu có sẵn sang mẫu"
+        description={
+          <>
+            Có bảng giá dạng ảnh, Word, hoặc nội dung trên website? Mở ChatGPT, Claude hoặc Gemini, dán câu lệnh dưới đây kèm tài liệu của bạn, lưu
+            kết quả thành file <code className="rounded-sm bg-muted px-1 font-mono text-xs">.json</code> rồi nhập ở trên. Luôn kiểm tra lại giá trong
+            bản so sánh — AI có thể đọc sai.
+          </>
+        }
+        actions={
+          <Button variant="outline" onClick={() => void copy()} disabled={!data} aria-live="polite">
+            {copied ? <Check className="text-success" aria-hidden /> : <Copy aria-hidden />}
             {copied ? "Đã sao chép" : "Sao chép câu lệnh"}
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+        }
+      />
+      <Alert variant="warning">
+        <ShieldCheck aria-hidden />
+        <AlertDescription className="text-foreground">
+          Chỉ đưa cho AI bên ngoài tài liệu công khai (bảng giá, dịch vụ, câu hỏi thường gặp). Không đưa danh sách khách hàng, số điện thoại, hồ sơ
+          bệnh.
+        </AlertDescription>
+      </Alert>
+      <Textarea
+        readOnly
+        value={data?.prompt ?? "Đang tải..."}
+        rows={10}
+        className="max-h-80 bg-muted/30 font-mono text-xs leading-relaxed"
+        aria-label="Câu lệnh mẫu cho AI"
+      />
+    </section>
   );
 }
