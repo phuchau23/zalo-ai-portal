@@ -45,3 +45,13 @@ export function usePolling(active: boolean, reload: () => void, ms = 3000) {
     return () => clearInterval(timer);
   }, [active, reload, ms]);
 }
+
+/** Thời điểm hiện tại, cập nhật mỗi `ms` — cho chữ "đã chờ X phút", "còn X ngày". */
+export function useNow(ms = 30_000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(timer);
+  }, [ms]);
+  return now;
+}

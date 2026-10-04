@@ -14,6 +14,9 @@ const handoffReasons: Record<string, string> = {
   out_of_scope: "Ngoài lĩnh vực của doanh nghiệp",
   ai_error: "Dịch vụ AI gặp lỗi",
   forbidden_phrase: "Câu trả lời vi phạm câu cấm",
+  media: "Khách gửi hình ảnh/tệp bot chưa đọc được",
+  staff_takeover: "Nhân viên đã tiếp quản",
+  staff_replied_in_oa: "Nhân viên trả lời trong ứng dụng Zalo OA",
   other: "Lý do khác",
 };
 
@@ -74,6 +77,12 @@ export function guardLabel(guard: string, forbidden: readonly string[] = []): { 
       return { label: "Dịch vụ AI lỗi hoặc quá tải: gửi câu dự phòng, chuyển nhân viên.", tone: "warning" };
     case "search_unavailable":
       return { label: "Không tra cứu được kho kiến thức lúc này: bot trả lời mà không có dữ liệu.", tone: "warning" };
+    case "media_handoff":
+      return { label: "Khách gửi ảnh/tệp: bot chưa xem được nên trả lời mẫu và chuyển nhân viên.", tone: "info" };
+    case "sticker_reply":
+      return { label: "Khách gửi sticker: bot đáp ngắn, không gọi AI.", tone: "secondary" };
+    case "negative_sentiment_handoff":
+      return { label: "Khách có vẻ không hài lòng: chuyển nhân viên.", tone: "warning" };
     case "empty_reply":
       return { label: "AI không trả nội dung: chuyển nhân viên.", tone: "warning" };
     default:

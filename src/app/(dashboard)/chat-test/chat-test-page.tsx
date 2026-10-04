@@ -101,13 +101,14 @@ export function ChatTestPage() {
     if (result.ok) show(result.data);
   }, [conversation, show]);
 
-  // Bot đang xử lý → hỏi lại định kỳ cho tới khi có trả lời.
+  // Bot đang xử lý → hỏi lại định kỳ cho tới khi có trả lời. Nhân viên đang xử lý → hỏi lại chậm hơn để thấy tin nhân viên gửi.
   const waiting = Boolean(conversation?.waitingForBot);
+  const humanMode = conversation?.mode === "human";
   useEffect(() => {
-    if (!waiting) return;
-    const timer = setInterval(() => void refresh(), pollMs);
+    if (!waiting && !humanMode) return;
+    const timer = setInterval(() => void refresh(), waiting ? pollMs : 3000);
     return () => clearInterval(timer);
-  }, [waiting, refresh]);
+  }, [waiting, humanMode, refresh]);
 
   useEffect(() => {
     if (waitingSince === null) return;
@@ -327,7 +328,8 @@ export function ChatTestPage() {
             <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span>
                 {conversation?.handoffReason ? `Lý do: ${handoffReasonLabel(conversation.handoffReason)}. ` : ""}
-                Khi chạy thật, bot dừng trả lời để nhân viên tiếp quản.
+                Bot đã dừng. Mở <a href="/inbox" target="_blank" rel="noopener" className="font-medium underline underline-offset-2">Hộp thư</a> ở tab khác để trả
+                lời như nhân viên, hoặc tiếp tục nhắn ở đây như khách.
               </span>
               <Button size="sm" variant="outline" onClick={() => void returnToBot()} disabled={busy} className="shrink-0">
                 <RotateCcw aria-hidden />
@@ -356,11 +358,10 @@ export function ChatTestPage() {
             onKeyDown={onKeyDown}
             maxLength={maxLength}
             rows={1}
-            disabled={isHuman}
-            placeholder={isHuman ? 'Bấm "Trả lại cho bot" để nhắn tiếp' : "Nhập tin như khách hàng... (Enter để gửi, Shift+Enter xuống dòng)"}
+            placeholder="Nhập tin như khách hàng... (Enter để gửi, Shift+Enter xuống dòng)"
             className="max-h-36 min-h-11 resize-none"
           />
-          <Button type="submit" size="icon-lg" className="size-11 shrink-0" disabled={sending || isHuman || !draft.trim()} aria-label="Gửi tin">
+          <Button type="submit" size="icon-lg" className="size-11 shrink-0" disabled={sending || !draft.trim()} aria-label="Gửi tin">
             {sending ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <SendHorizontal aria-hidden />}
           </Button>
         </form>
@@ -403,19 +404,29 @@ function MessageBubble({
 }) {
   const fromCustomer = message.sender === "customer";
   const time = new Date(message.createdAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+  if (message.sender === "system") {
+    return (
+      <li className="mx-auto max-w-[85%] rounded-md border border-dashed bg-card px-3 py-2 text-center text-xs text-pretty whitespace-pre-wrap text-muted-foreground">
+        {message.text}
+      </li>
+    );
+  }
+
   return (
     <li className={cn("flex max-w-[85%] flex-col gap-1 sm:max-w-[75%]", fromCustomer ? "items-end self-end" : "items-start self-start")}>
-      <span className="sr-only">{fromCustomer ? "Khách:" : `${botName}:`}</span>
+      <span className="sr-only">{fromCustomer ? "Khách:" : message.sender === "staff" ? "Nhân viên:" : `${botName}:`}</span>
       <div
         className={cn(
           "rounded-2xl px-4 py-2.5 text-sm break-words whitespace-pre-wrap",
           fromCustomer ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm border bg-card",
+          message.sender === "staff" && "border-success/40 bg-success/5",
           selected && !fromCustomer && "ring-2 ring-primary/40",
         )}
       >
         <Linkified text={message.text} inverted={fromCustomer} />
       </div>
       <div className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
+        {message.sender === "staff" && <span className="font-medium text-success">Nhân viên</span>}
         <time dateTime={message.createdAt} className="tabular">
           {time}
         </time>
