@@ -19,7 +19,7 @@ const steps: Step[] = [
     icon: Database,
     href: "/knowledge",
   },
-  { title: "Chat thử", description: "Tự chat với bot và chỉnh giọng văn trước khi bật cho khách.", icon: MessagesSquare, module: "M3" },
+  { title: "Chat thử", description: "Tự chat với bot và chỉnh giọng văn trước khi bật cho khách.", icon: MessagesSquare, href: "/chat-test" },
   { title: "Kết nối Zalo OA", description: "Kết nối Official Account để bot trả lời khách 24/7.", icon: Plug, module: "M4" },
   { title: "Hộp thư", description: "Xem hội thoại, tiếp quản khi khách cần người thật.", icon: Inbox, module: "M5" },
 ];

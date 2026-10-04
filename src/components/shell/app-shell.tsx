@@ -17,6 +17,7 @@ type NavItem = { href: string; label: string; icon: LucideIcon; external?: boole
 const navItems: NavItem[] = [
   { href: "/", label: "Tổng quan", icon: House },
   { href: "/knowledge", label: "Kho kiến thức", icon: Database },
+  { href: "/chat-test", label: "Chat thử", icon: MessagesSquare },
   { href: "/settings", label: "Cài đặt", icon: Settings },
 ];
 

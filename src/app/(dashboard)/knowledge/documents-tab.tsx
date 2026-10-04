@@ -24,6 +24,7 @@ import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { uploadFile } from "@/lib/api/upload";
 import { formatBytes, formatDateTime } from "@/lib/format";
 import { useApiData, usePolling } from "@/lib/use-api-data";
+import { MedicalReviewToggle } from "./medical-review";
 
 const statusLabels: Record<string, { label: string; variant: "info" | "success" | "secondary" | "destructive" }> = {
   pending: { label: "Đang chờ", variant: "secondary" },
@@ -135,6 +136,11 @@ export function DocumentsTab({ canEdit }: { canEdit: boolean }) {
                         <div className="min-w-0">
                           <div className="font-medium break-all">{d.fileName}</div>
                           {d.error && <div className="text-sm text-destructive">{d.error}</div>}
+                          {d.status === "ready" && (canEdit || d.medicallyReviewed) && (
+                            <div className="mt-1.5">
+                              <MedicalReviewToggle target="documents" id={d.id} reviewed={d.medicallyReviewed} canEdit={canEdit} onChanged={reload} compact />
+                            </div>
+                          )}
                           <div className="text-xs text-muted-foreground md:hidden">
                             {formatBytes(d.sizeBytes)} · {formatDateTime(d.updatedAt)}
                           </div>
