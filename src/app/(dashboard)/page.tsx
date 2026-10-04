@@ -20,7 +20,7 @@ const steps: Step[] = [
     href: "/knowledge",
   },
   { title: "Chat thử", description: "Tự chat với bot và chỉnh giọng văn trước khi bật cho khách.", icon: MessagesSquare, href: "/chat-test" },
-  { title: "Kết nối Zalo OA", description: "Kết nối Official Account để bot trả lời khách 24/7.", icon: Plug, module: "M4" },
+  { title: "Kết nối Zalo OA", description: "Kết nối Official Account để bot trả lời khách 24/7.", icon: Plug, href: "/channels" },
   { title: "Hộp thư", description: "Xem hội thoại, tiếp quản khi khách cần người thật.", icon: Inbox, module: "M5" },
 ];
 
@@ -37,7 +37,7 @@ export default function OverviewPage() {
         <Stat label="Mục dữ liệu" value={status?.items} icon={Database} href="/knowledge" />
         <Stat label="Tài liệu tham khảo" value={status?.documents} icon={FileText} href="/knowledge?tab=documents" />
         <Stat label="Hội thoại hôm nay" hint="Có ở M5" icon={Inbox} />
-        <Stat label="Zalo OA" hint="Chưa kết nối" icon={Plug} />
+        <Stat label="Zalo OA" hint="Xem kết nối" icon={Plug} href="/channels" />
       </div>
 
       <section className="flex flex-col gap-3">

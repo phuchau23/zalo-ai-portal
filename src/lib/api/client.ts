@@ -24,3 +24,5 @@ export type ChatConversationSummary = Schemas["ChatTestConversationSummary"];
 export type ChatMessage = Schemas["ChatMessageResponse"];
 export type ChatTrace = Schemas["ChatTraceResponse"];
 export type ChatTraceChunk = Schemas["ChatTraceChunkResponse"];
+export type ChannelsInfo = Schemas["ChannelsResponse"];
+export type ChannelConnection = Schemas["ChannelConnectionResponse"];
