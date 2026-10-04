@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { Building2, Database, House, ListChecks, LogOut, MessagesSquare, Settings, type LucideIcon } from "lucide-react";
+import { Building2, Database, House, ListChecks, LogOut, MessagesSquare, Plug, Settings, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/common/states";
@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { href: "/", label: "Tổng quan", icon: House },
   { href: "/knowledge", label: "Kho kiến thức", icon: Database },
   { href: "/chat-test", label: "Chat thử", icon: MessagesSquare },
+  { href: "/channels", label: "Kết nối kênh", icon: Plug },
   { href: "/settings", label: "Cài đặt", icon: Settings },
 ];
 
