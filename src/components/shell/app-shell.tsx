@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
-import { Building2, Database, House, ListChecks, LogOut, MessagesSquare, Plug, Settings, type LucideIcon } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Building2, Database, HeartHandshake, House, Inbox, ListChecks, LogOut, MessagesSquare, Plug, Settings, Users, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/common/states";
@@ -12,10 +12,13 @@ import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; external?: boolean };
+type NavItem = { href: string; label: string; icon: LucideIcon; external?: boolean; badge?: number };
 
 const navItems: NavItem[] = [
   { href: "/", label: "Tổng quan", icon: House },
+  { href: "/inbox", label: "Hộp thư", icon: Inbox },
+  { href: "/care", label: "Cần chăm sóc", icon: HeartHandshake },
+  { href: "/customers", label: "Khách hàng", icon: Users },
   { href: "/knowledge", label: "Kho kiến thức", icon: Database },
   { href: "/chat-test", label: "Chat thử", icon: MessagesSquare },
   { href: "/channels", label: "Kết nối kênh", icon: Plug },
@@ -39,11 +42,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
 
+  const careCount = useCareCount(me.currentTenant?.id);
   const activeTenants = me.tenants.filter((t) => t.isActive);
   const items: NavItem[] = me.isSuperAdmin
     ? // Trang của BE (qua rewrite), không phải trang Next.js, nên dùng <a>.
       [...navItems, { href: "/hangfire", label: "Hàng đợi job", icon: ListChecks, external: true }]
     : navItems;
+  const withBadges = items.map((item) => (item.href === "/care" ? { ...item, badge: careCount } : item));
   const role = me.currentTenant ? (roleLabels[me.currentTenant.role] ?? me.currentTenant.role) : me.isSuperAdmin ? "Super admin" : "";
 
   async function switchTenant(tenantId: string) {
@@ -93,7 +98,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Brand className="h-14 border-b px-4" />
         <div className="border-b p-3">{tenantPicker}</div>
         <nav aria-label="Menu chính" className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
-          {items.map((item) => (
+          {withBadges.map((item) => (
             <NavLink key={item.href} item={item} active={isActive(pathname, item.href)} />
           ))}
         </nav>
@@ -125,7 +130,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         {me.currentTenant && <div className="px-4 pb-2">{tenantPicker}</div>}
         <nav aria-label="Menu chính" className="flex overflow-x-auto px-2">
-          {items.map((item) => {
+          {withBadges.map((item) => {
             const active = isActive(pathname, item.href);
             const Icon = item.icon;
             const className = cn(
@@ -136,6 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <>
                 <Icon className="size-4" aria-hidden />
                 {item.label}
+                <NavBadge count={item.badge} />
               </>
             );
             return item.external ? (
@@ -190,6 +196,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
     <>
       <Icon className={cn("size-4 shrink-0", active ? "text-sidebar-primary" : "text-muted-foreground")} aria-hidden />
       {item.label}
+      <NavBadge count={item.badge} className="ml-auto" />
     </>
   );
 
@@ -201,5 +208,35 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
     <Link href={item.href} className={className} aria-current={active ? "page" : undefined}>
       {content}
     </Link>
+  );
+}
+
+/** Số gợi ý "Cần chăm sóc" đang mở; tải lại mỗi phút. */
+function useCareCount(tenantId: string | undefined) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!tenantId) return;
+    let cancelled = false;
+    const load = async () => {
+      const result = await call(() => api.GET("/care/count"));
+      if (!cancelled && result.ok) setCount(result.data.open);
+    };
+    void load();
+    const timer = setInterval(() => void load(), 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [tenantId]);
+  return count;
+}
+
+function NavBadge({ count, className }: { count?: number; className?: string }) {
+  if (!count) return null;
+  return (
+    <span className={cn("tabular rounded-full bg-primary px-1.5 text-xs leading-5 text-primary-foreground", className)}>
+      {count > 99 ? "99+" : count}
+      <span className="sr-only"> khách cần chăm sóc</span>
+    </span>
   );
 }
