@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, CircleCheck, CircleDashed, Database, FileText, Inbox, MessagesSquare, Plug, type LucideIcon } from "lucide-react";
 import { PageHeader, SectionHeader } from "@/components/common/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +28,17 @@ const steps: Step[] = [
 
 export default function OverviewPage() {
   const { me } = useSession();
+  const router = useRouter();
+  const isStaff = me.currentTenant?.role === "staff";
   const { data: status } = useApiData(() => call(() => api.GET("/knowledge/status")));
+  const { data: waiting } = useApiData(() =>
+    call(() => api.GET("/inbox/conversations", { params: { query: { filter: "attention", includeTest: false } } })),
+  );
+
+  // Nhân viên trực: vào thẳng Hộp thư.
+  useEffect(() => {
+    if (isStaff) router.replace("/inbox");
+  }, [isStaff, router]);
   const knowledgeReady = Boolean(status && status.items + status.documents > 0);
 
   return (
@@ -36,7 +48,7 @@ export default function OverviewPage() {
       <div className="grid grid-cols-2 overflow-hidden rounded-md border lg:grid-cols-4">
         <Stat label="Mục dữ liệu" value={status?.items} icon={Database} href="/knowledge" />
         <Stat label="Tài liệu tham khảo" value={status?.documents} icon={FileText} href="/knowledge?tab=documents" />
-        <Stat label="Hội thoại hôm nay" hint="Có ở M5" icon={Inbox} />
+        <Stat label="Khách đang chờ nhân viên" value={waiting?.length} icon={Inbox} href="/inbox" />
         <Stat label="Zalo OA" hint="Xem kết nối" icon={Plug} href="/channels" />
       </div>
 
