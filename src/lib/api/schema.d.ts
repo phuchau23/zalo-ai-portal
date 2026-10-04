@@ -392,6 +392,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tenant/bot-style": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateBotStyleRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TenantSettingsResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/knowledge/template": {
         parameters: {
             query?: never;
@@ -949,6 +1006,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/knowledge/documents/{documentId}/medically-reviewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    documentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetMedicallyReviewedRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KnowledgeDocumentResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/items/{itemId}/medically-reviewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetMedicallyReviewedRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["KnowledgeItemResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/knowledge/documents/{documentId}": {
         parameters: {
             query?: never;
@@ -993,12 +1150,335 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/chat-test/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChatTestConversationSummary"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChatTestConversationResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat-test/conversations/{conversationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    conversationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChatTestConversationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    conversationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat-test/conversations/{conversationId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    conversationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SendChatTestMessageRequest"];
+                };
+            };
+            responses: {
+                /** @description Accepted */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChatMessageResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Too Many Requests */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat-test/conversations/{conversationId}/return-to-bot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    conversationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChatTestConversationResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ApplyKnowledgeImportRequest: {
             selections: components["schemas"]["KnowledgeSelectionRequest"][];
+        };
+        ChatMessageResponse: {
+            /** Format: uuid */
+            id: string;
+            sender: string;
+            text: string;
+            /** Format: date-time */
+            createdAt: string;
+            trace: null | components["schemas"]["ChatTraceResponse"];
+        };
+        ChatTestConversationResponse: {
+            /** Format: uuid */
+            id: string;
+            mode: string;
+            handoffReason: null | string;
+            urgency: string;
+            waitingForBot: boolean;
+            /** Format: double */
+            costUsd: number;
+            /** Format: int32 */
+            aiCalls: number;
+            /** Format: date-time */
+            createdAt: string;
+            messages: components["schemas"]["ChatMessageResponse"][];
+        };
+        ChatTestConversationSummary: {
+            /** Format: uuid */
+            id: string;
+            mode: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ChatTraceChunkResponse: {
+            id: string;
+            /** Format: uuid */
+            chunkId: string;
+            source: string;
+            /** Format: uuid */
+            sourceId: string;
+            code: null | string;
+            title: null | string;
+            excerpt: string;
+            /** Format: double */
+            score: number;
+            medicallyReviewed: boolean;
+            used: boolean;
+        };
+        ChatTraceResponse: {
+            template: string;
+            model: null | string;
+            /** Format: int32 */
+            calls: number;
+            /** Format: int64 */
+            latencyMs: number;
+            dangerSignal: null | string;
+            guards: string[];
+            forbidden: string[];
+            chunks: components["schemas"]["ChatTraceChunkResponse"][];
+            /** Format: int32 */
+            belowThreshold: number;
+            confidence: string;
+            needsHuman: boolean;
+            handoffReason: null | string;
+            urgency: string;
+            sentiment: null | string;
+            healthTopic: boolean;
+            leadKeys: string[];
+            /** Format: int32 */
+            piiMasked: number;
+            firstReply: boolean;
         };
         EnqueuedJobResponse: {
             jobId: string;
@@ -1070,6 +1550,7 @@ export interface components {
             error: null | string;
             /** Format: int32 */
             chunkCount: number;
+            medicallyReviewed: boolean;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -1122,6 +1603,7 @@ export interface components {
             code: string;
             title: string;
             fields: components["schemas"]["KnowledgeFieldValueResponse"][];
+            medicallyReviewed: boolean;
             /** Format: date-time */
             updatedAt: string;
         };
@@ -1179,6 +1661,12 @@ export interface components {
             detail?: null | string;
             instance?: null | string;
         };
+        SendChatTestMessageRequest: {
+            text: string;
+        };
+        SetMedicallyReviewedRequest: {
+            reviewed: boolean;
+        };
         SwitchTenantRequest: {
             /** Format: uuid */
             tenantId: string;
@@ -1193,6 +1681,8 @@ export interface components {
             privacyUrl: null | string;
             plan: string;
             status: string;
+            botTone: string;
+            botInstructions: null | string;
         };
         TenantSummary: {
             /** Format: uuid */
@@ -1200,6 +1690,10 @@ export interface components {
             name: string;
             role: string;
             isActive: boolean;
+        };
+        UpdateBotStyleRequest: {
+            botTone: string;
+            botInstructions: null | string;
         };
         UpdateTenantSettingsRequest: {
             name: string;

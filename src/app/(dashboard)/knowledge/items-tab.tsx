@@ -12,6 +12,7 @@ import { formatDateTime, formatFieldValue } from "@/lib/format";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { DownloadButtons } from "./download-buttons";
+import { MedicalReviewBadge, MedicalReviewToggle } from "./medical-review";
 
 const kinds = [
   { value: "all", label: "Tất cả" },
@@ -191,7 +192,10 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
                       </Button>
                     </TableCell>
                     <TableCell className="whitespace-normal">
-                      <div className="font-medium">{item.title}</div>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="font-medium">{item.title}</span>
+                        {item.medicallyReviewed && <MedicalReviewBadge />}
+                      </div>
                       <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground md:hidden">
                         <span className={cn("size-1.5 rounded-full", kindDot[item.kind] ?? "bg-muted-foreground")} aria-hidden />
                         {item.kindLabel}
@@ -233,6 +237,10 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
                           ))}
                           <dt className="text-muted-foreground">Cập nhật</dt>
                           <dd>{formatDateTime(item.updatedAt)}</dd>
+                          <dt className="text-muted-foreground">Duyệt chuyên môn</dt>
+                          <dd>
+                            <MedicalReviewToggle target="items" id={item.id} reviewed={item.medicallyReviewed} canEdit={canEdit} onChanged={reload} />
+                          </dd>
                         </dl>
                       </TableCell>
                     </TableRow>
