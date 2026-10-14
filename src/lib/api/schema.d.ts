@@ -3363,6 +3363,218 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/contacts/import/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contacts/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactImportPreviewResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/contacts/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        file: components["schemas"]["IFormFile"];
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContactImportResultResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/care/phone-due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PhoneDueItem"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/care/phone-due/{noteId}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    noteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3601,6 +3813,39 @@ export interface components {
             conversations: components["schemas"]["ContactConversationItem"][];
             suggestions: components["schemas"]["CareSuggestionItem"][];
         };
+        ContactImportPreviewItem: {
+            /** Format: int32 */
+            row: number;
+            phone: null | string;
+            name: null | string;
+            salutation: null | string;
+            service: null | string;
+            /** Format: date-time */
+            followUpAt: null | string;
+            consent: null | boolean;
+            action: string;
+            existingName: null | string;
+            errors: string[];
+        };
+        ContactImportPreviewResponse: {
+            rows: components["schemas"]["ContactImportPreviewItem"][];
+            /** Format: int32 */
+            new: number;
+            /** Format: int32 */
+            update: number;
+            /** Format: int32 */
+            error: number;
+        };
+        ContactImportResultResponse: {
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            updated: number;
+            /** Format: int32 */
+            skipped: number;
+            /** Format: int32 */
+            followUps: number;
+        };
         ContactListItem: {
             /** Format: uuid */
             id: string;
@@ -3621,6 +3866,8 @@ export interface components {
             lastProactiveAt: null | string;
             salutation: null | string;
             salutationSource: null | string;
+            consentMarketing: boolean;
+            consentSource: null | string;
         };
         ContactListResponse: {
             items: components["schemas"]["ContactListItem"][];
@@ -3933,6 +4180,22 @@ export interface components {
             isSuperAdmin: boolean;
             currentTenant: null | components["schemas"]["TenantSummary"];
             tenants: components["schemas"]["TenantSummary"][];
+        };
+        PhoneDueItem: {
+            /** Format: uuid */
+            noteId: string;
+            /** Format: uuid */
+            contactId: string;
+            name: string;
+            phone: null | string;
+            salutation: string;
+            note: string;
+            kind: string;
+            /** Format: date */
+            happenedOn: string;
+            /** Format: date-time */
+            followUpAt: string;
+            consentMarketing: boolean;
         };
         PlanResponse: {
             code: string;

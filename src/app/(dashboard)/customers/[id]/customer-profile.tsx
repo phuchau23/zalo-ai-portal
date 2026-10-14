@@ -264,6 +264,11 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
                   ? `Lần cuối bot chủ động nhắn: ${formatVnTime(c.lastProactiveAt)}.`
                   : "Bot hỏi thăm khi khách im lặng hoặc tới giờ hẹn chăm sóc trong nhật ký."}
             </p>
+            <p className="text-xs text-muted-foreground">
+              Nhận tin ưu đãi:{" "}
+              <span className="font-medium text-foreground">{c.consentSource === null ? "chưa có thông tin" : c.consentMarketing ? "Có" : "Không"}</span>
+              {c.consentSource === "import" && " (từ danh sách doanh nghiệp nhập)"}
+            </p>
           </section>
 
           <TagEditor tags={c.tags} onChange={(tags) => void patch({ tags })} />

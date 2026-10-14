@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronRight, FileSpreadsheet, Search, Users } from "lucide-react";
+import { ChevronRight, FileSpreadsheet, Search, Upload, Users } from "lucide-react";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -95,6 +95,10 @@ export function CustomersPage() {
             </SelectContent>
           </Select>
         )}
+        <Link href="/customers/import" className={cn(buttonVariants({ variant: "outline" }), "h-11 sm:h-9")}>
+          <Upload aria-hidden />
+          Nhập danh sách
+        </Link>
         {isOwner && (
           <a className={cn(buttonVariants({ variant: "outline" }), "h-11 sm:h-9")} href={`/api/contacts/export?${exportQuery}`} download>
             <FileSpreadsheet aria-hidden />
@@ -229,6 +233,7 @@ function Meta({ contact, now, hideTime }: { contact: ContactItem; now: number; h
   return (
     <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
       {contact.isTest && <Badge variant="outline">Chat thử</Badge>}
+      {contact.channel === "phone" && <Badge variant="outline">Chỉ có SĐT</Badge>}
       {contact.tags.map((t) => (
         <Badge key={t} variant="secondary">
           {t}
