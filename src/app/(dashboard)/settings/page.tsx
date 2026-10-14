@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader, SectionHeader } from "@/components/common/page-header";
 import { HandoffForm } from "./handoff-form";
 import { SettingsForm } from "./settings-form";
+import { TeamSection } from "./team-section";
 
 export const metadata: Metadata = { title: "Cài đặt — Trợ lý Zalo AI" };
 
@@ -17,6 +18,7 @@ export default function SettingsPage() {
         />
         <HandoffForm />
       </div>
+      <TeamSection />
     </div>
   );
 }

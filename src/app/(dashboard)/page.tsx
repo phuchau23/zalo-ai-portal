@@ -11,6 +11,7 @@ import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
+import { OverviewDashboard } from "./overview-dashboard";
 
 type Step = { title: string; description: string; icon: LucideIcon; href?: string; module?: string };
 
@@ -30,6 +31,7 @@ export default function OverviewPage() {
   const { me } = useSession();
   const router = useRouter();
   const isStaff = me.currentTenant?.role === "staff";
+  const isOwner = me.currentTenant?.role === "owner";
   const { data: status } = useApiData(() => call(() => api.GET("/knowledge/status")));
   const { data: waiting } = useApiData(() =>
     call(() => api.GET("/inbox/conversations", { params: { query: { filter: "attention", includeTest: false } } })),
@@ -44,6 +46,8 @@ export default function OverviewPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title={`Xin chào, ${me.name}`} description={me.currentTenant?.name} />
+
+      {isOwner && <OverviewDashboard />}
 
       <div className="grid grid-cols-2 overflow-hidden rounded-md border lg:grid-cols-4">
         <Stat label="Mục dữ liệu" value={status?.items} icon={Database} href="/knowledge" />

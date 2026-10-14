@@ -3,13 +3,30 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { Building2, Database, HeartHandshake, House, Inbox, ListChecks, LogOut, MessagesSquare, Plug, Settings, Users, type LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  Building2,
+  CalendarClock,
+  Gauge,
+  Database,
+  HeartHandshake,
+  House,
+  Inbox,
+  ListChecks,
+  LogOut,
+  MessagesSquare,
+  Plug,
+  Settings,
+  ShieldCheck,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/common/states";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
+import { expiryState, formatVnDate } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 type NavItem = { href: string; label: string; icon: LucideIcon; external?: boolean; badge?: number };
@@ -45,9 +62,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const careCount = useCareCount(me.currentTenant?.id);
   const activeTenants = me.tenants.filter((t) => t.isActive);
   const items: NavItem[] = me.isSuperAdmin
-    ? // Trang của BE (qua rewrite), không phải trang Next.js, nên dùng <a>.
-      [...navItems, { href: "/hangfire", label: "Hàng đợi job", icon: ListChecks, external: true }]
+    ? [
+        ...(me.currentTenant ? navItems : []),
+        { href: "/admin", label: "Quản trị hệ thống", icon: ShieldCheck },
+        // Trang của BE (qua rewrite), không phải trang Next.js, nên dùng <a>.
+        { href: "/hangfire", label: "Hàng đợi job", icon: ListChecks, external: true },
+      ]
     : navItems;
+  // Trang /admin (super admin) và /account (đổi mật khẩu) không cần doanh nghiệp đang hoạt động.
+  const adminArea = (me.isSuperAdmin && pathname.startsWith("/admin")) || pathname.startsWith("/account");
   const withBadges = items.map((item) => (item.href === "/care" ? { ...item, badge: careCount } : item));
   const role = me.currentTenant ? (roleLabels[me.currentTenant.role] ?? me.currentTenant.role) : me.isSuperAdmin ? "Super admin" : "";
 
@@ -103,16 +126,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="flex items-center gap-2.5 border-t p-3">
-          <span
-            className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground"
-            aria-hidden
+          <Link
+            href="/account"
+            title="Tài khoản, đổi mật khẩu"
+            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md p-0.5 hover:bg-sidebar-accent/70 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
-            {initials(me.name)}
-          </span>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-sm font-medium text-foreground">{me.name}</span>
-            {role && <span className="truncate text-xs text-muted-foreground">{role}</span>}
-          </div>
+            <span
+              className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground"
+              aria-hidden
+            >
+              {initials(me.name)}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-sm font-medium text-foreground">{me.name}</span>
+              {role && <span className="truncate text-xs text-muted-foreground">{role}</span>}
+            </span>
+          </Link>
           <Button variant="ghost" size="icon-sm" onClick={() => void logout()} disabled={busy} aria-label="Đăng xuất" title="Đăng xuất">
             <LogOut />
           </Button>
@@ -123,7 +152,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-20 border-b bg-background md:hidden">
         <div className="flex h-14 items-center gap-2 px-4">
           <Brand />
-          <Button variant="ghost" size="sm" className="ml-auto" onClick={() => void logout()} disabled={busy}>
+          <Link
+            href="/account"
+            aria-label="Tài khoản, đổi mật khẩu"
+            className="ml-auto flex size-11 items-center justify-center rounded-md text-xs font-semibold hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            <span className="flex size-8 items-center justify-center rounded-md bg-accent text-accent-foreground">{initials(me.name)}</span>
+          </Link>
+          <Button variant="ghost" size="sm" onClick={() => void logout()} disabled={busy}>
             <LogOut aria-hidden />
             Đăng xuất
           </Button>
@@ -159,14 +195,30 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main className="min-w-0 flex-1">
         <div className="mx-auto flex w-full max-w-6xl flex-col px-4 py-6 md:px-8 md:py-8">
-          {me.currentTenant ? (
+          {adminArea ? (
             children
+          ) : me.currentTenant ? (
+            <>
+              {me.currentTenant.role === "owner" && (
+                <>
+                  <ExpiryBanner expiresAt={me.currentTenant.expiresAt} />
+                  <UsageBanner tenantId={me.currentTenant.id} />
+                </>
+              )}
+              {children}
+            </>
           ) : (
             <EmptyState
               icon={Building2}
               title="Chưa có doanh nghiệp đang hoạt động"
               description="Tài khoản của bạn chưa thuộc doanh nghiệp nào, hoặc doanh nghiệp đã bị tạm khóa. Liên hệ quản trị viên để được thêm vào doanh nghiệp."
-            />
+            >
+              {me.isSuperAdmin && (
+                <Link href="/admin" className={cn(buttonVariants({ variant: "outline" }), "h-11 sm:h-9")}>
+                  Mở trang quản trị hệ thống
+                </Link>
+              )}
+            </EmptyState>
           )}
         </div>
       </main>
@@ -208,6 +260,58 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
     <Link href={item.href} className={className} aria-current={active ? "page" : undefined}>
       {content}
     </Link>
+  );
+}
+
+/** Nhắc chủ DN gia hạn: từ 7 ngày trước hạn; quá hạn 3 ngày thì hệ thống tự khóa (BE: Billing). */
+function ExpiryBanner({ expiresAt }: { expiresAt: string | null }) {
+  const state = expiryState(expiresAt);
+  if (state.kind === "none") return null;
+  const date = formatVnDate(expiresAt);
+  return (
+    <div role="status" className="mb-6 flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+      <CalendarClock className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <p>
+        {state.kind === "soon"
+          ? `Gói thuê hết hạn ${state.daysLeft === 0 ? "hôm nay" : `sau ${state.daysLeft} ngày`} (${date}). Liên hệ để gia hạn, tránh bot ngừng trả lời khách.`
+          : `Gói thuê đã hết hạn ngày ${date}. Quá hạn 3 ngày hệ thống sẽ tự tạm khóa, bot ngừng trả lời khách. Liên hệ để gia hạn.`}
+      </p>
+    </div>
+  );
+}
+
+/** Cảnh báo hạn mức hội thoại tháng (từ 80%; hết → khách mới chuyển nhân viên). Tải lại mỗi 10 phút. */
+function UsageBanner({ tenantId }: { tenantId: string }) {
+  const [usage, setUsage] = useState<{ used: number; quota: number | null; warning: boolean; exceeded: boolean } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const result = await call(() => api.GET("/tenant/usage"));
+      if (!cancelled && result.ok) setUsage(result.data);
+    };
+    void load();
+    const timer = setInterval(() => void load(), 600_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [tenantId]);
+  if (!usage || !usage.warning || usage.quota === null) return null;
+  return (
+    <div
+      role="status"
+      className={cn(
+        "mb-6 flex items-start gap-2 rounded-md border px-4 py-3 text-sm",
+        usage.exceeded ? "border-destructive/30 bg-destructive/5 text-destructive" : "border-warning/30 bg-warning/10 text-warning",
+      )}
+    >
+      <Gauge className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <p>
+        {usage.exceeded
+          ? `Đã dùng hết ${usage.quota} hội thoại của tháng này. Khách mới nhắn sẽ được chuyển sang nhân viên trong Hộp thư (bot vẫn trả lời khách đã nhắn trong tháng). Liên hệ để nâng gói.`
+          : `Đã dùng ${usage.used}/${usage.quota} hội thoại của tháng này. Khi hết, khách mới sẽ được chuyển sang nhân viên thay vì bot trả lời.`}
+      </p>
+    </div>
   );
 }
 

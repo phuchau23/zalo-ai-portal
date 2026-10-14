@@ -17,6 +17,7 @@ const handoffReasons: Record<string, string> = {
   media: "Khách gửi hình ảnh/tệp bot chưa đọc được",
   staff_takeover: "Nhân viên đã tiếp quản",
   staff_replied_in_oa: "Nhân viên trả lời trong ứng dụng Zalo OA",
+  quota_exceeded: "Hết hạn mức hội thoại tháng, khách mới cần nhân viên",
   other: "Lý do khác",
 };
 
@@ -118,7 +119,12 @@ export function formatVnd(usd: number, rate = 26_000): string {
 }
 
 export const toneOptions = [
+  {
+    value: "human",
+    label: "Như nhân viên thật (khuyên dùng)",
+    description: "Chia vài tin ngắn như người đang nhắn Zalo, đổi cách nói theo cảm xúc khách, biểu tượng cảm xúc dễ thương vừa phải.",
+  },
   { value: "friendly", label: "Thân thiện", description: "Ấm áp, gần gũi, có thể dùng biểu tượng cảm xúc nhẹ." },
-  { value: "professional", label: "Chuyên nghiệp", description: "Chuẩn mực, lịch sự, hạn chế biểu tượng cảm xúc." },
+  { value: "professional", label: "Chuyên nghiệp", description: "Chuẩn mực, lịch sự, không dùng biểu tượng cảm xúc." },
   { value: "concise", label: "Ngắn gọn", description: "Đi thẳng vào ý chính, tối đa khoảng 3 câu." },
 ] as const;
