@@ -2,11 +2,21 @@
 
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import Link from "next/link";
-import { CalendarClock, CircleAlert, LoaderCircle, MessageSquareText, NotebookPen, Sparkles, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CalendarClock, CircleAlert, Download, LoaderCircle, MessageSquareText, NotebookPen, Sparkles, Trash2, X } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState } from "@/components/common/states";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,10 +42,22 @@ import {
 } from "@/lib/customers";
 import { formatDateTime } from "@/lib/format";
 import { useApiData, useNow } from "@/lib/use-api-data";
+import { cn } from "@/lib/utils";
 import { SuggestionCard } from "../../care/suggestion-card";
 import { elapsed } from "../../inbox/inbox-utils";
 
 const autoStatus = "auto";
+
+const autoSalutation = "auto";
+
+/** Cách gọi khách (BE: CustomerSalutation). Không có "anh/chị": chưa biết giới tính thì bot gọi "mình". */
+const salutations = [
+  { value: "anh", label: "Anh (khách nam)" },
+  { value: "chị", label: "Chị (khách nữ)" },
+  { value: "cô", label: "Cô" },
+  { value: "chú", label: "Chú" },
+  { value: "bác", label: "Bác" },
+] as const;
 
 export function CustomerProfile({ contactId }: { contactId: string }) {
   const { me } = useSession();
@@ -69,10 +91,10 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
   const openSuggestions = data.suggestions.filter((s) => s.status === "open");
   const pastSuggestions = data.suggestions.filter((s) => s.status !== "open");
 
-  async function patch(body: { leadStatus?: string | null; tags?: string[] | null; proactiveEnabled?: boolean | null }) {
+  async function patch(body: { leadStatus?: string | null; tags?: string[] | null; proactiveEnabled?: boolean | null; salutation?: string | null }) {
     setActionProblem(null);
     const result = await call(() =>
-      api.PATCH("/contacts/{contactId}", { params: { path: { contactId } }, body: { leadStatus: null, tags: null, proactiveEnabled: null, ...body } }),
+      api.PATCH("/contacts/{contactId}", { params: { path: { contactId } }, body: { leadStatus: null, tags: null, proactiveEnabled: null, salutation: null, ...body } }),
     );
     if (!result.ok) setActionProblem(result.problem);
     reload();
@@ -202,6 +224,30 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
           </section>
 
           <section className="flex flex-col gap-2">
+            <Label htmlFor="salutation">Cách bot gọi khách</Label>
+            <Select value={c.salutationSource === "staff" && c.salutation ? c.salutation : autoSalutation} onValueChange={(v) => void patch({ salutation: v })}>
+              <SelectTrigger id="salutation" className="h-11 w-full sm:h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={autoSalutation}>Tự động — hiện là &quot;{c.salutation ?? "mình"}&quot;</SelectItem>
+                {salutations.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {c.salutationSource === "staff"
+                ? "Bạn đã chọn, bot luôn gọi khách như vậy."
+                : c.salutationSource === "customer"
+                  ? "Khách tự xưng khi chat, bot gọi theo. Biết giới tính thì chọn để bot gọi đúng."
+                  : "Chưa biết giới tính nên bot gọi khách là “mình”. Bot xưng “em”."}
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-2">
             <Label htmlFor="proactive" className="flex min-h-11 cursor-pointer items-center gap-3 font-medium">
               <Checkbox
                 id="proactive"
@@ -239,6 +285,8 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
           </section>
 
           <Conversations detail={data} now={now} />
+
+          {isOwner && <CustomerData contactId={contactId} name={c.name} />}
         </aside>
       </div>
     </div>
@@ -457,5 +505,89 @@ function NoteItem({ note, canDelete, contactId, onDeleted }: { note: ContactNote
       <p className="text-sm text-pretty whitespace-pre-wrap">{note.text}</p>
       <p className="text-xs text-muted-foreground">{note.authorName ? `${note.authorName} · ` : ""}{formatDateTime(note.createdAt)}</p>
     </li>
+  );
+}
+
+const deleteWord = "XÓA";
+
+/** Quyền của khách với dữ liệu cá nhân (chỉ owner): tải toàn bộ dữ liệu, hoặc xóa vĩnh viễn — phải gõ "XÓA" để xác nhận. */
+function CustomerData({ contactId, name }: { contactId: string; name: string }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [problem, setProblem] = useState<ApiProblem | null>(null);
+  const confirmed = typed.trim().toUpperCase() === deleteWord;
+
+  async function remove() {
+    if (!confirmed) return;
+    setDeleting(true);
+    setProblem(null);
+    const result = await call(() => api.DELETE("/contacts/{contactId}", { params: { path: { contactId } } }));
+    setDeleting(false);
+    if (!result.ok) return setProblem(result.problem);
+    router.replace("/customers");
+  }
+
+  return (
+    <section aria-labelledby="customer-data" className="flex flex-col gap-2 border-t pt-4">
+      <h2 id="customer-data" className="text-sm font-medium">
+        Dữ liệu của khách
+      </h2>
+      <p className="text-xs text-muted-foreground">Khi khách yêu cầu xem lại hoặc xóa thông tin của họ. Mọi lần xuất, xóa đều được ghi lại.</p>
+      <a href={`/api/contacts/${contactId}/export`} download className={cn(buttonVariants({ variant: "outline" }), "h-11 justify-start sm:h-9")}>
+        <Download aria-hidden />
+        Tải toàn bộ dữ liệu (Excel)
+      </a>
+      <Button
+        variant="ghost"
+        className="h-11 justify-start text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-9"
+        onClick={() => {
+          setTyped("");
+          setProblem(null);
+          setOpen(true);
+        }}
+      >
+        <Trash2 aria-hidden />
+        Xóa khách và mọi dữ liệu
+      </Button>
+
+      <AlertDialog open={open} onOpenChange={(next) => !deleting && setOpen(next)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa vĩnh viễn khách “{name}”?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Xóa hồ sơ, toàn bộ tin nhắn, nhật ký chăm sóc và gợi ý chăm sóc của khách này. Không khôi phục được. Nếu khách cần bản sao, hãy tải dữ liệu
+              trước khi xóa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="confirm-delete">
+              Gõ <span className="font-semibold">{deleteWord}</span> để xác nhận
+            </Label>
+            <Input
+              id="confirm-delete"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && void remove()}
+              autoComplete="off"
+              className="h-11 sm:h-9"
+            />
+            {problem && (
+              <p role="alert" className="text-sm text-destructive">
+                {problemMessage(problem)}
+              </p>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Không xóa</AlertDialogCancel>
+            <Button variant="destructive" disabled={!confirmed || deleting} onClick={() => void remove()}>
+              {deleting ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Trash2 aria-hidden />}
+              {deleting ? "Đang xóa..." : "Xóa vĩnh viễn"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </section>
   );
 }
