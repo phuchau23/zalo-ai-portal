@@ -31,6 +31,12 @@ const messages: Record<string, string> = {
   duplicate_closure: "Ngày này đã có trong danh sách nghỉ.",
   user_already_linked: "Tài khoản này đã gắn với nhân viên khác.",
   code_kind_mismatch: "Mã này đang dùng cho loại mục khác trong Kho kiến thức.",
+  // Lịch hẹn
+  slot_unavailable: "Khung giờ này đã kín hoặc ngoài giờ làm việc.",
+  too_soon: "Cần đặt trước ít nhất theo cài đặt (mặc định 60 phút).",
+  too_far: "Chỉ đặt trước tối đa số ngày đã cài đặt.",
+  appointment_state: "Trạng thái lịch không cho phép thao tác này.",
+  cancel_too_late: "Đã quá hạn đổi/hủy theo chính sách.",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

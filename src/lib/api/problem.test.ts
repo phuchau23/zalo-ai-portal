@@ -46,6 +46,14 @@ describe("problemMessage", () => {
     expect(problemMessage(toProblem({ code: "user_already_linked" }, 409))).toBe("Tài khoản này đã gắn với nhân viên khác.");
     expect(problemMessage(toProblem({ code: "code_kind_mismatch" }, 400))).toBe("Mã này đang dùng cho loại mục khác trong Kho kiến thức.");
   });
+
+  it("translates appointment codes", () => {
+    expect(problemMessage(toProblem({ code: "slot_unavailable", title: "Slot" }, 409))).toBe("Khung giờ này đã kín hoặc ngoài giờ làm việc.");
+    expect(problemMessage(toProblem({ code: "too_soon" }, 409))).toBe("Cần đặt trước ít nhất theo cài đặt (mặc định 60 phút).");
+    expect(problemMessage(toProblem({ code: "too_far" }, 409))).toBe("Chỉ đặt trước tối đa số ngày đã cài đặt.");
+    expect(problemMessage(toProblem({ code: "appointment_state" }, 409))).toBe("Trạng thái lịch không cho phép thao tác này.");
+    expect(problemMessage(toProblem({ code: "cancel_too_late" }, 409))).toBe("Đã quá hạn đổi/hủy theo chính sách.");
+  });
 });
 
 describe("fileErrors", () => {

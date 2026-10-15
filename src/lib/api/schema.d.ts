@@ -5052,6 +5052,829 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/appointments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    branchId?: string;
+                    staffMemberId?: string;
+                    contactId?: string;
+                    includeCancelled?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAppointmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/appointments/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    branchId?: string;
+                    date: string;
+                    catalogItemIds: string;
+                    staffMemberId?: string;
+                    ignoreAppointmentId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AvailableSlotResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/appointments/{appointmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appointmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentDetailResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/appointments/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateSeriesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SeriesOutcomeResponse"][];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/appointments/{appointmentId}/reschedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appointmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RescheduleAppointmentRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AppointmentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/appointments/{appointmentId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appointmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelAppointmentRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/appointments/{appointmentId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appointmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetAppointmentStatusRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/appointments/{appointmentId}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appointmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssignAppointmentRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/appointments/{appointmentId}/note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    appointmentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAppointmentNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    branchId?: string;
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResourceResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveResourceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResourceResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/resources/{resourceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    resourceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SaveResourceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ResourceResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/waitlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    branchId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WaitlistResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddWaitlistRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WaitlistResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/waitlist/{entryId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    entryId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetWaitlistStatusRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5083,6 +5906,21 @@ export interface components {
             /** Format: date-time */
             toAt: string;
             reason: null | string;
+        };
+        AddWaitlistRequest: {
+            /** Format: uuid */
+            branchId: string;
+            /** Format: uuid */
+            contactId: string;
+            /** Format: uuid */
+            catalogItemId: string;
+            /** Format: uuid */
+            staffMemberId: null | string;
+            /** Format: date-time */
+            preferredFrom: string;
+            /** Format: date-time */
+            preferredTo: string;
+            note: null | string;
         };
         AdminMember: {
             /** Format: uuid */
@@ -5135,6 +5973,82 @@ export interface components {
         ApplyKnowledgeImportRequest: {
             selections: components["schemas"]["KnowledgeSelectionRequest"][];
         };
+        AppointmentDetailResponse: {
+            appointment: components["schemas"]["AppointmentResponse"];
+            events: components["schemas"]["AppointmentEventResponse"][];
+            contactLeadStatus: null | string;
+            /** Format: int32 */
+            contactVisits: number;
+            /** Format: int32 */
+            contactNoShows: number;
+        };
+        AppointmentEventResponse: {
+            kind: string;
+            actor: string;
+            /** Format: uuid */
+            byUserId: null | string;
+            data: null | string;
+            /** Format: date-time */
+            at: string;
+        };
+        AppointmentItemResponse: {
+            /** Format: uuid */
+            catalogItemId: string;
+            name: string;
+            /** Format: int32 */
+            durationMinutes: number;
+            /** Format: int64 */
+            price: null | number;
+        };
+        AppointmentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            branchId: string;
+            branchName: string;
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            contactPhone: null | string;
+            contactSalutation: null | string;
+            /** Format: uuid */
+            staffMemberId: null | string;
+            staffName: null | string;
+            /** Format: uuid */
+            resourceId: null | string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
+            /** Format: int32 */
+            bufferMinutes: number;
+            status: string;
+            source: string;
+            /** Format: int32 */
+            partySize: number;
+            /** Format: uuid */
+            conversationId: null | string;
+            /** Format: uuid */
+            seriesId: null | string;
+            note: null | string;
+            aiBrief: null | string;
+            /** Format: date-time */
+            aiBriefAt: null | string;
+            /** Format: date-time */
+            reminder1SentAt: null | string;
+            /** Format: date-time */
+            reminder2SentAt: null | string;
+            /** Format: date-time */
+            customerConfirmedAt: null | string;
+            cancelReason: null | string;
+            items: components["schemas"]["AppointmentItemResponse"][];
+        };
+        AssignAppointmentRequest: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+            /** Format: uuid */
+            resourceId: null | string;
+        };
         AssignCareSuggestionRequest: {
             /** Format: uuid */
             userId: null | string;
@@ -5142,6 +6056,15 @@ export interface components {
         AssignConversationRequest: {
             /** Format: uuid */
             userId: null | string;
+        };
+        AvailableSlotResponse: {
+            /** Format: uuid */
+            staffMemberId: null | string;
+            staffName: null | string;
+            /** Format: date-time */
+            startAt: string;
+            /** Format: date-time */
+            endAt: string;
         };
         BranchClosureItem: {
             /** Format: uuid */
@@ -5169,6 +6092,9 @@ export interface components {
             phone: null | string;
             isDefault: boolean;
             status: string;
+        };
+        CancelAppointmentRequest: {
+            reason: null | string;
         };
         CareCountResponse: {
             /** Format: int32 */
@@ -5438,6 +6364,37 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        CreateAppointmentRequest: {
+            /** Format: uuid */
+            branchId: null | string;
+            /** Format: uuid */
+            contactId: null | string;
+            newContact: null | components["schemas"]["NewContactRequest"];
+            /** Format: uuid */
+            staffMemberId: null | string;
+            /** Format: uuid */
+            resourceId: null | string;
+            /** Format: date-time */
+            startAt: string;
+            catalogItemIds: string[];
+            note: null | string;
+            /**
+             * Format: int32
+             * @default 1
+             */
+            partySize: number;
+            /** @default staff */
+            source: string;
+            /** @default false */
+            allowOverlap: boolean;
+        };
+        CreateSeriesRequest: {
+            first: components["schemas"]["CreateAppointmentRequest"];
+            /** Format: int32 */
+            intervalDays: number;
+            /** Format: int32 */
+            occurrences: number;
+        };
         CreateTenantRequest: {
             name: string;
             industrySlug: string;
@@ -5464,6 +6421,19 @@ export interface components {
             discountApprovalPercent: number;
             /** Format: int32 */
             defaultBufferMinutes: number;
+            botBookingEnabled: boolean;
+            /** Format: int32 */
+            botMaxPartySize: number;
+            /** Format: int32 */
+            bookingLeadMinutes: number;
+            /** Format: int32 */
+            maxBookingDaysAhead: number;
+            /** Format: int32 */
+            cancelLeadHours: number;
+            /** Format: int32 */
+            reminder1Hours: number;
+            /** Format: int32 */
+            reminder2Hours: number;
             allPermissions: string[];
         };
         DashboardDay: {
@@ -5743,6 +6713,11 @@ export interface components {
             currentTenant: null | components["schemas"]["TenantSummary"];
             tenants: components["schemas"]["TenantSummary"][];
         };
+        NewContactRequest: {
+            name: string;
+            phone: null | string;
+            salutation: null | string;
+        };
         PackageContentItem: {
             /** Format: uuid */
             serviceId: string;
@@ -5782,8 +6757,23 @@ export interface components {
         PurgeTenantRequest: {
             confirmName: string;
         };
+        RescheduleAppointmentRequest: {
+            /** Format: date-time */
+            startAt: string;
+            /** Format: uuid */
+            staffMemberId: null | string;
+        };
         ResetPasswordResponse: {
             temporaryPassword: string;
+        };
+        ResourceResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            branchId: string;
+            name: string;
+            kind: string;
+            isActive: boolean;
         };
         SaveBranchRequest: {
             code: string;
@@ -5813,6 +6803,14 @@ export interface components {
             costPrice: null | number;
             trackInventory: boolean;
         };
+        SaveResourceRequest: {
+            /** Format: uuid */
+            branchId: string;
+            name: string;
+            kind: string;
+            /** @default true */
+            isActive: boolean;
+        };
         SaveStaffRequest: {
             /** Format: uuid */
             branchId: string;
@@ -5829,6 +6827,15 @@ export interface components {
         };
         SendInboxMessageRequest: {
             text: string;
+        };
+        SeriesOutcomeResponse: {
+            /** Format: date-time */
+            startAt: string;
+            appointment: null | components["schemas"]["AppointmentResponse"];
+            error: null | string;
+        };
+        SetAppointmentStatusRequest: {
+            status: string;
         };
         SetBranchHoursRequest: {
             hours: components["schemas"]["BranchHourItem"][];
@@ -5865,6 +6872,9 @@ export interface components {
             permissions: string[];
             /** Format: uuid */
             branchId: null | string;
+        };
+        SetWaitlistStatusRequest: {
+            status: string;
         };
         ShiftTemplateItem: {
             /** Format: int32 */
@@ -5976,6 +6986,9 @@ export interface components {
             /** Format: date-time */
             at: string;
         };
+        UpdateAppointmentNoteRequest: {
+            note: null | string;
+        };
         UpdateBotStyleRequest: {
             botTone: string;
             botInstructions: null | string;
@@ -5998,6 +7011,38 @@ export interface components {
             discountApprovalPercent: number;
             /** Format: int32 */
             defaultBufferMinutes: number;
+            /** @default true */
+            botBookingEnabled: boolean;
+            /**
+             * Format: int32
+             * @default 2
+             */
+            botMaxPartySize: number;
+            /**
+             * Format: int32
+             * @default 60
+             */
+            bookingLeadMinutes: number;
+            /**
+             * Format: int32
+             * @default 60
+             */
+            maxBookingDaysAhead: number;
+            /**
+             * Format: int32
+             * @default 2
+             */
+            cancelLeadHours: number;
+            /**
+             * Format: int32
+             * @default 24
+             */
+            reminder1Hours: number;
+            /**
+             * Format: int32
+             * @default 2
+             */
+            reminder2Hours: number;
         };
         UpdateHandoffSettingsRequest: {
             handoffMessage: string;
@@ -6051,6 +7096,27 @@ export interface components {
             planName: string;
             warning: boolean;
             exceeded: boolean;
+        };
+        WaitlistResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            branchId: string;
+            /** Format: uuid */
+            contactId: string;
+            contactName: string;
+            /** Format: uuid */
+            catalogItemId: string;
+            serviceName: string;
+            /** Format: uuid */
+            staffMemberId: null | string;
+            /** Format: date-time */
+            preferredFrom: string;
+            /** Format: date-time */
+            preferredTo: string;
+            status: string;
+            /** Format: date-time */
+            offeredSlotAt: null | string;
         };
     };
     responses: never;
