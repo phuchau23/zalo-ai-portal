@@ -37,6 +37,15 @@ describe("problemMessage", () => {
   it("uses BE title for unknown codes", () => {
     expect(problemMessage(toProblem({ code: "new_code", title: "Câu từ BE" }, 409))).toBe("Câu từ BE");
   });
+
+  it("translates CRM codes", () => {
+    expect(problemMessage(toProblem({ code: "duplicate_code", title: "Duplicate" }, 409))).toBe("Mã này đã được dùng.");
+    expect(problemMessage(toProblem({ code: "default_branch" }, 409))).toBe("Hãy đặt chi nhánh khác làm mặc định trước.");
+    expect(problemMessage(toProblem({ code: "branch_inactive" }, 409))).toBe("Chi nhánh đang ngừng hoạt động.");
+    expect(problemMessage(toProblem({ code: "duplicate_closure" }, 409))).toBe("Ngày này đã có trong danh sách nghỉ.");
+    expect(problemMessage(toProblem({ code: "user_already_linked" }, 409))).toBe("Tài khoản này đã gắn với nhân viên khác.");
+    expect(problemMessage(toProblem({ code: "code_kind_mismatch" }, 400))).toBe("Mã này đang dùng cho loại mục khác trong Kho kiến thức.");
+  });
 });
 
 describe("fileErrors", () => {

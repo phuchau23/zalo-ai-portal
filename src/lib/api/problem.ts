@@ -24,6 +24,13 @@ const messages: Record<string, string> = {
   rate_limited: "Bạn thử quá nhiều lần, vui lòng đợi một phút rồi thử lại.",
   network_error: "Không kết nối được máy chủ. Kiểm tra mạng hoặc thử lại sau.",
   internal_error: "Có lỗi xảy ra, vui lòng thử lại.",
+  // CRM (chi nhánh, danh mục bán, nhân viên)
+  duplicate_code: "Mã này đã được dùng.",
+  default_branch: "Hãy đặt chi nhánh khác làm mặc định trước.",
+  branch_inactive: "Chi nhánh đang ngừng hoạt động.",
+  duplicate_closure: "Ngày này đã có trong danh sách nghỉ.",
+  user_already_linked: "Tài khoản này đã gắn với nhân viên khác.",
+  code_kind_mismatch: "Mã này đang dùng cho loại mục khác trong Kho kiến thức.",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
