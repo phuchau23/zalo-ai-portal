@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Building2,
   CalendarClock,
+  CalendarDays,
   Gauge,
   Database,
   HeartHandshake,
@@ -37,6 +38,7 @@ type NavItem = { href: string; label: string; icon: LucideIcon; external?: boole
 const navItems: NavItem[] = [
   { href: "/", label: "Tổng quan", icon: House },
   { href: "/inbox", label: "Hộp thư", icon: Inbox },
+  { href: "/appointments", label: "Lịch hẹn", icon: CalendarDays },
   { href: "/care", label: "Cần chăm sóc", icon: HeartHandshake },
   { href: "/customers", label: "Khách hàng", icon: Users },
   { href: "/knowledge", label: "Kho kiến thức", icon: Database },
