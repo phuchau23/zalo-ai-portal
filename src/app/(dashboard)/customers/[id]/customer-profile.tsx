@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarClock, CircleAlert, Download, LoaderCircle, MessageSquareText, NotebookPen, Sparkles, Trash2, X } from "lucide-react";
+import { Bot, CalendarClock, CalendarDays, CalendarPlus, CircleAlert, Download, LoaderCircle, MessageSquareText, NotebookPen, Sparkles, Trash2, X } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState } from "@/components/common/states";
 import {
@@ -24,8 +24,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
-import { api, type ContactDetail, type ContactNote } from "@/lib/api/client";
+import { api, type Appointment, type ContactDetail, type ContactNote } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { dateKeyOf, defaultTimeZone, formatDateTimeTz, isTerminal, safeTimeZone, serviceNames, splitByNow, statusLabel } from "@/lib/appointments";
 import {
   followUpPresets,
   formatDay,
@@ -161,6 +162,8 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
             <SuggestionCard key={`${s.id}-${s.updatedAt}`} suggestion={s} members={members} isOwner={isOwner} now={now} onChanged={reload} showContact={false} />
           ))}
 
+          <CustomerAppointments contactId={contactId} now={now} />
+
           <section aria-labelledby="journal" className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <h2 id="journal" className="text-base font-semibold">
@@ -295,6 +298,90 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
         </aside>
       </div>
     </div>
+  );
+}
+
+const day = 24 * 60 * 60 * 1000;
+
+/** Lịch hẹn của khách: sắp tới + 5 lịch gần nhất đã qua (tính cả đã hủy). Bấm vào lịch → mở ngày đó trên trang Lịch hẹn. */
+function CustomerAppointments({ contactId, now }: { contactId: string; now: number }) {
+  const settings = useApiData(() => call(() => api.GET("/tenant/crm-settings")));
+  const timeZone = safeTimeZone(settings.data?.timeZone ?? defaultTimeZone);
+  const { data, problem, reload } = useApiData(() =>
+    call(() =>
+      api.GET("/appointments", {
+        params: {
+          query: {
+            contactId,
+            from: new Date(Date.now() - 180 * day).toISOString(),
+            to: new Date(Date.now() + 90 * day).toISOString(),
+            includeCancelled: true,
+          },
+        },
+      }),
+    ),
+  );
+  const { upcoming, past } = splitByNow(data ?? [], now, 5);
+
+  const row = (a: Appointment) => {
+    const status = statusLabel(a.status);
+    const muted = isTerminal(a.status) && a.status !== "done";
+    return (
+      <li key={a.id}>
+        <Link
+          href={`/appointments?date=${dateKeyOf(a.startAt, timeZone)}`}
+          className={cn(
+            "flex min-h-11 flex-wrap items-center gap-x-2 gap-y-0.5 rounded-md border px-3 py-2 text-sm hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+            muted && "text-muted-foreground",
+          )}
+        >
+          <span className={cn("tabular font-medium", muted && "line-through")}>{formatDateTimeTz(a.startAt, timeZone)}</span>
+          {a.source === "bot" && <Bot className="size-3.5 text-muted-foreground" aria-label="Bot đặt" />}
+          <span className="min-w-0 flex-1 truncate">{serviceNames(a.items) || "—"}</span>
+          {a.staffName && <span className="text-xs text-muted-foreground">{a.staffName}</span>}
+          <Badge variant={status.variant}>{status.label}</Badge>
+        </Link>
+      </li>
+    );
+  };
+
+  return (
+    <section aria-labelledby="appointments" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="appointments" className="text-base font-semibold">
+          Lịch hẹn
+        </h2>
+        <Link href={`/appointments?contactId=${contactId}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-11 sm:h-8")}>
+          <CalendarPlus aria-hidden />
+          Đặt lịch
+        </Link>
+      </div>
+      {problem && !data ? (
+        <ErrorState problem={problem} onRetry={reload} />
+      ) : !data ? (
+        <div role="status" aria-label="Đang tải lịch hẹn" className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+      ) : data.length === 0 ? (
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <CalendarDays className="size-4" aria-hidden />
+          Khách chưa có lịch hẹn nào.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {upcoming.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase">Sắp tới</h3>
+              <ul className="flex flex-col gap-1.5">{upcoming.map(row)}</ul>
+            </div>
+          )}
+          {past.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase">Đã qua</h3>
+              <ul className="flex flex-col gap-1.5">{past.map(row)}</ul>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
