@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader, SectionHeader } from "@/components/common/page-header";
+import { BranchesSection } from "./branches-section";
+import { CrmSettingsForm } from "./crm-settings-form";
 import { HandoffForm } from "./handoff-form";
 import { SettingsForm } from "./settings-form";
 import { TeamSection } from "./team-section";
@@ -11,6 +13,8 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-2">
       <PageHeader title="Cài đặt doanh nghiệp" description="Thông tin bot dùng khi trò chuyện với khách của bạn." />
       <SettingsForm />
+      <BranchesSection />
+      <CrmSettingsForm />
       <div id="handoff" className="mt-10 scroll-mt-6">
         <SectionHeader
           title="Chuyển tiếp & giờ làm việc"

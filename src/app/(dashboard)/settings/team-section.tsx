@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { CircleAlert, KeyRound, Trash2, UserPlus, Users } from "lucide-react";
+import { CircleAlert, KeyRound, LoaderCircle, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
+import { Field } from "@/components/common/field";
 import { SectionHeader } from "@/components/common/page-header";
 import { CopyButton } from "@/components/common/copy-button";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
@@ -17,16 +18,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
-import { api, type Schemas } from "@/lib/api/client";
+import { api, type Branch, type Schemas } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { branchName, permissionLabels, permissionSummary } from "@/lib/crm";
 import { useApiData } from "@/lib/use-api-data";
 
 type Member = Schemas["TeamMemberResponse"];
+
+const ALL_BRANCHES = "__all__";
 
 const roles = [
   { value: "staff", label: "Nhân viên", hint: "Trả lời khách ở Hộp thư, chăm sóc khách. Không xem chi phí, không xuất/xóa dữ liệu, không đổi cài đặt." },
@@ -47,8 +53,11 @@ export function TeamSection() {
 /** BE chặn: luôn còn ít nhất một chủ, không tự xóa mình, chỉ cấp lại mật khẩu cho tài khoản riêng của DN. */
 function TeamManager() {
   const { data, problem, loading, reload } = useApiData(() => call(() => api.GET("/tenant/team")));
+  const branches = useApiData(() => call(() => api.GET("/branches", { params: { query: { includeInactive: false } } })));
+  const crm = useApiData(() => call(() => api.GET("/tenant/crm-settings")));
   const [issued, setIssued] = useState<Issued | null>(null);
   const [removing, setRemoving] = useState<Member | null>(null);
+  const [editingPermissions, setEditingPermissions] = useState<Member | null>(null);
   const [actionProblem, setActionProblem] = useState<ApiProblem | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -116,6 +125,10 @@ function TeamManager() {
                   {m.isYou && <Badge variant="secondary">Bạn</Badge>}
                 </span>
                 <span className="text-sm break-all text-muted-foreground">{m.email}</span>
+                <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                  <Badge variant={m.role === "owner" ? "info" : m.permissions.length ? "secondary" : "outline"}>{permissionSummary(m.role, m.permissions)}</Badge>
+                  {m.role !== "owner" && <span>{branchName(branches.data, m.branchId)}</span>}
+                </span>
               </div>
               {m.isYou ? (
                 <Badge variant="outline" className="self-start sm:self-center">
@@ -135,6 +148,12 @@ function TeamManager() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {m.role !== "owner" && (
+                    <Button variant="outline" size="sm" className="h-11 sm:h-8" disabled={busy} onClick={() => setEditingPermissions(m)}>
+                      <ShieldCheck aria-hidden />
+                      Quyền
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" className="h-11 sm:h-8" disabled={busy} onClick={() => void resetPassword(m)}>
                     <KeyRound aria-hidden />
                     Cấp lại mật khẩu
@@ -181,6 +200,19 @@ function TeamManager() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {editingPermissions && (
+        <PermissionsDialog
+          member={editingPermissions}
+          branches={branches.data ?? []}
+          allPermissions={crm.data?.allPermissions ?? Object.keys(permissionLabels)}
+          onClose={() => setEditingPermissions(null)}
+          onSaved={() => {
+            setEditingPermissions(null);
+            reload();
+          }}
+        />
+      )}
+
       <AlertDialog open={removing !== null} onOpenChange={(open) => !open && !busy && setRemoving(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -199,6 +231,107 @@ function TeamManager() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+/** Quyền thêm cho nhân viên (ngoài quyền mặc định: trả lời khách, chăm sóc) và chi nhánh họ làm việc. */
+function PermissionsDialog({
+  member,
+  branches,
+  allPermissions,
+  onClose,
+  onSaved,
+}: {
+  member: Member;
+  branches: Branch[];
+  allPermissions: string[];
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [selected, setSelected] = useState<string[]>(member.permissions);
+  const [branchId, setBranchId] = useState<string>(member.branchId ?? ALL_BRANCHES);
+  const [saving, setSaving] = useState(false);
+  const [problem, setProblem] = useState<ApiProblem | null>(null);
+
+  function toggle(code: string, checked: boolean) {
+    setSelected((list) => (checked ? [...list.filter((c) => c !== code), code] : list.filter((c) => c !== code)));
+  }
+
+  async function save() {
+    setSaving(true);
+    setProblem(null);
+    const result = await call(() =>
+      api.PUT("/tenant/team/{userId}/permissions", {
+        params: { path: { userId: member.userId } },
+        body: { permissions: selected, branchId: branchId === ALL_BRANCHES ? null : branchId },
+      }),
+    );
+    setSaving(false);
+    if (!result.ok) return setProblem(result.problem);
+    onSaved();
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && !saving && onClose()}>
+      <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Quyền của {member.name}</DialogTitle>
+          <DialogDescription>
+            Nhân viên luôn được trả lời khách ở Hộp thư và xem Cần chăm sóc. Tích thêm các quyền bên dưới nếu cần.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Field id={`perm-branch-${member.userId}`} label="Chi nhánh làm việc" hint="Lịch, khách và hóa đơn mặc định lọc theo chi nhánh này.">
+          <Select value={branchId} onValueChange={setBranchId}>
+            <SelectTrigger id={`perm-branch-${member.userId}`} className="h-11 w-full sm:h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_BRANCHES}>Mọi chi nhánh</SelectItem>
+              {branches.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+
+        <fieldset className="flex flex-col gap-1">
+          <legend className="mb-2 text-sm font-medium">Quyền thêm</legend>
+          {allPermissions.map((code) => {
+            const id = `perm-${member.userId}-${code}`;
+            const meta = permissionLabels[code];
+            return (
+              <Label key={code} htmlFor={id} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md px-2 py-2 hover:bg-muted">
+                <Checkbox id={id} className="mt-0.5" checked={selected.includes(code)} onCheckedChange={(v) => toggle(code, v === true)} />
+                <span className="flex flex-col gap-0.5 font-normal">
+                  <span className="text-sm">{meta?.label ?? code}</span>
+                  {meta?.hint && <span className="text-xs text-muted-foreground">{meta.hint}</span>}
+                </span>
+              </Label>
+            );
+          })}
+        </fieldset>
+
+        {problem && (
+          <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+            <CircleAlert className="size-4 shrink-0" aria-hidden />
+            {problemMessage(problem)}
+          </p>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" className="h-11 sm:h-9" disabled={saving} onClick={onClose}>
+            Hủy
+          </Button>
+          <Button className="h-11 sm:h-9" disabled={saving} onClick={() => void save()}>
+            {saving && <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden />}
+            {saving ? "Đang lưu..." : "Lưu quyền"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
