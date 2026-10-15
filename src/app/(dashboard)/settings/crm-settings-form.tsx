@@ -8,7 +8,9 @@ import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api, type Schemas } from "@/lib/api/client";
@@ -18,7 +20,25 @@ type FormValues = Schemas["UpdateCrmSettingsRequest"];
 
 const slotOptions = [15, 30, 60] as const;
 
-/** Cài đặt → Lịch & bán hàng: múi giờ, bước lịch hẹn, mức giảm giá cần duyệt, thời gian dọn mặc định. Chủ doanh nghiệp sửa; nhân viên xem. */
+type NumberField = Extract<
+  keyof FormValues,
+  "botMaxPartySize" | "bookingLeadMinutes" | "maxBookingDaysAhead" | "cancelLeadHours" | "reminder1Hours" | "reminder2Hours"
+>;
+
+/** Các ô số của phần đặt lịch: nhãn + gợi ý ngắn + giới hạn nhập. */
+const bookingNumberFields: { key: NumberField; label: string; hint: string; min: number; max: number }[] = [
+  { key: "botMaxPartySize", label: "Bot nhận tối đa (người/lịch)", hint: "Đoàn đông hơn, bot chuyển nhân viên xếp.", min: 1, max: 20 },
+  { key: "bookingLeadMinutes", label: "Đặt trước ít nhất (phút)", hint: "Khách không đặt được giờ gần hơn mức này.", min: 0, max: 1440 },
+  { key: "maxBookingDaysAhead", label: "Đặt xa nhất (ngày)", hint: "Chỉ nhận lịch trong số ngày tới này.", min: 1, max: 365 },
+  { key: "cancelLeadHours", label: "Đổi/hủy trước (giờ)", hint: "Sát giờ hơn mức này thì không tự đổi/hủy được.", min: 0, max: 720 },
+  { key: "reminder1Hours", label: "Nhắc lần 1 trước (giờ)", hint: "0 = tắt. Bot nhắn khách qua Zalo trước giờ hẹn.", min: 0, max: 720 },
+  { key: "reminder2Hours", label: "Nhắc lần 2 trước (giờ)", hint: "0 = tắt. Thường 2 giờ trước, kèm xin xác nhận.", min: 0, max: 720 },
+];
+
+/**
+ * Cài đặt → Lịch & bán hàng: múi giờ, bước lịch hẹn, mức giảm giá cần duyệt, thời gian dọn mặc định,
+ * và quy tắc đặt lịch (bot tự chốt, đặt trước, đổi/hủy, nhắc lịch). Chủ doanh nghiệp sửa; nhân viên xem.
+ */
 export function CrmSettingsForm() {
   const { me } = useSession();
   const canEdit = me.currentTenant?.role === "owner";
@@ -35,8 +55,32 @@ export function CrmSettingsForm() {
       const result = await call(() => api.GET("/tenant/crm-settings"));
       if (cancelled) return;
       if (!result.ok) return setLoadProblem(result.problem);
-      const { timeZone, slotMinutes, discountApprovalPercent, defaultBufferMinutes } = result.data;
-      setValues({ timeZone, slotMinutes, discountApprovalPercent, defaultBufferMinutes });
+      const {
+        timeZone,
+        slotMinutes,
+        discountApprovalPercent,
+        defaultBufferMinutes,
+        botBookingEnabled,
+        botMaxPartySize,
+        bookingLeadMinutes,
+        maxBookingDaysAhead,
+        cancelLeadHours,
+        reminder1Hours,
+        reminder2Hours,
+      } = result.data;
+      setValues({
+        timeZone,
+        slotMinutes,
+        discountApprovalPercent,
+        defaultBufferMinutes,
+        botBookingEnabled,
+        botMaxPartySize,
+        bookingLeadMinutes,
+        maxBookingDaysAhead,
+        cancelLeadHours,
+        reminder1Hours,
+        reminder2Hours,
+      });
     })();
     return () => {
       cancelled = true;
@@ -156,6 +200,37 @@ export function CrmSettingsForm() {
                 className="h-11 sm:h-9"
               />
             </Field>
+          </div>
+
+          <div className="flex flex-col gap-1 border-t pt-4">
+            <h3 className="text-sm font-semibold">Đặt lịch</h3>
+            <p className="text-sm text-muted-foreground">Áp dụng cho cả bot đặt qua chat lẫn nhân viên đặt trên lịch.</p>
+          </div>
+          <Label htmlFor="crm-botBooking" className="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-normal sm:min-h-9">
+            <Switch id="crm-botBooking" checked={values.botBookingEnabled} disabled={!canEdit} onCheckedChange={(v) => update({ botBookingEnabled: v })} />
+            <span className="flex flex-col">
+              <span className="font-medium">Bot tự chốt lịch qua chat</span>
+              <span className="text-xs text-muted-foreground">Tắt thì bot chỉ ghi nhận nhu cầu và chuyển nhân viên xếp lịch.</span>
+            </span>
+          </Label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {bookingNumberFields.map((f) => (
+              <Field key={f.key} id={`crm-${f.key}`} label={f.label} hint={f.hint} error={fieldError(f.key)}>
+                <Input
+                  id={`crm-${f.key}`}
+                  type="number"
+                  inputMode="numeric"
+                  min={f.min}
+                  max={f.max}
+                  value={values[f.key]}
+                  disabled={!canEdit}
+                  aria-invalid={Boolean(fieldError(f.key))}
+                  aria-describedby={describedBy(`crm-${f.key}`, fieldError(f.key), true)}
+                  onChange={(e) => update({ [f.key]: Number(e.target.value) })}
+                  className="h-11 sm:h-9"
+                />
+              </Field>
+            ))}
           </div>
           {canEdit && (
             <div className="flex items-center gap-3">

@@ -17,6 +17,7 @@ import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { branchStatusLabels, emptyToNull, hasPermission, normalizeCode, statusOf } from "@/lib/crm";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
+import { ResourcesEditor } from "./resources-section";
 
 type SaveBranch = Schemas["SaveBranchRequest"];
 
@@ -250,6 +251,7 @@ function BranchEditor({ branch, canEdit, onChanged }: { branch: Branch; canEdit:
       />
       <HoursEditor branchId={branch.id} hours={data.hours} canEdit={canEdit} onSaved={reload} />
       <ClosuresEditor branchId={branch.id} closures={data.closures} canEdit={canEdit} onChanged={reload} />
+      <ResourcesEditor branchId={branch.id} canEdit={canEdit} />
     </div>
   );
 }
