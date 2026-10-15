@@ -80,7 +80,7 @@ export function ImportTab({ canEdit }: { canEdit: boolean }) {
           <aside className="flex flex-col gap-3 border-t pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-5">
             <h3 className="text-sm font-semibold">Lấy file để điền</h3>
             <p className="text-sm text-muted-foreground">
-              File mẫu có sẵn các sheet Dịch vụ, Gói liệu trình, Câu hỏi thường gặp, Chính sách. Muốn sửa dữ liệu đang có: xuất Excel, sửa, rồi
+              File mẫu có sẵn các sheet Dịch vụ, Gói liệu trình, Sản phẩm, Câu hỏi thường gặp, Chính sách. Muốn sửa dữ liệu đang có: xuất Excel, sửa, rồi
               nhập lại.
             </p>
             <div className="flex flex-col gap-2 [&>a]:justify-start">

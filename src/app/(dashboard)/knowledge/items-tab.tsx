@@ -18,6 +18,7 @@ const kinds = [
   { value: "all", label: "Tất cả" },
   { value: "service", label: "Dịch vụ" },
   { value: "package", label: "Gói liệu trình" },
+  { value: "product", label: "Sản phẩm" },
   { value: "faq", label: "Câu hỏi thường gặp" },
   { value: "policy", label: "Chính sách" },
   { value: "info", label: "Thông tin chung" },
@@ -27,6 +28,7 @@ const kinds = [
 const kindDot: Record<string, string> = {
   service: "bg-primary",
   package: "bg-chart-2",
+  product: "bg-chart-4",
   faq: "bg-success",
   policy: "bg-warning",
   info: "bg-muted-foreground",
@@ -172,7 +174,7 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
             {rows.map((item) => {
               const expanded = open === item.id;
               const price = field(item, "price");
-              const priced = item.kind === "service" || item.kind === "package";
+              const priced = item.kind === "service" || item.kind === "package" || item.kind === "product";
               return (
                 <Fragment key={item.id}>
                   <TableRow className={cn("cursor-pointer", expanded && "bg-accent/40 hover:bg-accent/40")} onClick={() => setOpen(expanded ? null : item.id)}>

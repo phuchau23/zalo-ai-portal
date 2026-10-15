@@ -14,6 +14,7 @@ import {
   ListChecks,
   LogOut,
   MessagesSquare,
+  Package,
   Plug,
   Settings,
   ShieldCheck,
@@ -27,9 +28,11 @@ import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
 import { expiryState, formatVnDate } from "@/lib/admin";
+import { hasPermission } from "@/lib/crm";
 import { cn } from "@/lib/utils";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; external?: boolean; badge?: number };
+/** `permission`: chỉ hiện khi doanh nghiệp hiện tại có quyền này (chủ doanh nghiệp luôn có). Không đặt = ai cũng thấy. */
+type NavItem = { href: string; label: string; icon: LucideIcon; external?: boolean; badge?: number; permission?: string };
 
 const navItems: NavItem[] = [
   { href: "/", label: "Tổng quan", icon: House },
@@ -37,6 +40,9 @@ const navItems: NavItem[] = [
   { href: "/care", label: "Cần chăm sóc", icon: HeartHandshake },
   { href: "/customers", label: "Khách hàng", icon: Users },
   { href: "/knowledge", label: "Kho kiến thức", icon: Database },
+  // Danh mục và Nhân viên: ai cũng xem được (chỉ đọc nếu không có quyền sửa) nên không đặt `permission`.
+  { href: "/catalog", label: "Danh mục", icon: Package },
+  { href: "/staff", label: "Nhân viên", icon: Users },
   { href: "/chat-test", label: "Chat thử", icon: MessagesSquare },
   { href: "/channels", label: "Kết nối kênh", icon: Plug },
   { href: "/settings", label: "Cài đặt", icon: Settings },
@@ -61,14 +67,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const careCount = useCareCount(me.currentTenant?.id);
   const activeTenants = me.tenants.filter((t) => t.isActive);
+  const tenantItems = navItems.filter((item) => !item.permission || hasPermission(me.currentTenant, item.permission));
   const items: NavItem[] = me.isSuperAdmin
     ? [
-        ...(me.currentTenant ? navItems : []),
+        ...(me.currentTenant ? tenantItems : []),
         { href: "/admin", label: "Quản trị hệ thống", icon: ShieldCheck },
         // Trang của BE (qua rewrite), không phải trang Next.js, nên dùng <a>.
         { href: "/hangfire", label: "Hàng đợi job", icon: ListChecks, external: true },
       ]
-    : navItems;
+    : tenantItems;
   // Trang /admin (super admin) và /account (đổi mật khẩu) không cần doanh nghiệp đang hoạt động.
   const adminArea = (me.isSuperAdmin && pathname.startsWith("/admin")) || pathname.startsWith("/account");
   const withBadges = items.map((item) => (item.href === "/care" ? { ...item, badge: careCount } : item));
