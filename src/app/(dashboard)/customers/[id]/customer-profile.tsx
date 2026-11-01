@@ -46,6 +46,7 @@ import { useApiData, useNow } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { SuggestionCard } from "../../care/suggestion-card";
 import { elapsed } from "../../inbox/inbox-utils";
+import { CustomerInvoicesSection, CustomerPackagesSection, CustomerWalletSection } from "./sales-sections";
 
 const autoStatus = "auto";
 
@@ -163,6 +164,12 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
           ))}
 
           <CustomerAppointments contactId={contactId} now={now} />
+
+          <CustomerPackagesSection contactId={contactId} />
+
+          <CustomerWalletSection contactId={contactId} />
+
+          <CustomerInvoicesSection contactId={contactId} />
 
           <section aria-labelledby="journal" className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
