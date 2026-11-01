@@ -109,7 +109,7 @@ export function CrmSettingsForm() {
   const fieldError = (field: keyof FormValues) => saveProblem?.fieldErrors[field];
 
   return (
-    <div id="crm" className="mt-10 flex scroll-mt-6 flex-col gap-4">
+    <div id="crm" className="flex flex-col gap-5">
       <SectionHeader title="Lịch & bán hàng" description="Quy ước chung cho lịch hẹn và hóa đơn ở mọi chi nhánh." />
       {loadProblem ? (
         <ErrorState problem={loadProblem} />
@@ -120,7 +120,7 @@ export function CrmSettingsForm() {
           ))}
         </div>
       ) : (
-        <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-md border p-4">
+        <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-xl border bg-card p-4">
           {!canEdit && (
             <Alert>
               <Lock aria-hidden />

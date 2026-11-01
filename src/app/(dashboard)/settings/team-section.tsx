@@ -89,10 +89,10 @@ function TeamManager() {
   }
 
   return (
-    <div id="team" className="mt-10 flex scroll-mt-6 flex-col gap-4">
+    <div id="team" className="flex flex-col gap-5">
       <SectionHeader
-        title="Nhân viên"
-        description="Thêm tài khoản cho nhân viên trực Hộp thư. Mỗi người một tài khoản riêng để biết ai đã trả lời khách."
+        title="Tài khoản & phân quyền"
+        description="Mỗi người một tài khoản đăng nhập riêng để biết ai đã trả lời khách, ai đã thu tiền. Chủ doanh nghiệp có toàn quyền; nhân viên chỉ làm được những việc bạn bật ở nút Quyền."
       />
 
       <AddMemberForm
@@ -116,7 +116,7 @@ function TeamManager() {
       ) : !data || data.length === 0 ? (
         <EmptyState icon={Users} title="Chưa có ai" />
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {data.map((m) => (
             <li key={m.userId} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -359,7 +359,7 @@ function AddMemberForm({ onAdded }: { onAdded: (email: string, temporaryPassword
   }
 
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3 rounded-md border p-4">
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3 rounded-xl border bg-card p-4">
       <div className="grid gap-3 sm:grid-cols-[1fr_1fr_12rem_auto] sm:items-end">
         <div className="flex flex-col gap-2">
           <Label htmlFor="member-email">Email đăng nhập</Label>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { CircleAlert, CircleCheck, LoaderCircle, Lock } from "lucide-react";
+import { FormGroup as Group, stickySaveBar } from "@/components/common/form-layout";
 import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,20 @@ import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 
 type FormValues = Schemas["UpdateTenantSettingsRequest"];
 
-export function SettingsForm() {
+export type SettingsSection = "business" | "bot" | "privacy";
+
+/**
+ * Thông tin doanh nghiệp + tên/xưng hô của bot + link chính sách. `sections` chọn nhóm hiện trên trang
+ * (Cài đặt → Doanh nghiệp: business + privacy; Thiết lập trợ lý: bot). Lưu luôn gửi đủ mọi trường (giá trị đang có).
+ */
+export function SettingsForm({
+  sections = ["business", "bot", "privacy"],
+  inlineSave = false,
+}: {
+  sections?: SettingsSection[];
+  /** Nút Lưu nằm ngay dưới form (khi form không ở cuối thẻ), thay vì thanh dính đáy thẻ. */
+  inlineSave?: boolean;
+}) {
   const { me, reload } = useSession();
   const canEdit = me.currentTenant?.role === "owner";
 
@@ -104,6 +118,7 @@ export function SettingsForm() {
         </Alert>
       )}
 
+      {sections.includes("business") && (
       <Group title="Doanh nghiệp" description="Tên hiển thị và ngành giúp bot hiểu bối cảnh khi trả lời.">
         <Field id="name" label="Tên doanh nghiệp" error={fieldError("name")}>
           <Input
@@ -137,8 +152,10 @@ export function SettingsForm() {
           </Select>
         </Field>
       </Group>
+      )}
 
-      <Group title="Bot" description="Cách bot giới thiệu và xưng hô với khách.">
+      {sections.includes("bot") && (
+      <Group title="Tên & xưng hô" description="Cách bot tự giới thiệu và xưng với khách. Khách luôn được báo đây là trợ lý AI.">
         <div className="grid gap-5 sm:grid-cols-2">
           <Field id="botName" label="Tên bot" hint="Tên bot tự giới thiệu với khách." error={fieldError("botName")}>
             <Input
@@ -165,7 +182,9 @@ export function SettingsForm() {
           </Field>
         </div>
       </Group>
+      )}
 
+      {sections.includes("privacy") && (
       <Group title="Bảo vệ dữ liệu cá nhân" description="Bắt buộc theo luật bảo vệ dữ liệu cá nhân.">
         <Field
           id="privacyUrl"
@@ -187,9 +206,10 @@ export function SettingsForm() {
           />
         </Field>
       </Group>
+      )}
 
       {canEdit && (
-        <div className="sticky bottom-0 -mx-4 flex items-center justify-end gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:-mx-8 md:px-8">
+        <div className={inlineSave ? "flex items-center justify-end gap-3 pt-1" : stickySaveBar}>
           <p role="status" className="mr-auto text-sm text-muted-foreground">
             {saved ? (
               <span className="inline-flex items-center gap-1.5 text-success">
@@ -212,18 +232,6 @@ export function SettingsForm() {
 
 function describedBy(id: string, error: string | undefined, hasHint = false) {
   return error ? `${id}-error` : hasHint ? `${id}-hint` : undefined;
-}
-
-function Group({ title, description, children }: { title: string; description: string; children: ReactNode }) {
-  return (
-    <section className="grid gap-4 border-b py-6 md:grid-cols-[16rem_1fr] md:gap-8">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      <div className="flex max-w-xl flex-col gap-5">{children}</div>
-    </section>
-  );
 }
 
 function Field({

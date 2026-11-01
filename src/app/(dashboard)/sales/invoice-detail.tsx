@@ -234,7 +234,7 @@ function LinesTable({ invoice, staff }: { invoice: Invoice; staff: StaffMember[]
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold">Các dòng ({invoice.lines.length})</h3>
-      <ul className="flex flex-col divide-y rounded-md border text-sm">
+      <ul className="flex flex-col divide-y rounded-xl border bg-card text-sm">
         {invoice.lines.map((l) => {
           const who = performer(l.performerStaffId);
           return (
@@ -307,7 +307,7 @@ function Payments({ invoice }: { invoice: Invoice }) {
   return (
     <section className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold">Thanh toán</h3>
-      <ul className="flex flex-col divide-y rounded-md border text-sm">
+      <ul className="flex flex-col divide-y rounded-xl border bg-card text-sm">
         {invoice.payments.map((p) => (
           <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2">
             <span className="font-medium">{paymentMethodLabel(p.method)}</span>
@@ -353,7 +353,7 @@ function DiscountForm({ invoice, busy, onDone }: { invoice: Invoice; busy: boole
   const message = problem ? (problem.status === 403 ? "Giảm vượt mức cho phép, cần chủ duyệt." : problemMessage(problem)) : null;
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-md border p-3">
+    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-xl border bg-card p-3">
       <h3 className="text-sm font-semibold">Giảm giá</h3>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field id="inv-discount" label="Giảm (đ)" error={errors.amount}>
@@ -456,7 +456,7 @@ function PaymentForm({ invoice, busy, onDone, onQr }: { invoice: Invoice; busy: 
   }
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-md border border-primary/30 p-3">
+    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-xl border bg-card border-primary/30 p-3">
       <h3 className="text-sm font-semibold">Thu tiền</h3>
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium">Hình thức</legend>
@@ -542,7 +542,7 @@ function TransferQrDialog({ invoiceId, amount, onClose }: { invoiceId: string; a
               <Wallet aria-hidden />
               <AlertDescription>
                 Chưa cài tài khoản ngân hàng nhận chuyển khoản.{" "}
-                <Link href="/settings#payments" className="font-medium text-primary underline-offset-4 hover:underline">
+                <Link href="/settings/payments" className="font-medium text-primary underline-offset-4 hover:underline">
                   Cài ở Cài đặt → Thanh toán
                 </Link>
                 .

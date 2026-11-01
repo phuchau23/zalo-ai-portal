@@ -42,7 +42,7 @@ export function PaymentSection() {
   const [adding, setAdding] = useState(false);
 
   return (
-    <div id="payments" className="mt-10 flex scroll-mt-6 flex-col gap-4">
+    <div id="payments" className="flex flex-col gap-5">
       <SectionHeader
         title="Thanh toán"
         description="Tài khoản ngân hàng nhận chuyển khoản. Khi thu tiền, hóa đơn sinh mã QR có sẵn số tiền và nội dung để khách quét."
@@ -82,7 +82,7 @@ export function PaymentSection() {
       ) : !data || data.length === 0 ? (
         <EmptyState icon={Landmark} title="Chưa có tài khoản ngân hàng" description="Thêm tài khoản để nút “Mã QR chuyển khoản” trên hóa đơn hoạt động." />
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {data.map((a) => (
             <li key={a.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
               <div className="flex min-w-0 flex-1 flex-col">
@@ -156,7 +156,7 @@ function AddAccountForm({ branches, onCancel, onAdded }: { branches: { id: strin
   }
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4 rounded-md border p-4">
+    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4 rounded-xl border bg-card p-4">
       {problem && !Object.keys(errors).length && (
         <Alert variant="destructive">
           <CircleAlert aria-hidden />

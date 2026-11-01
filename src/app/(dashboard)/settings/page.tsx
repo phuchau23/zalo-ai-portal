@@ -1,30 +1,8 @@
 import type { Metadata } from "next";
-import { PageHeader, SectionHeader } from "@/components/common/page-header";
-import { BranchesSection } from "./branches-section";
-import { CrmSettingsForm } from "./crm-settings-form";
-import { HandoffForm } from "./handoff-form";
-import { PaymentSection } from "./payment-section";
 import { SettingsForm } from "./settings-form";
-import { TeamSection } from "./team-section";
 
-export const metadata: Metadata = { title: "Cài đặt — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Cài đặt doanh nghiệp — Trợ lý Zalo AI" };
 
 export default function SettingsPage() {
-  return (
-    <div className="flex flex-col gap-2">
-      <PageHeader title="Cài đặt doanh nghiệp" description="Thông tin bot dùng khi trò chuyện với khách của bạn." />
-      <SettingsForm />
-      <BranchesSection />
-      <CrmSettingsForm />
-      <PaymentSection />
-      <div id="handoff" className="mt-10 scroll-mt-6">
-        <SectionHeader
-          title="Chuyển tiếp & giờ làm việc"
-          description="Bot chuyển khách cho nhân viên như thế nào, nhắn gì cho khách, và báo nhân viên ra sao."
-        />
-        <HandoffForm />
-      </div>
-      <TeamSection />
-    </div>
-  );
+  return <SettingsForm sections={["business", "privacy"]} />;
 }

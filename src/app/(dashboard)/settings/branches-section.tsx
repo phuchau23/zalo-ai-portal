@@ -40,7 +40,7 @@ export function BranchesSection() {
   }
 
   return (
-    <div id="branches" className="mt-10 flex scroll-mt-6 flex-col gap-4">
+    <div id="branches" className="flex flex-col gap-5">
       <SectionHeader
         title="Chi nhánh"
         description="Cơ sở, giờ mở cửa và ngày nghỉ. Lịch hẹn, nhân viên và danh mục bán gắn theo chi nhánh."
@@ -69,7 +69,7 @@ export function BranchesSection() {
       ) : !data || data.length === 0 ? (
         <EmptyState icon={Store} title="Chưa có chi nhánh" description="Thêm chi nhánh đầu tiên để xếp lịch và nhân viên." />
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {data.map((b) => {
             const expanded = open === b.id;
             const status = statusOf(branchStatusLabels, b.status);
@@ -168,7 +168,7 @@ function AddBranchForm({ onAdded }: { onAdded: () => void }) {
   }
 
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3 rounded-md border p-4">
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3 rounded-xl border bg-card p-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[10rem_1fr_1fr_10rem_auto] lg:items-end">
         <Field id="branch-code" label="Mã" error={errors.code}>
           <Input
