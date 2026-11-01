@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
+  Boxes,
   Building2,
   CalendarClock,
   CalendarDays,
@@ -17,6 +18,7 @@ import {
   MessagesSquare,
   Package,
   Plug,
+  Receipt,
   Settings,
   ShieldCheck,
   Users,
@@ -39,11 +41,13 @@ const navItems: NavItem[] = [
   { href: "/", label: "Tổng quan", icon: House },
   { href: "/inbox", label: "Hộp thư", icon: Inbox },
   { href: "/appointments", label: "Lịch hẹn", icon: CalendarDays },
+  { href: "/sales", label: "Bán hàng", icon: Receipt },
   { href: "/care", label: "Cần chăm sóc", icon: HeartHandshake },
   { href: "/customers", label: "Khách hàng", icon: Users },
   { href: "/knowledge", label: "Kho kiến thức", icon: Database },
-  // Danh mục và Nhân viên: ai cũng xem được (chỉ đọc nếu không có quyền sửa) nên không đặt `permission`.
+  // Danh mục, Kho và Nhân viên: ai cũng xem được (chỉ đọc nếu không có quyền sửa) nên không đặt `permission`.
   { href: "/catalog", label: "Danh mục", icon: Package },
+  { href: "/inventory", label: "Kho", icon: Boxes },
   { href: "/staff", label: "Nhân viên", icon: Users },
   { href: "/chat-test", label: "Chat thử", icon: MessagesSquare },
   { href: "/channels", label: "Kết nối kênh", icon: Plug },
