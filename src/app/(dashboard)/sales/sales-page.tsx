@@ -33,8 +33,11 @@ const salesTabs: { value: SalesTab; label: string; icon: LucideIcon }[] = [
 
 const ALL = "__all__";
 
-/** Bán hàng: hóa đơn (lập, thu tiền), ca thu ngân, voucher. Chi nhánh chọn chung cho các tab. */
-export function SalesPage({ initialTab }: { initialTab: SalesTab }) {
+/**
+ * Bán hàng: hóa đơn (lập, thu tiền), ca thu ngân, voucher. Chi nhánh chọn chung cho các tab.
+ * `openNew` (?new=1, nút "Tạo hóa đơn" ở Tổng quan): mở sẵn hộp lập hóa đơn khi đã biết chi nhánh.
+ */
+export function SalesPage({ initialTab, openNew = false }: { initialTab: SalesTab; openNew?: boolean }) {
   const router = useRouter();
   const { me } = useSession();
   const canEditVouchers = hasPermission(me.currentTenant, "manage_catalog");
@@ -42,7 +45,7 @@ export function SalesPage({ initialTab }: { initialTab: SalesTab }) {
   const branches = useApiData(() => call(() => api.GET("/branches", { params: { query: { includeInactive: false } } })));
   const branchList: Branch[] = useMemo(() => branches.data ?? [], [branches.data]);
   const [selectedBranch, setSelectedBranch] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(openNew);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
 
@@ -62,8 +65,25 @@ export function SalesPage({ initialTab }: { initialTab: SalesTab }) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        icon={Receipt}
         title="Bán hàng"
         description="Lập hóa đơn, thu tiền, mã QR chuyển khoản, đối chiếu ca thu ngân và mã giảm giá."
+        help={
+          <ul>
+            <li>
+              <strong>Tạo hóa đơn</strong>: chọn khách, thêm dịch vụ / gói / sản phẩm, rồi thu tiền (tiền mặt, chuyển khoản, thẻ, ví trả trước). Thu thiếu thì hóa đơn ở trạng thái &quot;Thu một phần&quot;.
+            </li>
+            <li>
+              Khách làm từ <strong>lịch hẹn</strong>: mở lịch → <strong>Thanh toán</strong>, hóa đơn tự điền dịch vụ; khách có gói thì tự trừ buổi.
+            </li>
+            <li>
+              <strong>Ca thu ngân</strong>: mở ca đầu ngày với tiền đầu ca, cuối ngày chốt ca để đối chiếu tiền mặt.
+            </li>
+            <li>
+              Mã QR chuyển khoản cần khai báo tài khoản ngân hàng ở <strong>Cài đặt → Thanh toán</strong>.
+            </li>
+          </ul>
+        }
         actions={
           <Button onClick={() => setCreating(true)} className="h-11 sm:h-9" disabled={!branchId}>
             <Plus aria-hidden />
@@ -119,7 +139,7 @@ export function SalesPage({ initialTab }: { initialTab: SalesTab }) {
         </Tabs>
       )}
 
-      {creating && (
+      {creating && branchId && (
         <InvoiceEditorDialog
           mode={{ kind: "create", preset: { branchId } }}
           onClose={() => setCreating(false)}
@@ -204,7 +224,7 @@ function InvoicesTab({
           </Button>
         </EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-md border">
+        <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

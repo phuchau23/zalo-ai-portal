@@ -57,6 +57,7 @@ export function AppointmentsPage() {
   const searchParams = useSearchParams();
   const paramDate = searchParams.get("date");
   const paramContact = searchParams.get("contactId");
+  const paramNew = searchParams.get("new") === "1";
   const canOverlap = hasPermission(me.currentTenant, "manage_staff");
 
   const settings = useApiData(() => call(() => api.GET("/tenant/crm-settings")));
@@ -77,9 +78,11 @@ export function AppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState(ALL);
   const [includeCancelled, setIncludeCancelled] = useState(false);
   const [tab, setTab] = useState<"calendar" | "waitlist">("calendar");
-  // Từ hồ sơ khách (?contactId=) → mở sẵn hộp thoại đặt lịch cho khách đó.
+  // Từ hồ sơ khách (?contactId=) → mở sẵn hộp thoại đặt lịch cho khách đó; từ nút "Đặt lịch hẹn" ở Tổng quan (?new=1) → hộp thoại trống.
   const [dialog, setDialog] = useState<DialogMode | null>(() =>
-    paramContact ? { kind: "create", preset: { contactId: paramContact, date: isDateKey(paramDate) ? paramDate : undefined } } : null,
+    paramContact || paramNew
+      ? { kind: "create", preset: { contactId: paramContact ?? undefined, date: isDateKey(paramDate) ? paramDate : undefined } }
+      : null,
   );
   const [detailId, setDetailId] = useState<string | null>(null);
 
@@ -169,8 +172,25 @@ export function AppointmentsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        icon={CalendarDays}
         title="Lịch hẹn"
         description="Lịch của từng nhân viên theo ngày. Bot đặt qua chat và nhân viên đặt tay đều hiện ở đây."
+        help={
+          <ul>
+            <li>
+              Bấm <strong>Đặt lịch</strong> (hoặc bấm vào ô trống trên lịch) để đặt cho khách gọi điện, khách đến trực tiếp. Hệ thống tự chặn giờ đã kín.
+            </li>
+            <li>
+              Lịch do <strong>bot chốt qua Zalo</strong> hiện cùng chỗ, có nhãn nguồn &quot;Bot&quot;. Mở lịch để xem tóm tắt khách do AI viết cho kỹ thuật viên.
+            </li>
+            <li>
+              Khách đến: mở lịch → <strong>Đã đến</strong> → <strong>Đang làm</strong> → <strong>Hoàn thành</strong>, rồi bấm <strong>Thanh toán</strong> để lập hóa đơn.
+            </li>
+            <li>
+              Lịch trống vì chưa có người nhận? Vào <strong>Nhân viên</strong> để thêm nhân viên, ca làm và dịch vụ họ làm được.
+            </li>
+          </ul>
+        }
         actions={
           <Button onClick={() => openCreate({ date })} className="h-11 sm:h-9" disabled={!branchId || loadingBase}>
             <Plus aria-hidden />

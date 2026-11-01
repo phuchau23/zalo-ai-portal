@@ -34,10 +34,10 @@ export function OverviewDashboard() {
   }
 
   return (
-    <section aria-labelledby="activity" className="flex flex-col gap-4">
+    <section id="bot-activity" aria-labelledby="activity" className="flex scroll-mt-6 flex-col gap-4">
       <SectionHeader
         title={<span id="activity">Hoạt động của bot</span>}
-        description="Số liệu khách thật trên Zalo, không tính khung Chat thử."
+        description="Khách thật nhắn qua Zalo (không tính khung Chat thử): bot trả lời bao nhiêu, câu nào chưa trả lời được."
         actions={
           <Tabs value={String(days)} onValueChange={changePeriod}>
             <TabsList aria-label="Khoảng thời gian">
@@ -54,7 +54,7 @@ export function OverviewDashboard() {
       {problem && !data ? (
         <ErrorState problem={problem} onRetry={reload} />
       ) : !data ? (
-        <div role="status" aria-label="Đang tải số liệu" className="h-72 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+        <div role="status" aria-label="Đang tải số liệu" className="h-72 animate-pulse rounded-xl bg-muted motion-reduce:animate-none" />
       ) : (
         <div className={cn("flex flex-col gap-4 transition-opacity", loading && "opacity-60")}>
           <KpiRow data={data} />
@@ -69,7 +69,7 @@ export function OverviewDashboard() {
 function KpiRow({ data }: { data: Dashboard }) {
   const rate = botRate(data.botHandled, data.conversations);
   return (
-    <div className="grid grid-cols-2 overflow-hidden rounded-md border lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Kpi icon={MessagesSquare} label="Hội thoại" value={data.conversations.toLocaleString("vi-VN")} hint={`${data.days} ngày qua`} />
       <Kpi
         icon={Bot}
@@ -85,7 +85,7 @@ function KpiRow({ data }: { data: Dashboard }) {
 
 function Kpi({ icon: Icon, label, value, hint }: { icon: LucideIcon; label: string; value: string; hint: string }) {
   return (
-    <div className="-mb-px -ml-px flex flex-col gap-1.5 border-b border-l p-4">
+    <div className="surface flex flex-col gap-1.5 p-4">
       <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <Icon className="size-3.5" aria-hidden />
         {label}
@@ -103,7 +103,7 @@ function DailyChart({ data }: { data: Dashboard }) {
   const ticks = Number.isInteger(max / 2) ? [max, max / 2, 0] : [max, 0];
 
   return (
-    <figure className="flex flex-col gap-3 rounded-md border p-4">
+    <figure className="surface flex flex-col gap-3 p-5">
       <figcaption className="text-sm font-medium">Hội thoại mỗi ngày</figcaption>
       {data.truncated && <p className="text-xs text-muted-foreground">Quá nhiều tin nhắn, biểu đồ có thể chưa đủ số liệu.</p>}
       <div className="flex gap-2">
@@ -173,7 +173,7 @@ function DailyChart({ data }: { data: Dashboard }) {
 
 function Unanswered({ data }: { data: Dashboard }) {
   return (
-    <section aria-labelledby="unanswered" className="flex flex-col gap-3 rounded-md border p-4">
+    <section aria-labelledby="unanswered" className="surface flex flex-col gap-3 p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-0.5">
           <h3 id="unanswered" className="flex items-center gap-1.5 text-sm font-medium">

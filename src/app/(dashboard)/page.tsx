@@ -3,132 +3,73 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CircleCheck, CircleDashed, Database, FileText, Inbox, MessagesSquare, Plug, type LucideIcon } from "lucide-react";
-import { PageHeader, SectionHeader } from "@/components/common/page-header";
-import { Badge } from "@/components/ui/badge";
+import { CalendarPlus, MessageSquareText, ReceiptText } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
-import { useApiData } from "@/lib/use-api-data";
+import { firstName, greeting, longDateVn, vnHour } from "@/lib/home";
+import { useApiData, useNow } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
+import { ActionCenter } from "./_home/action-center";
+import { AiValueCard } from "./_home/ai-value-card";
+import { SetupChecklist } from "./_home/setup-checklist";
+import { TodayPanel } from "./_home/today-panel";
 import { OverviewDashboard } from "./overview-dashboard";
 
-type Step = { title: string; description: string; icon: LucideIcon; href?: string; module?: string };
-
-const steps: Step[] = [
-  {
-    title: "Kho kiến thức",
-    description: "Nạp bảng giá, dịch vụ, câu hỏi thường gặp, tài liệu để bot trả lời đúng dữ liệu của bạn.",
-    icon: Database,
-    href: "/knowledge",
-  },
-  { title: "Chat thử", description: "Tự chat với bot và chỉnh giọng văn trước khi bật cho khách.", icon: MessagesSquare, href: "/chat-test" },
-  { title: "Kết nối Zalo OA", description: "Kết nối Official Account để bot trả lời khách 24/7.", icon: Plug, href: "/channels" },
-  { title: "Hộp thư", description: "Xem hội thoại, tiếp quản khi khách cần người thật.", icon: Inbox, module: "M5" },
-];
-
+/**
+ * Trang chủ của chủ doanh nghiệp, đọc từ trên xuống theo thứ tự quan trọng:
+ * việc cần xử lý ngay → hôm nay (doanh thu, lịch) + kết quả trợ lý AI → các bước thiết lập còn thiếu → hoạt động của bot.
+ * Nhân viên trực vào thẳng Hộp thư.
+ */
 export default function OverviewPage() {
   const { me } = useSession();
   const router = useRouter();
   const isStaff = me.currentTenant?.role === "staff";
-  const isOwner = me.currentTenant?.role === "owner";
-  const { data: status } = useApiData(() => call(() => api.GET("/knowledge/status")));
-  const { data: waiting } = useApiData(() =>
-    call(() => api.GET("/inbox/conversations", { params: { query: { filter: "attention", includeTest: false } } })),
-  );
+  const now = useNow(60_000);
+  const today = useApiData(() => call(() => api.GET("/reports/today")));
 
-  // Nhân viên trực: vào thẳng Hộp thư.
   useEffect(() => {
     if (isStaff) router.replace("/inbox");
   }, [isStaff, router]);
-  const knowledgeReady = Boolean(status && status.items + status.documents > 0);
+  if (isStaff) return null;
 
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader title={`Xin chào, ${me.name}`} description={me.currentTenant?.name} />
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-medium text-muted-foreground">{longDateVn(now)}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-[1.75rem]">
+            {greeting(vnHour(now))}, {firstName(me.name)}
+          </h1>
+          <p className="text-sm text-muted-foreground">Đây là tình hình của {me.currentTenant?.name ?? "doanh nghiệp"} hôm nay.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/appointments?new=1" className={cn(buttonVariants(), "h-11 sm:h-9")}>
+            <CalendarPlus aria-hidden />
+            Đặt lịch hẹn
+          </Link>
+          <Link href="/sales?new=1" className={cn(buttonVariants({ variant: "outline" }), "h-11 sm:h-9")}>
+            <ReceiptText aria-hidden />
+            Tạo hóa đơn
+          </Link>
+          <Link href="/chat-test" className={cn(buttonVariants({ variant: "outline" }), "h-11 sm:h-9")}>
+            <MessageSquareText aria-hidden />
+            Chat thử bot
+          </Link>
+        </div>
+      </header>
 
-      {isOwner && <OverviewDashboard />}
+      <ActionCenter openInvoices={today.data?.openInvoices} />
 
-      <div className="grid grid-cols-2 overflow-hidden rounded-md border lg:grid-cols-4">
-        <Stat label="Mục dữ liệu" value={status?.items} icon={Database} href="/knowledge" />
-        <Stat label="Tài liệu tham khảo" value={status?.documents} icon={FileText} href="/knowledge?tab=documents" />
-        <Stat label="Khách đang chờ nhân viên" value={waiting?.length} icon={Inbox} href="/inbox" />
-        <Stat label="Zalo OA" hint="Xem kết nối" icon={Plug} href="/channels" />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
+        <TodayPanel today={today.data} now={now} />
+        <AiValueCard />
       </div>
 
-      <section className="flex flex-col gap-3">
-        <SectionHeader title="Các bước thiết lập" description="Làm lần lượt để bot sẵn sàng trả lời khách." />
-        <ol className="divide-y rounded-md border">
-          {steps.map((step, index) => {
-            const done = index === 0 && knowledgeReady;
-            const Icon = step.icon;
-            const body = (
-              <>
-                <span
-                  className={cn(
-                    "flex size-8 shrink-0 items-center justify-center rounded-md text-sm font-semibold",
-                    done ? "bg-success/10 text-success" : step.href ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground",
-                  )}
-                  aria-hidden
-                >
-                  {done ? <CircleCheck className="size-4" /> : index + 1}
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="flex flex-wrap items-center gap-2 font-medium">
-                    <Icon className="size-4 text-muted-foreground" aria-hidden />
-                    {step.title}
-                    {done && <Badge variant="success">Đã có dữ liệu</Badge>}
-                    {step.module && (
-                      <Badge variant="secondary">
-                        <CircleDashed aria-hidden />
-                        Sắp có
-                      </Badge>
-                    )}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{step.description}</span>
-                </div>
-                {step.href && <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />}
-              </>
-            );
-            return (
-              <li key={step.title}>
-                {step.href ? (
-                  <Link
-                    href={step.href}
-                    className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-accent/50 focus-visible:bg-accent/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset"
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <div className="flex items-center gap-4 px-4 py-4">{body}</div>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </section>
-    </div>
-  );
-}
+      <SetupChecklist />
 
-function Stat({ label, value, hint, icon: Icon, href }: { label: string; value?: number; hint?: string; icon: LucideIcon; href?: string }) {
-  const content = (
-    <>
-      <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        <Icon className="size-3.5" aria-hidden />
-        {label}
-      </p>
-      <p className="tabular text-2xl font-semibold tracking-tight">
-        {value !== undefined ? value.toLocaleString("vi-VN") : <span className="text-base font-normal text-muted-foreground">{hint ?? "—"}</span>}
-      </p>
-    </>
-  );
-  const className = "flex flex-col gap-1.5 border-b border-l -ml-px -mb-px p-4";
-  return href ? (
-    <Link href={href} className={cn(className, "transition-colors hover:bg-accent/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset")}>
-      {content}
-    </Link>
-  ) : (
-    <div className={className}>{content}</div>
+      <OverviewDashboard />
+    </div>
   );
 }
