@@ -228,7 +228,7 @@ export function InvoiceEditorDialog({ mode, onClose, onSaved }: { mode: EditorMo
             {lines.length === 0 ? (
               <p className="text-sm text-muted-foreground">Chưa có dòng nào. Chọn mục bên dưới để thêm.</p>
             ) : (
-              <ul className="flex flex-col divide-y rounded-md border">
+              <ul className="flex flex-col divide-y rounded-xl border bg-card">
                 {lines.map((l, i) => {
                   const amount = lineTotal({ quantity: Number(l.quantity) || 0, unitPrice: Number(l.unitPrice) || 0, discount: Number(l.discount) || 0 });
                   return (

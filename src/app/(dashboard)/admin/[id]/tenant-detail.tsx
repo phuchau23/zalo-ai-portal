@@ -67,7 +67,7 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         <div className="flex min-w-0 flex-col gap-6">
           <SubscriptionForm detail={data} plans={plans ?? []} onSaved={reload} />
           <CostChart detail={data} />
-          <section aria-labelledby="members" className="flex flex-col gap-2 rounded-md border p-4">
+          <section aria-labelledby="members" className="flex flex-col gap-2 rounded-xl border bg-card p-4">
             <h2 id="members" className="text-sm font-medium">
               Tài khoản ({data.members.length})
             </h2>
@@ -138,7 +138,7 @@ function SubscriptionForm({ detail, plans, onSaved }: { detail: AdminTenantDetai
   }
 
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-md border p-4">
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-xl border bg-card p-4">
       <div className="flex flex-col gap-0.5">
         <h2 className="text-sm font-medium">Gói và hạn thuê</h2>
         <p className="text-sm text-muted-foreground">
@@ -198,7 +198,7 @@ function CostChart({ detail }: { detail: AdminTenantDetail }) {
   const top = max === 0 ? 1 : max;
   const total = months.reduce((sum, m) => sum + m.costUsd, 0);
   return (
-    <figure className="flex flex-col gap-3 rounded-md border p-4">
+    <figure className="flex flex-col gap-3 rounded-xl border bg-card p-4">
       <figcaption className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-sm font-medium">Chi phí AI 12 tháng</span>
         <span className="text-xs text-muted-foreground">

@@ -99,7 +99,7 @@ export function WaitlistSection({
       ) : rows.length === 0 ? (
         <EmptyState icon={Hourglass} title="Hàng chờ trống" description="Khi khách muốn giờ đã kín, thêm vào đây để không quên mời khách khi có chỗ." />
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {rows.map((e) => {
             const status = waitlistStatusLabels[e.status] ?? { label: e.status, variant: "outline" as const };
             const open = e.status === "waiting" || e.status === "offered";

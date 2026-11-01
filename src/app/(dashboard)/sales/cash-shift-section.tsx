@@ -50,7 +50,7 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
       ) : current.loading && shift === undefined ? (
         <LoadingRows rows={2} columns={3} label="Đang tải ca thu ngân" />
       ) : shift ? (
-        <section className="flex flex-col gap-3 rounded-md border border-primary/30 p-4">
+        <section className="flex flex-col gap-3 rounded-xl border bg-card border-primary/30 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-base font-semibold">
               <LockOpen className="size-4 text-success" aria-hidden />
@@ -91,7 +91,7 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
         ) : history.data.length === 0 ? (
           <EmptyState icon={Clock} title="Chưa có ca nào" description="Mở ca đầu ngày với số tiền mặt trong két, cuối ngày chốt ca để đối chiếu." />
         ) : (
-          <div className="overflow-x-auto rounded-md border">
+          <div className="overflow-x-auto rounded-xl border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>

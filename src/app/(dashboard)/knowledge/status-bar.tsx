@@ -16,7 +16,7 @@ export function StatusBar() {
   const percent = data && data.chunks > 0 ? Math.round((indexed / data.chunks) * 100) : 0;
 
   return (
-    <div className="grid overflow-hidden rounded-md border sm:grid-cols-[1fr_1fr_2fr]">
+    <div className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-[1fr_1fr_2fr]">
       <Cell label="Mục dữ liệu">{data ? <Count value={data.items} /> : <Placeholder />}</Cell>
       <Cell label="Tài liệu tham khảo">{data ? <Count value={data.documents} /> : <Placeholder />}</Cell>
       <Cell label="Trạng thái bot">

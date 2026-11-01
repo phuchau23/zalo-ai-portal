@@ -156,7 +156,7 @@ function Review({ data, isOwner, canEdit, onChanged }: { data: KnowledgeImport; 
         }
       />
 
-      <nav aria-label="Tóm tắt thay đổi" className="grid grid-cols-2 overflow-hidden rounded-md border sm:grid-cols-5">
+      <nav aria-label="Tóm tắt thay đổi" className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card sm:grid-cols-5">
         {summaryCells.map((c) => {
           const jump = c.type && c.value > 0;
           const content = (
@@ -221,7 +221,7 @@ function Review({ data, isOwner, canEdit, onChanged }: { data: KnowledgeImport; 
         if (sectionItems.length === 0) return null;
         const picked = sectionItems.filter((i) => (decisions[i.key] ?? "skip") !== "skip").length;
         return (
-          <section key={section.type} id={`section-${section.type}`} className="scroll-mt-20 overflow-hidden rounded-md border">
+          <section key={section.type} id={`section-${section.type}`} className="scroll-mt-20 overflow-hidden rounded-xl border bg-card">
             <div className="relative flex flex-col gap-3 border-b bg-muted/40 px-4 py-3 pl-5 sm:flex-row sm:items-start sm:justify-between">
               <span className={cn("absolute inset-y-0 left-0 w-1", section.tone.bar)} aria-hidden />
               <div className="flex min-w-0 flex-col gap-0.5">
@@ -421,7 +421,7 @@ function Changes({ item }: { item: KnowledgeDiffItem }) {
   const oldLabel = item.type === "possibleDuplicate" ? "Mục cũ" : "Hiện tại";
 
   return (
-    <div className="mt-3 overflow-x-auto rounded-md border sm:ml-7">
+    <div className="mt-3 overflow-x-auto rounded-xl border bg-card sm:ml-7">
       <table className="w-full text-sm">
         <thead className="bg-muted/60 text-xs text-muted-foreground">
           <tr className="text-left">

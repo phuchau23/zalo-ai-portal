@@ -254,7 +254,7 @@ export function AppointmentDialog({
                   {services.length === 0 && packages.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Chưa có dịch vụ nào trong Danh mục. Thêm dịch vụ trước khi đặt lịch.</p>
                   ) : (
-                    <div className="max-h-56 overflow-y-auto rounded-md border">
+                    <div className="max-h-56 overflow-y-auto rounded-xl border bg-card">
                       <ItemList idPrefix={`${p}-svc`} items={services} selectedIds={selectedIds} onToggle={toggleItem} disabled={saving} />
                       {packages.length > 0 && (
                         <>
@@ -411,7 +411,7 @@ export function AppointmentDialog({
                   </Label>
                 )}
 
-                <div className="flex flex-col gap-3 rounded-md border p-3">
+                <div className="flex flex-col gap-3 rounded-xl border bg-card p-3">
                   <Label htmlFor={`${p}-repeat`} className="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-normal sm:min-h-9">
                     <Switch id={`${p}-repeat`} checked={repeat} disabled={saving} onCheckedChange={setRepeat} />
                     <span className="flex flex-col">
@@ -511,7 +511,7 @@ function SeriesOutcomes({ outcomes, timeZone, onClose }: { outcomes: SeriesOutco
       <p className="text-sm">
         Đã đặt <span className="font-medium">{ok}/{outcomes.length}</span> buổi. Buổi không đặt được có thể đặt tay sau với giờ khác.
       </p>
-      <ol className="flex flex-col divide-y rounded-md border">
+      <ol className="flex flex-col divide-y rounded-xl border bg-card">
         {outcomes.map((o, i) => (
           <li key={`${o.startAt}-${i}`} className="flex items-center gap-2 px-3 py-2 text-sm">
             {o.appointment ? <CircleCheck className="size-4 shrink-0 text-success" aria-hidden /> : <CircleX className="size-4 shrink-0 text-destructive" aria-hidden />}

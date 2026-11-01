@@ -81,7 +81,7 @@ export function CountsSection({ ctx }: { ctx: InventoryContext }) {
           )}
         </EmptyState>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {rows.map((c) => {
             const expanded = open === c.id;
             const st = countStatusOf(c.status);

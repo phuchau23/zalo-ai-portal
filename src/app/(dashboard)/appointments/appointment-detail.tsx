@@ -239,7 +239,7 @@ export function AppointmentDetailDialog({
             <div className="grid gap-5 sm:grid-cols-2">
               <section className="flex flex-col gap-2">
                 <h3 className="text-sm font-semibold">Dịch vụ</h3>
-                <ul className="flex flex-col divide-y rounded-md border text-sm">
+                <ul className="flex flex-col divide-y rounded-xl border bg-card text-sm">
                   {a.items.map((i) => (
                     <li key={i.catalogItemId} className="flex items-center gap-2 px-3 py-2">
                       <span className="min-w-0 flex-1">{i.name}</span>

@@ -66,7 +66,7 @@ export function StockSection({ ctx }: { ctx: InventoryContext }) {
           description={lowOnly ? "Mọi sản phẩm đều trên mức tối thiểu." : "Nhập hàng ở tab Nhập hàng, hoặc bật “Theo dõi kho” cho sản phẩm trong Danh mục."}
         />
       ) : (
-        <div className="overflow-x-auto rounded-md border">
+        <div className="overflow-x-auto rounded-xl border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

@@ -198,7 +198,7 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
               <h2 id="care-history" className="text-base font-semibold">
                 Lịch sử gợi ý chăm sóc
               </h2>
-              <ul className="flex flex-col divide-y rounded-lg border">
+              <ul className="flex flex-col divide-y rounded-xl border bg-card">
                 {pastSuggestions.map((s) => (
                   <li key={s.id} className="flex flex-wrap items-center gap-2 px-3 py-2.5 text-sm">
                     <span className="font-medium">{triggerLabel(s.trigger)}</span>

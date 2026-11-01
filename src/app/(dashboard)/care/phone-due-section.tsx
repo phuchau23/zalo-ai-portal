@@ -50,7 +50,7 @@ export function PhoneDueSection() {
           {problemMessage(problem)}
         </p>
       )}
-      <ul className="flex flex-col divide-y rounded-md border">
+      <ul className="flex flex-col divide-y rounded-xl border bg-card">
         {data.map((d) => (
           <li key={d.noteId} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="flex min-w-0 flex-1 flex-col gap-1">

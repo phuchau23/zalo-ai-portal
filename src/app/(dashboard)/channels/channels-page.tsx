@@ -135,7 +135,7 @@ export function ChannelsPage({ connected, error }: { connected?: string; error?:
         )}
 
         {connections.length > 0 && (
-          <ul className="flex flex-col divide-y rounded-md border" aria-label="OA đã kết nối">
+          <ul className="flex flex-col divide-y rounded-xl border bg-card" aria-label="OA đã kết nối">
             {connections.map((c) => {
               const active = c.status === "active";
               const errorLabel = connectionErrorLabel(c.lastError);

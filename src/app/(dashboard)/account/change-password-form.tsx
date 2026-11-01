@@ -40,7 +40,7 @@ export function ChangePasswordForm() {
 
   const general = problem && Object.keys(problem.fieldErrors).length === 0 ? problemMessage(problem) : null;
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex max-w-md flex-col gap-4 rounded-md border p-4">
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex max-w-md flex-col gap-4 rounded-xl border bg-card p-4">
       <p className="text-sm text-muted-foreground">
         Đăng nhập bằng <span className="font-medium text-foreground">{me.email}</span>
       </p>

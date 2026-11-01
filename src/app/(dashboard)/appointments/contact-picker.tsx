@@ -131,7 +131,7 @@ export function ContactPicker({
     const v: Extract<ContactChoice, { kind: "new" }> = value?.kind === "new" ? value : { kind: "new", name: "", phone: "", salutation: null };
     const set = (patch: Partial<typeof v>) => onChange({ ...v, ...patch });
     return (
-      <div className="flex flex-col gap-3 rounded-md border p-3">
+      <div className="flex flex-col gap-3 rounded-xl border bg-card p-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-medium">Khách mới</span>
           <Button
@@ -227,7 +227,7 @@ export function ContactPicker({
         current.length === 0 ? (
           <p className="text-sm text-muted-foreground">Không thấy khách nào khớp.</p>
         ) : (
-          <ul className="max-h-56 overflow-y-auto rounded-md border" aria-label="Kết quả tìm khách">
+          <ul className="max-h-56 overflow-y-auto rounded-xl border bg-card" aria-label="Kết quả tìm khách">
             {current.map((c) => (
               <li key={c.id} className="border-b last:border-0">
                 <button

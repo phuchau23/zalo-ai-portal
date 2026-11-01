@@ -71,7 +71,7 @@ export function DayView({
   const nowTop = nowMinutes !== null && nowMinutes >= range.startMinutes && nowMinutes <= range.endMinutes ? ((nowMinutes - range.startMinutes) / total) * 100 : null;
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-xl border bg-card">
       <div className="grid" style={{ gridTemplateColumns: `3.25rem repeat(${columns.length}, minmax(11rem, 1fr))` }}>
         {/* Hàng tiêu đề */}
         <div className="sticky left-0 z-20 border-b bg-background" />

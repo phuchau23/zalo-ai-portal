@@ -69,7 +69,7 @@ export function VouchersSection({ canEdit }: { canEdit: boolean }) {
           )}
         </EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-md border">
+        <div className="overflow-x-auto rounded-xl border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

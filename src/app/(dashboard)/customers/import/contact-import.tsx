@@ -60,7 +60,7 @@ export function ContactImport() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-3 rounded-md border p-4">
+      <section className="flex flex-col gap-3 rounded-xl border bg-card p-4">
         <h2 className="text-sm font-semibold">1. Tải file mẫu và điền danh sách</h2>
         <p className="text-sm text-muted-foreground">
           Mỗi dòng một khách. Cột SĐT bắt buộc. Giới tính Nam/Nữ để bot gọi anh/chị; Hẹn nhắn lúc là ngày giờ cần chăm sóc lại. Sheet &quot;Hướng
@@ -124,7 +124,7 @@ export function ContactImport() {
           {preview.error > 0 && (
             <p className="text-sm text-muted-foreground">Dòng lỗi sẽ bị bỏ qua. Muốn nhập cả những dòng đó: sửa trong file rồi chọn lại file.</p>
           )}
-          <div className="overflow-x-auto rounded-md border">
+          <div className="overflow-x-auto rounded-xl border bg-card">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-muted/60 text-xs text-muted-foreground">
                 <tr>

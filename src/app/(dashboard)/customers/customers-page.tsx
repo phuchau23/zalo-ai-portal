@@ -163,7 +163,7 @@ export function CustomersPage() {
           </ul>
 
           {/* Máy tính: dạng bảng */}
-          <div className="hidden overflow-hidden rounded-lg border md:block">
+          <div className="hidden overflow-hidden rounded-xl border bg-card md:block">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">

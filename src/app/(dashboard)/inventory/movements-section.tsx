@@ -57,7 +57,7 @@ export function MovementsSection({ ctx }: { ctx: InventoryContext }) {
       ) : data.length === 0 ? (
         <EmptyState icon={History} title="Chưa có giao dịch kho" description="Mỗi lần nhập, bán, chuyển, kiểm kê hay tiêu hao theo dịch vụ sẽ ghi một dòng ở đây." />
       ) : (
-        <div className="overflow-x-auto rounded-md border">
+        <div className="overflow-x-auto rounded-xl border bg-card">
           <Table>
             <TableHeader>
               <TableRow>

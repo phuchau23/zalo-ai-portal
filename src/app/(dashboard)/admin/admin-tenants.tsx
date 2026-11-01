@@ -41,7 +41,7 @@ export function AdminTenants() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 overflow-hidden rounded-md border lg:grid-cols-3">
+      <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card lg:grid-cols-3">
         <Summary label="Doanh nghiệp" value={data ? `${tenants.length}` : "—"} hint={data ? `${active} đang hoạt động` : ""} />
         <Summary label="Chi phí AI tháng này" value={data ? formatUsd(costThisMonth) : "—"} hint={data ? `≈ ${formatVnd(costThisMonth)}` : ""} />
         <Summary
@@ -81,7 +81,7 @@ export function AdminTenants() {
         ) : tenants.length === 0 ? (
           <EmptyState icon={Building2} title="Chưa có doanh nghiệp" description="Tạo doanh nghiệp đầu tiên rồi gửi tài khoản cho chủ doanh nghiệp." />
         ) : (
-          <ul className="flex flex-col divide-y rounded-md border">
+          <ul className="flex flex-col divide-y rounded-xl border bg-card">
             {tenants.map((t) => (
               <TenantRow key={t.id} tenant={t} />
             ))}
@@ -216,7 +216,7 @@ function CreateTenantForm({ onCancel, onCreated }: { onCancel: () => void; onCre
 
   const selectedPlan = plans?.find((p) => p.code === values.plan);
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-md border p-4">
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-xl border bg-card p-4">
       <h3 className="text-sm font-semibold">Doanh nghiệp mới</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="t-name" label="Tên doanh nghiệp" error={errors.name}>

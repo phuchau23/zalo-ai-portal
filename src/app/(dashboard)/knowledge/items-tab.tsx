@@ -156,7 +156,7 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-xl border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

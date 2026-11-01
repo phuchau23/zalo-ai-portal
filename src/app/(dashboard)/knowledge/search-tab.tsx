@@ -85,7 +85,7 @@ export function SearchTab() {
       )}
 
       {results && results.length > 0 && (
-        <ol className="divide-y rounded-md border" aria-label="Kết quả bot tìm thấy">
+        <ol className="divide-y rounded-xl border bg-card" aria-label="Kết quả bot tìm thấy">
           {results.map((r, i) => {
             const percent = Math.round(r.score * 100);
             return (

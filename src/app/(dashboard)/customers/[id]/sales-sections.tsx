@@ -71,7 +71,7 @@ export function CustomerPackagesSection({ contactId }: { contactId: string }) {
             const pct = p.totalSessions > 0 ? Math.min(100, Math.round((p.usedSessions / p.totalSessions) * 100)) : 0;
             const open = expanded === p.id;
             return (
-              <li key={p.id} className="flex flex-col gap-2 rounded-md border p-3">
+              <li key={p.id} className="flex flex-col gap-2 rounded-xl border bg-card p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{p.name}</span>
                   <Badge variant={st.variant}>{st.label}</Badge>
@@ -326,7 +326,7 @@ export function CustomerWalletSection({ contactId }: { contactId: string }) {
       ) : !data ? (
         <div role="status" aria-label="Đang tải thẻ" className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
       ) : (
-        <div className="flex flex-col gap-2 rounded-md border p-3">
+        <div className="flex flex-col gap-2 rounded-xl border bg-card p-3">
           <p className="flex items-center gap-2 text-sm">
             <Wallet className="size-4 text-muted-foreground" aria-hidden />
             Số dư: <span className="tabular text-base font-semibold">{formatMoney(data.balance)}</span>

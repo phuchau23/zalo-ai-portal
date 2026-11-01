@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export function ListView({ appointments, timeZone, onSelect }: { appointments: Appointment[]; timeZone: string; onSelect: (id: string) => void }) {
   const sorted = [...appointments].sort((a, b) => a.startAt.localeCompare(b.startAt));
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-xl border bg-card">
       <Table>
         <TableHeader>
           <TableRow>

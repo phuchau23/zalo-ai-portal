@@ -85,7 +85,7 @@ export function PurchasesSection({ ctx }: { ctx: InventoryContext }) {
           )}
         </EmptyState>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {rows.map((po) => {
             const expanded = open === po.id;
             const st = purchaseStatusOf(po.status);

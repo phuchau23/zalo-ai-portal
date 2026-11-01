@@ -59,7 +59,7 @@ export function ProductLinesEditor({
       {lines.length === 0 ? (
         <p className="text-sm text-muted-foreground">Chưa có sản phẩm nào. Chọn bên dưới để thêm.</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {lines.map((l, i) => {
             const product = products.find((p) => p.id === l.catalogItemId);
             const extra = hint?.(l.catalogItemId);

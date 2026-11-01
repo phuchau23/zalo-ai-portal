@@ -44,7 +44,7 @@ export function ImportTab({ canEdit }: { canEdit: boolean }) {
   return (
     <div className="flex flex-col gap-10">
       <section className="flex flex-col gap-5">
-        <ol className="grid overflow-hidden rounded-md border sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, i) => (
             <li key={step.title} className="-mt-px -ml-px flex gap-3 border-t border-l px-4 py-3">
               <span className="tabular flex size-6 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-semibold text-primary-foreground">

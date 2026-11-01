@@ -107,7 +107,7 @@ function ConsumablesEditor({ serviceId, ctx, canEdit, products }: { serviceId: s
       {current.length === 0 ? (
         <p className="text-sm text-muted-foreground">Dịch vụ này chưa có định mức. {canEdit ? "Thêm sản phẩm bên dưới." : ""}</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {current.map((r, i) => {
             const product = products.find((p) => p.id === r.productId);
             return (
