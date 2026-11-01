@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /** Khung xương dạng bảng trong lúc tải, giữ chỗ để màn hình không nhảy. */
 export function LoadingRows({ rows = 5, columns = 4, label = "Đang tải dữ liệu" }: { rows?: number; columns?: number; label?: string }) {
   return (
-    <div role="status" aria-label={label} className="overflow-hidden rounded-md border">
+    <div role="status" aria-label={label} className="overflow-hidden rounded-xl border bg-card">
       <div className="h-10 border-b bg-muted/60" />
       {Array.from({ length: rows }, (_, r) => (
         <div key={r} className="flex items-center gap-4 border-b px-3 py-3.5 last:border-0">
