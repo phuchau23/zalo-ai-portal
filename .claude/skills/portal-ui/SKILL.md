@@ -17,7 +17,10 @@ Dùng skill **`ui-ux-pro-max`** (bản đã rà soát, nằm trong repo: `.claud
 3. **Ranh giới dự án:**
    - Đây là **trang quản trị dùng hằng ngày** (SaaS B2B), không phải landing page: ưu tiên dễ quét, mật độ thông tin vừa phải, thao tác lặp lại nhanh. Bỏ qua phần gợi ý landing page/hero/glassmorphism trang trí.
    - **Dùng shadcn/ui có sẵn** (`src/components/ui`, style `radix-nova`) và token màu CSS variables trong `src/app/globals.css`; không viết mã màu hex trực tiếp trong component. Thêm component: `pnpm dlx shadcn@latest add <ten>`. Đổi theme, màu chủ đạo, font → hỏi chủ dự án trước; giữ một bộ token chung cho mọi trang.
-   - Font phải có subset `vietnamese` (hiện dùng Geist qua `next/font`).
+   - Font phải có subset `vietnamese` (hiện dùng **Be Vietnam Pro** qua `next/font`, chốt 2026-11-01).
+   - **Hệ thống hình thức (2026-11-01, xem DECISIONS.md):** vùng nội dung nền `bg-canvas`; khối nội dung là thẻ trắng `surface` (hoặc `rounded-xl border bg-card`); `--background` trắng dành cho ô nhập/nút; màu tím `text-ai`/`bg-ai-soft` chỉ cho thứ AI làm; `bg-brand-gradient` chỉ cho logo, thẻ AI nổi bật, trang đăng nhập; bóng `shadow-card` / `shadow-card-hover`.
+   - **Phần đầu trang:** `PageHeader` với `icon` (+ `tone="ai"` cho trang nhóm Trợ lý AI) và `help` (vài dòng "Cách dùng trang này" dạng `<ul>`/`<ol>`). Trang có nhiều mục con dùng `SubNavLayout` (như Cài đặt, Thiết lập trợ lý); form cài đặt dùng `FormGroup` + `stickySaveBar` (`src/components/common/form-layout.tsx`).
+   - **Sơ đồ menu** ở `src/components/shell/nav-config.ts` (nhóm Vận hành / Khách hàng / Trợ lý AI / Quản lý); sơ đồ màn hình ở `../zalo-ai-assistant/docs/UI-MAP.md` — thêm trang mới thì cập nhật cả hai.
    - Không thêm thư viện UI, icon, animation mới khi chưa hỏi (đã có `lucide-react`; không dùng emoji làm icon).
    - Chữ trên giao diện bằng tiếng Việt, câu ngắn, rõ việc cần làm; không dùng thuật ngữ kỹ thuật với chủ doanh nghiệp (ví dụ "tenant" → "doanh nghiệp").
    - Mỗi màn hình đủ trạng thái: đang tải, trống (kèm hướng dẫn bước tiếp theo), lỗi, không có quyền (staff), chưa có doanh nghiệp.
