@@ -7,6 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
@@ -30,6 +31,9 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
+  --color-ai-soft: var(--ai-soft);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -51,13 +55,22 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Thang bóng đổ dùng chung: card (thẻ nằm trên nền), card-hover (thẻ bấm được), float (thanh dưới điện thoại). */
+@theme {
+  --shadow-card: 0 1px 2px 0 oklch(0.25 0.04 265 / 0.05), 0 1px 3px 0 oklch(0.25 0.04 265 / 0.04);
+  --shadow-card-hover: 0 2px 4px -1px oklch(0.25 0.04 265 / 0.06), 0 8px 20px -6px oklch(0.25 0.05 265 / 0.12);
+  --shadow-float: 0 -1px 0 0 oklch(0.25 0.04 265 / 0.04), 0 -8px 24px -12px oklch(0.25 0.05 265 / 0.18);
+}
+
 /*
- * Bộ màu: xanh dương (primary) trên nền trắng, chữ/viền theo thang xám lạnh (slate).
- * success/warning/info dùng cho trạng thái dữ liệu (đã áp dụng, đang chờ, thêm mới...).
- * Mọi màu chữ trên nền trắng đạt tương phản >= 4.5:1.
+ * Bộ màu: xanh dương (primary) trên nền xám-xanh rất nhạt (canvas), thẻ trắng (card).
+ * `--background` giữ màu trắng cho ô nhập, nút viền, tab đang chọn; `--canvas` là nền vùng nội dung.
+ * `--ai` (tím) chỉ dùng cho những gì AI làm (bot tự chốt lịch, doanh thu bot mang về...) để người dùng nhận ra ngay.
+ * success/warning/info dùng cho trạng thái dữ liệu. Mọi màu chữ trên nền trắng đạt tương phản >= 4.5:1.
  */
 :root {
   --background: oklch(1 0 0);
+  --canvas: oklch(0.982 0.0045 256);
   --foreground: oklch(0.21 0.034 264.7);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.034 264.7);
@@ -67,35 +80,39 @@
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.97 0.014 254.6);
   --secondary-foreground: oklch(0.42 0.17 264);
-  --muted: oklch(0.968 0.007 247.9);
-  --muted-foreground: oklch(0.52 0.04 257.4);
-  --accent: oklch(0.962 0.018 252);
+  --muted: oklch(0.966 0.007 250);
+  --muted-foreground: oklch(0.51 0.04 257.4);
+  --accent: oklch(0.958 0.022 254);
   --accent-foreground: oklch(0.44 0.18 263);
   --destructive: oklch(0.55 0.22 27.3);
   --success: oklch(0.52 0.13 152);
   --warning: oklch(0.55 0.15 50);
   --info: oklch(0.53 0.2 260);
-  --border: oklch(0.925 0.012 255.5);
-  --input: oklch(0.87 0.02 252.9);
+  --ai: oklch(0.53 0.22 293);
+  --ai-foreground: oklch(1 0 0);
+  --ai-soft: oklch(0.96 0.03 293);
+  --border: oklch(0.922 0.011 256);
+  --input: oklch(0.875 0.018 254);
   --ring: oklch(0.62 0.18 259.8);
   --chart-1: oklch(0.53 0.2 260);
   --chart-2: oklch(0.7 0.14 245);
-  --chart-3: oklch(0.42 0.17 264);
+  --chart-3: oklch(0.53 0.22 293);
   --chart-4: oklch(0.82 0.08 240);
   --chart-5: oklch(0.32 0.1 265);
-  --radius: 0.375rem;
-  --sidebar: oklch(0.985 0.003 247.9);
+  --radius: 0.625rem;
+  --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.37 0.04 257);
   --sidebar-primary: oklch(0.53 0.2 260);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0.025 252);
+  --sidebar-accent: oklch(0.955 0.028 256);
   --sidebar-accent-foreground: oklch(0.42 0.17 264);
-  --sidebar-border: oklch(0.925 0.012 255.5);
+  --sidebar-border: oklch(0.922 0.011 256);
   --sidebar-ring: oklch(0.62 0.18 259.8);
 }
 
 .dark {
-  --background: oklch(0.17 0.025 265);
+  --background: oklch(0.21 0.03 265);
+  --canvas: oklch(0.17 0.025 265);
   --foreground: oklch(0.97 0.006 248);
   --card: oklch(0.21 0.03 265);
   --card-foreground: oklch(0.97 0.006 248);
@@ -113,12 +130,15 @@
   --success: oklch(0.74 0.15 152);
   --warning: oklch(0.78 0.14 70);
   --info: oklch(0.72 0.14 250);
+  --ai: oklch(0.72 0.16 293);
+  --ai-foreground: oklch(0.17 0.025 265);
+  --ai-soft: oklch(0.28 0.06 293);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.66 0.17 255);
   --chart-1: oklch(0.66 0.17 255);
   --chart-2: oklch(0.78 0.11 240);
-  --chart-3: oklch(0.55 0.18 262);
+  --chart-3: oklch(0.72 0.16 293);
   --chart-4: oklch(0.86 0.06 240);
   --chart-5: oklch(0.45 0.12 265);
   --sidebar: oklch(0.19 0.028 265);
@@ -131,12 +151,27 @@
   --sidebar-ring: oklch(0.66 0.17 255);
 }
 
+/* Thẻ trắng nằm trên nền canvas: bo góc lớn, viền mảnh, bóng rất nhẹ. */
+@utility surface {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-card);
+}
+
+/* Dải màu thương hiệu (xanh → tím AI) cho logo và thẻ nổi bật về AI. */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, var(--primary) 0%, var(--ai) 100%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
   }
   /* Số trong bảng/thống kê thẳng cột. */
   td,
@@ -146,5 +181,13 @@
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.012em;
+  }
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 22%, transparent);
   }
 }
