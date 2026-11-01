@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Bot, CalendarClock, CircleAlert, CircleCheck, ExternalLink, LoaderCircle, Sparkles, UserRound } from "lucide-react";
+import { Bot, CalendarClock, CircleAlert, CircleCheck, ExternalLink, LoaderCircle, Receipt, Sparkles, UserRound } from "lucide-react";
 import { ErrorState } from "@/components/common/states";
 import {
   AlertDialog,
@@ -42,6 +42,7 @@ import { leadStatusOf } from "@/lib/customers";
 import { formatMoney } from "@/lib/format";
 import { useApiData, useNow } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
+import { InvoiceDetailDialog } from "../sales/invoice-detail";
 
 const NONE = "__none__";
 
@@ -79,6 +80,7 @@ export function AppointmentDetailDialog({
   const [busy, setBusy] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
 
   const a = data?.appointment;
   const createdAt = data?.events.find((e) => e.kind === "created")?.at ?? null;
@@ -117,6 +119,16 @@ export function AppointmentDetailDialog({
       call(() => api.POST("/appointments/{appointmentId}/cancel", { params: { path: { appointmentId } }, body: { reason: cancelReason.trim() || null } })),
     );
     if (ok) setCancelOpen(false);
+  }
+
+  // Tạo hóa đơn từ lịch (hoặc mở hóa đơn đã có): dịch vụ thuộc gói còn hiệu lực thành dòng "dùng buổi gói".
+  async function pay() {
+    setActionProblem(null);
+    setBusy(true);
+    const result = await call(() => api.POST("/invoices/from-appointment/{appointmentId}", { params: { path: { appointmentId } } }));
+    setBusy(false);
+    if (!result.ok) return setActionProblem(result.problem);
+    setInvoiceId(result.data.id);
   }
 
   const branchStaff = a ? staff.filter((s) => s.branchId === a.branchId && s.status === "active") : [];
@@ -178,8 +190,12 @@ export function AppointmentDetailDialog({
               </p>
             )}
 
-            {!isTerminal(a.status) && (
+            {(!isTerminal(a.status) || a.status === "done") && (
               <div className="flex flex-wrap gap-2" role="group" aria-label="Thao tác">
+                <Button size="sm" variant={a.status === "done" ? "default" : "outline"} className="h-11 sm:h-9" disabled={busy} onClick={() => void pay()}>
+                  <Receipt aria-hidden />
+                  {a.status === "done" ? "Thanh toán / hóa đơn" : "Thanh toán"}
+                </Button>
                 {nextStatuses(a.status).map((s) => (
                   <Button
                     key={s}
@@ -344,6 +360,17 @@ export function AppointmentDetailDialog({
 
             <Timeline events={data.events} timeZone={timeZone} />
           </div>
+        )}
+
+        {invoiceId && (
+          <InvoiceDetailDialog
+            invoiceId={invoiceId}
+            onClose={() => setInvoiceId(null)}
+            onChanged={() => {
+              reload();
+              onChanged();
+            }}
+          />
         )}
 
         <AlertDialog open={cancelOpen} onOpenChange={(next) => !busy && setCancelOpen(next)}>
