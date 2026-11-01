@@ -48,9 +48,20 @@ export function CatalogPage({ initialTab }: { initialTab: CatalogKind }) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        icon={Package}
         title="Danh mục bán"
-        description="Dịch vụ, gói liệu trình và sản phẩm doanh nghiệp đang bán, dùng cho lịch hẹn và hóa đơn."
-        meta={<p className="text-sm text-muted-foreground">Giá sửa ở đây cũng cập nhật cho bot (Kho kiến thức).</p>}
+        description="Dịch vụ, gói liệu trình và sản phẩm doanh nghiệp đang bán, dùng cho lịch hẹn và hóa đơn. Giá sửa ở đây cũng cập nhật cho bot."
+        help={
+          <ul>
+            <li>
+              <strong>Dịch vụ</strong>: thời lượng + giá, dùng khi đặt lịch. <strong>Gói liệu trình</strong>: số buổi, hạn dùng, bán trong hóa đơn rồi trừ dần mỗi lần khách đến.
+            </li>
+            <li>
+              <strong>Sản phẩm</strong>: hàng bán lẻ. Bật &quot;Theo dõi kho&quot; để Kho hàng tự trừ khi bán.
+            </li>
+            <li>Mục nhập từ Kho kiến thức tự có ở đây; sửa giá ở một nơi là bot nói đúng giá mới từ tin nhắn tiếp theo.</li>
+          </ul>
+        }
         actions={
           canEdit && (
             <Button onClick={() => setCreating(true)} className="h-11 sm:h-9">
@@ -184,7 +195,7 @@ function CatalogTab({
         </Label>
       </div>
 
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-xl border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

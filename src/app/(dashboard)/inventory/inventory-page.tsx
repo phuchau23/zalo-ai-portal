@@ -73,8 +73,23 @@ export function InventoryPage({ initialTab }: { initialTab: InventoryTab }) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        icon={Boxes}
         title="Kho hàng"
         description="Tồn sản phẩm theo chi nhánh. Bán hàng tự trừ kho, dịch vụ tự trừ vật tư theo định mức."
+        help={
+          <ul>
+            <li>
+              <strong>Nhập hàng</strong>: tạo phiếu nhập, bấm Nhận để cộng tồn; giá vốn tự tính bình quân.
+            </li>
+            <li>Bán sản phẩm trong hóa đơn tự trừ kho; hủy hóa đơn tự trả lại kho.</li>
+            <li>
+              <strong>Định mức vật tư</strong>: mỗi buổi dịch vụ dùng bao nhiêu (ví dụ 0,05 chai dầu) → hoàn thành lịch là tự trừ.
+            </li>
+            <li>
+              Đặt <strong>mức tối thiểu</strong> để thấy cảnh báo &quot;Sắp hết&quot;; kiểm kê định kỳ để số trên máy khớp thực tế.
+            </li>
+          </ul>
+        }
         meta={
           products.length === 0 && catalog.data ? (
             <p className="text-sm text-muted-foreground">Chưa có sản phẩm nào bật &quot;Theo dõi kho&quot;. Bật trong Danh mục → Sản phẩm.</p>

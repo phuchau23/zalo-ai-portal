@@ -63,8 +63,20 @@ export function StaffPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        icon={Users}
         title="Nhân viên & ca làm"
         description="Ai làm dịch vụ nào, ở chi nhánh nào, giờ nào. Lịch hẹn dựa vào đây để xếp người."
+        help={
+          <ul>
+            <li>
+              Thêm nhân viên → mở hồ sơ để chọn <strong>dịch vụ làm được</strong>, <strong>ca cố định</strong> theo thứ và ngày nghỉ phép.
+            </li>
+            <li>Bot và lịch hẹn chỉ xếp khách vào người có ca và làm được dịch vụ đó.</li>
+            <li>
+              Đây là hồ sơ làm việc. Tài khoản đăng nhập của nhân viên tạo ở <strong>Cài đặt → Tài khoản & phân quyền</strong>, rồi gắn với hồ sơ ở đây.
+            </li>
+          </ul>
+        }
         actions={
           canEdit && (
             <Button onClick={() => setAdding(true)} className="h-11 sm:h-9" disabled={branchList.length === 0}>
@@ -145,7 +157,7 @@ export function StaffPage() {
           </Button>
         </EmptyState>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {rows.map((s) => {
             const expanded = open === s.id;
             const status = statusOf(staffStatusLabels, s.status);

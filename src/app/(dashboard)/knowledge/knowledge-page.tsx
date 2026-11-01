@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FileStack, FileUp, History, Search, Table2, type LucideIcon } from "lucide-react";
+import { BookOpenText, FileStack, FileUp, History, Search, Table2, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,8 +39,26 @@ export function KnowledgePage({ initialTab }: { initialTab: KnowledgeTab }) {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        icon={BookOpenText}
+        tone="ai"
         title="Kho kiến thức"
         description="Dữ liệu bot dùng để trả lời khách: bảng giá, dịch vụ, câu hỏi thường gặp, chính sách. Bot chỉ trả lời theo dữ liệu ở đây."
+        help={
+          <ol>
+            <li>
+              Tải <strong>file mẫu Excel</strong>, điền dịch vụ, gói, câu hỏi thường gặp (mỗi dòng có Mã riêng).
+            </li>
+            <li>
+              Bấm <strong>Nhập file</strong>: hệ thống so sánh với dữ liệu đang có, bạn xem từng thay đổi rồi mới <strong>Áp dụng</strong>.
+            </li>
+            <li>
+              Tài liệu tự do (PDF, Word) nạp ở tab <strong>Tài liệu</strong>; dùng tab <strong>Thử tìm kiếm</strong> để xem bot tìm ra đoạn nào.
+            </li>
+            <li>
+              Thông tin sức khỏe chỉ được bot dùng khi mục đã bật <strong>Đã duyệt chuyên môn</strong>.
+            </li>
+          </ol>
+        }
         actions={
           <>
             <DownloadButtons showTemplate={false} />
