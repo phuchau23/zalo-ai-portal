@@ -3,6 +3,7 @@ import { PageHeader, SectionHeader } from "@/components/common/page-header";
 import { BranchesSection } from "./branches-section";
 import { CrmSettingsForm } from "./crm-settings-form";
 import { HandoffForm } from "./handoff-form";
+import { PaymentSection } from "./payment-section";
 import { SettingsForm } from "./settings-form";
 import { TeamSection } from "./team-section";
 
@@ -15,6 +16,7 @@ export default function SettingsPage() {
       <SettingsForm />
       <BranchesSection />
       <CrmSettingsForm />
+      <PaymentSection />
       <div id="handoff" className="mt-10 scroll-mt-6">
         <SectionHeader
           title="Chuyển tiếp & giờ làm việc"
