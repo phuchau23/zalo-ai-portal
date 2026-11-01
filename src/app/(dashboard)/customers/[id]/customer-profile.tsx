@@ -28,6 +28,7 @@ import { api, type Appointment, type ContactDetail, type ContactNote } from "@/l
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { dateKeyOf, defaultTimeZone, formatDateTimeTz, isTerminal, safeTimeZone, serviceNames, splitByNow, statusLabel } from "@/lib/appointments";
 import {
+  careStatusLabels,
   followUpPresets,
   formatDay,
   formatVnTime,
@@ -177,7 +178,7 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
                 Nhật ký chăm sóc
               </h2>
               <p className="text-sm text-muted-foreground">
-                Ghi lại khách đã làm gì (dịch vụ đã dùng, lịch hẹn...). Đặt &quot;lúc chăm sóc lại&quot; để tới giờ đó khách tự hiện ở trang Cần chăm sóc kèm tin nháp.
+                Ghi lại khách đã làm gì (dịch vụ đã dùng, lịch hẹn...). Đặt &quot;lúc chăm sóc lại&quot; để tới giờ đó AI tự nhắn hỏi thăm khách; chuyện cần người (phàn nàn, sức khỏe...) thì hiện ở trang Cần chăm sóc kèm tin nháp.
               </p>
             </div>
             <NoteForm contactId={contactId} onAdded={reload} />
@@ -202,8 +203,8 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
                   <li key={s.id} className="flex flex-wrap items-center gap-2 px-3 py-2.5 text-sm">
                     <span className="font-medium">{triggerLabel(s.trigger)}</span>
                     <span className="text-muted-foreground">{formatDateTime(s.createdAt)}</span>
-                    <Badge variant={s.status === "done" ? "success" : "secondary"} className="ml-auto">
-                      {s.status === "done" ? (outcomeLabel(s.outcome) ?? "Đã xử lý") : s.status === "skipped" ? "Đã bỏ qua" : "Hết hạn nhắn"}
+                    <Badge variant={s.status === "done" || s.status === "autosent" ? "success" : "secondary"} className="ml-auto">
+                      {s.status === "done" ? (outcomeLabel(s.outcome) ?? "Đã xử lý") : (careStatusLabels[s.status] ?? s.status)}
                     </Badge>
                   </li>
                 ))}
@@ -555,7 +556,7 @@ function NoteForm({ contactId, onAdded }: { contactId: string; onAdded: () => vo
           <p className="text-sm text-destructive">{error("followUpAt")}</p>
         ) : (
           <p id="note-follow-hint" className="text-xs text-muted-foreground">
-            Giờ Việt Nam. Tới giờ này (trễ tối đa khoảng 1 phút), AI soạn sẵn tin hỏi thăm ở trang Cần chăm sóc.
+            Giờ Việt Nam. Tới giờ này (trễ khoảng 1–2 phút), AI đọc lại hội thoại rồi tự nhắn hỏi thăm khách (nếu Cài đặt để bot tự nhắn, trong khung giờ được nhắn); cần người thì hiện ở trang Cần chăm sóc.
           </p>
         )}
       </div>
