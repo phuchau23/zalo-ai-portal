@@ -37,6 +37,21 @@ const messages: Record<string, string> = {
   too_far: "Chỉ đặt trước tối đa số ngày đã cài đặt.",
   appointment_state: "Trạng thái lịch không cho phép thao tác này.",
   cancel_too_late: "Đã quá hạn đổi/hủy theo chính sách.",
+  // Bán hàng (hóa đơn, gói liệu trình, thẻ trả trước, voucher, ca thu ngân)
+  invoice_state: "Hóa đơn ở trạng thái không cho phép thao tác này.",
+  overpayment: "Số tiền vượt phần còn phải thu.",
+  wallet_insufficient: "Số dư thẻ trả trước không đủ.",
+  voucher_invalid: "Mã giảm giá không hợp lệ hoặc hết hạn.",
+  voucher_min_total: "Chưa đạt giá trị tối thiểu của mã giảm giá.",
+  package_unavailable: "Gói không thuộc khách này hoặc không còn hiệu lực.",
+  package_exhausted: "Gói đã hết buổi.",
+  package_used: "Gói đã dùng, không hủy hóa đơn được — hãy hoàn tiền một phần.",
+  package_state: "Trạng thái gói không cho phép thao tác này.",
+  no_bank_account: "Chưa cài tài khoản ngân hàng nhận chuyển khoản.",
+  shift_open: "Chi nhánh đang có ca chưa chốt.",
+  shift_closed: "Ca đã chốt.",
+  // Kho hàng
+  purchase_state: "Phiếu nhập đã nhận hoặc đã hủy.",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

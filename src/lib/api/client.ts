@@ -62,3 +62,26 @@ export type AvailableSlot = Schemas["AvailableSlotResponse"];
 export type SeriesOutcome = Schemas["SeriesOutcomeResponse"];
 export type Resource = Schemas["ResourceResponse"];
 export type WaitlistEntry = Schemas["WaitlistResponse"];
+// Bán hàng (C3)
+export type InvoiceSummary = Schemas["InvoiceSummaryResponse"];
+export type Invoice = Schemas["InvoiceResponse"];
+export type InvoiceLine = Schemas["InvoiceLineResponse"];
+export type InvoiceLineRequest = Schemas["InvoiceLineRequest"];
+export type Payment = Schemas["PaymentResponse"];
+export type TransferQr = Schemas["TransferQrResponse"];
+export type Receipt = Schemas["ReceiptResponse"];
+export type CustomerPackage = Schemas["CustomerPackageResponse"];
+export type PackageRedemption = Schemas["PackageRedemptionResponse"];
+export type Wallet = Schemas["WalletResponse"];
+export type WalletTransaction = Schemas["WalletTransactionResponse"];
+export type Voucher = Schemas["VoucherResponse"];
+export type SaveVoucherRequest = Schemas["SaveVoucherRequest"];
+export type CashShift = Schemas["CashShiftResponse"];
+export type BankAccount = Schemas["BankAccountResponse"];
+// Kho hàng (C4)
+export type StockLevel = Schemas["StockLevelResponse"];
+export type StockMovement = Schemas["StockMovementResponse"];
+export type Supplier = Schemas["SupplierResponse"];
+export type PurchaseOrder = Schemas["PurchaseOrderResponse"];
+export type StockCount = Schemas["StockCountResponse"];
+export type Consumable = Schemas["ConsumableResponse"];

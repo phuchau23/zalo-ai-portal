@@ -54,6 +54,25 @@ describe("problemMessage", () => {
     expect(problemMessage(toProblem({ code: "appointment_state" }, 409))).toBe("Trạng thái lịch không cho phép thao tác này.");
     expect(problemMessage(toProblem({ code: "cancel_too_late" }, 409))).toBe("Đã quá hạn đổi/hủy theo chính sách.");
   });
+
+  it("translates sales codes", () => {
+    expect(problemMessage(toProblem({ code: "invoice_state", title: "State" }, 409))).toBe("Hóa đơn ở trạng thái không cho phép thao tác này.");
+    expect(problemMessage(toProblem({ code: "overpayment" }, 409))).toBe("Số tiền vượt phần còn phải thu.");
+    expect(problemMessage(toProblem({ code: "wallet_insufficient" }, 409))).toBe("Số dư thẻ trả trước không đủ.");
+    expect(problemMessage(toProblem({ code: "voucher_invalid" }, 409))).toBe("Mã giảm giá không hợp lệ hoặc hết hạn.");
+    expect(problemMessage(toProblem({ code: "voucher_min_total" }, 409))).toBe("Chưa đạt giá trị tối thiểu của mã giảm giá.");
+    expect(problemMessage(toProblem({ code: "package_unavailable" }, 409))).toBe("Gói không thuộc khách này hoặc không còn hiệu lực.");
+    expect(problemMessage(toProblem({ code: "package_exhausted" }, 409))).toBe("Gói đã hết buổi.");
+    expect(problemMessage(toProblem({ code: "package_used" }, 409))).toBe("Gói đã dùng, không hủy hóa đơn được — hãy hoàn tiền một phần.");
+    expect(problemMessage(toProblem({ code: "package_state" }, 409))).toBe("Trạng thái gói không cho phép thao tác này.");
+    expect(problemMessage(toProblem({ code: "no_bank_account" }, 404))).toBe("Chưa cài tài khoản ngân hàng nhận chuyển khoản.");
+    expect(problemMessage(toProblem({ code: "shift_open" }, 409))).toBe("Chi nhánh đang có ca chưa chốt.");
+    expect(problemMessage(toProblem({ code: "shift_closed" }, 409))).toBe("Ca đã chốt.");
+  });
+
+  it("translates inventory codes", () => {
+    expect(problemMessage(toProblem({ code: "purchase_state" }, 409))).toBe("Phiếu nhập đã nhận hoặc đã hủy.");
+  });
 });
 
 describe("fileErrors", () => {
