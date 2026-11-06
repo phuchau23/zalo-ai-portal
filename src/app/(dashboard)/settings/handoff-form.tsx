@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
+import { Bot, CircleAlert, CircleCheck, LoaderCircle, PencilLine, ShieldCheck } from "lucide-react";
 import { FormGroup as Group, stickySaveBar } from "@/components/common/form-layout";
 import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -17,6 +18,7 @@ import { call } from "@/lib/api/call";
 import { api, type Schemas } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { cn } from "@/lib/utils";
+import { FormSkeleton } from "./settings-ui";
 import { TelegramConnect } from "./telegram-connect";
 
 type Values = Schemas["UpdateHandoffSettingsRequest"];
@@ -33,8 +35,8 @@ const days = [
 ];
 
 const careModes = [
-  { value: "auto", label: "Bot tự nhắn (khuyên dùng)", description: "Bot tự hỏi thăm khách như một nhân viên; chỉ báo bạn khi cần người." },
-  { value: "suggest", label: "Chỉ gợi ý", description: "AI soạn sẵn tin, nhân viên đọc, sửa rồi tự gửi ở trang Cần chăm sóc." },
+  { value: "auto", label: "Bot tự nhắn (khuyên dùng)", description: "Bot tự hỏi thăm khách như một nhân viên; chỉ báo bạn khi cần người.", icon: Bot },
+  { value: "suggest", label: "Chỉ gợi ý", description: "AI soạn sẵn tin, nhân viên đọc, sửa rồi tự gửi ở trang Cần chăm sóc.", icon: PencilLine },
 ];
 
 const variablesHint = "Biến dùng được: {xung_ho}, {ten_doanh_nghiep}, {ten_nhan_vien}, {thoi_gian_phan_hoi}, {gio_mo_cua_tiep_theo}.";
@@ -85,7 +87,7 @@ export function HandoffForm({ sections = ["hours", "messages", "notify", "care"]
   }, []);
 
   if (loadProblem) return <ErrorState problem={loadProblem} />;
-  if (!values) return <div role="status" aria-label="Đang tải" className="h-40 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />;
+  if (!values) return <FormSkeleton rows={Math.max(2, sections.length)} />;
 
   const update = (patch: Partial<Values>) => {
     setValues({ ...values, ...patch });
@@ -139,7 +141,7 @@ export function HandoffForm({ sections = ["hours", "messages", "notify", "care"]
                 <Label
                   key={d.bit}
                   htmlFor={`day-${d.bit}`}
-                  className="flex min-h-11 min-w-14 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 font-normal has-data-checked:border-primary has-data-checked:bg-accent"
+                  className="flex min-h-11 min-w-16 cursor-pointer items-center justify-center gap-2 rounded-full border bg-card px-3.5 font-medium text-muted-foreground transition-colors hover:border-primary/30 has-data-checked:border-primary/40 has-data-checked:bg-primary/10 has-data-checked:text-primary"
                 >
                   <Checkbox
                     id={`day-${d.bit}`}
@@ -218,23 +220,36 @@ export function HandoffForm({ sections = ["hours", "messages", "notify", "care"]
                 disabled={!canEdit}
                 className="gap-2"
               >
-                {careModes.map((mode) => (
-                  <Label
-                    key={mode.value}
-                    htmlFor={`care-mode-${mode.value}`}
-                    className={cn(
-                      "flex min-h-11 cursor-pointer items-start gap-3 rounded-md border p-3 font-normal transition-colors hover:bg-muted/50",
-                      ((values.careAutoSend ?? true) ? "auto" : "suggest") === mode.value && "border-primary bg-accent/50",
-                      !canEdit && "cursor-not-allowed opacity-70",
-                    )}
-                  >
-                    <RadioGroupItem id={`care-mode-${mode.value}`} value={mode.value} className="mt-0.5" />
-                    <span className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium">{mode.label}</span>
-                      <span className="text-sm text-muted-foreground">{mode.description}</span>
-                    </span>
-                  </Label>
-                ))}
+                {careModes.map((mode) => {
+                  const selected = ((values.careAutoSend ?? true) ? "auto" : "suggest") === mode.value;
+                  const Icon = mode.icon;
+                  return (
+                    <Label
+                      key={mode.value}
+                      htmlFor={`care-mode-${mode.value}`}
+                      className={cn(
+                        "flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border bg-card p-3.5 font-normal transition-[border-color,background-color,box-shadow] hover:border-ai/30",
+                        selected && "border-ai/40 bg-ai-soft/60 shadow-card",
+                        !canEdit && "cursor-not-allowed opacity-70",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors",
+                          selected ? "bg-ai text-white shadow-glow-ai" : "bg-muted text-muted-foreground",
+                        )}
+                        aria-hidden
+                      >
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="flex flex-1 flex-col gap-0.5">
+                        <span className="text-sm font-semibold">{mode.label}</span>
+                        <span className="text-sm text-pretty text-muted-foreground">{mode.description}</span>
+                      </span>
+                      <RadioGroupItem id={`care-mode-${mode.value}`} value={mode.value} className="mt-0.5" />
+                    </Label>
+                  );
+                })}
               </RadioGroup>
             </fieldset>
             <Field id="careColdHours" label="Chăm sóc khi khách im lặng quá" error={error("careColdHours")}>
@@ -261,8 +276,11 @@ export function HandoffForm({ sections = ["hours", "messages", "notify", "care"]
                 </Field>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">
+            <p className="flex items-start gap-2.5 rounded-xl border border-ai/15 bg-ai-soft/40 p-3 text-sm text-pretty text-muted-foreground">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-ai" aria-hidden />
+              <span>
               Luôn áp dụng: mỗi lần khách im lặng bot chỉ nhắn 1 tin, cách tin chủ động trước ít nhất 24 giờ (giờ hẹn chăm sóc nhân viên đặt trong nhật ký khách thì gửi đúng giờ hẹn); khách nhắn &quot;hủy&quot; hoặc &quot;dừng&quot; thì bot không chủ động nhắn khách đó nữa. Tin ưu đãi, chuyện phàn nàn, sức khỏe luôn chuyển cho nhân viên.
+              </span>
             </p>
           </>
         )}
@@ -330,11 +348,19 @@ function MessageField({
   );
 }
 
+/** Một dòng bật/tắt: chữ bên trái, công tắc bên phải; cả dòng bấm được. */
 function Toggle({ id, label, checked, disabled, onChange }: { id: string; label: string; checked: boolean; disabled: boolean; onChange: (value: boolean) => void }) {
   return (
-    <Label htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-3 font-normal">
-      <Checkbox id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onChange(v === true)} />
-      {label}
+    <Label
+      htmlFor={id}
+      className={cn(
+        "flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border bg-card px-3.5 py-2.5 font-normal transition-colors hover:border-primary/25",
+        checked && "border-primary/25 bg-primary/[0.03]",
+        disabled && "cursor-not-allowed opacity-70",
+      )}
+    >
+      <span className="text-sm">{label}</span>
+      <Switch id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onChange(v === true)} />
     </Label>
   );
 }
