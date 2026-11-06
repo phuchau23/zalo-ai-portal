@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { CircleAlert, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Boxes, CalendarClock, CircleAlert, Clock3, Layers, LoaderCircle, Package, Plus, Sparkles, Store, Tag, Trash2, type LucideIcon } from "lucide-react";
 import { Field, describedBy } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,6 +15,7 @@ import { call } from "@/lib/api/call";
 import { api, type Branch, type CatalogItem, type Schemas } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { emptyToNull, kindLabels, normalizeCode, parseOptionalInt, type CatalogKind } from "@/lib/crm";
+import { cn } from "@/lib/utils";
 
 type SaveRequest = Schemas["SaveCatalogItemRequest"];
 type Content = { key: number; serviceId: string; sessionCount: string };
@@ -75,6 +77,8 @@ function toRequest(kind: CatalogKind, form: FormState): SaveRequest {
 }
 
 let contentKey = 0;
+
+const kindIcons: Record<CatalogKind, LucideIcon> = { service: Sparkles, package: Layers, product: Package };
 
 /** Thêm/sửa một mục danh mục: thông tin theo loại, chi nhánh bán, nội dung gói (gói liệu trình), trạng thái bán. */
 export function CatalogItemDialog({
@@ -186,59 +190,67 @@ export function CatalogItemDialog({
     <Dialog open onOpenChange={(open) => !open && !saving && onClose()}>
       <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-xl">
         <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4">
-          <DialogHeader>
-            <DialogTitle>{item ? (canEdit ? `Sửa ${kindLabels[kind].toLowerCase()}` : item.name) : `Thêm ${kindLabels[kind].toLowerCase()}`}</DialogTitle>
-            <DialogDescription>
-              {item ? (
-                <>
-                  Mã <code className="font-mono">{item.code}</code> · {item.inKnowledge ? "Bot đã biết mục này." : "Bot chưa biết mục này, sẽ được thêm vào Kho kiến thức khi lưu."}
-                </>
-              ) : (
-                "Mục mới cũng được thêm vào Kho kiến thức để bot báo giá."
-              )}
-            </DialogDescription>
+          <DialogHeader className="flex-row items-center gap-3 text-left">
+            <IconTile icon={kindIcons[kind]} variant="solid" size="md" />
+            <div className="flex min-w-0 flex-col gap-1">
+              <DialogTitle>{item ? (canEdit ? `Sửa ${kindLabels[kind].toLowerCase()}` : item.name) : `Thêm ${kindLabels[kind].toLowerCase()}`}</DialogTitle>
+              <DialogDescription>
+                {item ? (
+                  <>
+                    Mã <code className="rounded bg-muted px-1 font-mono text-[12px]">{item.code}</code> ·{" "}
+                    {item.inKnowledge ? "Bot đã biết mục này." : "Bot chưa biết mục này, sẽ được thêm vào Kho kiến thức khi lưu."}
+                  </>
+                ) : (
+                  "Mục mới cũng được thêm vào Kho kiến thức để bot báo giá."
+                )}
+              </DialogDescription>
+            </div>
           </DialogHeader>
 
           {problem && !Object.keys(errors).length && (
-            <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+            <p role="alert" className="flex items-center gap-1.5 rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-2 text-sm text-destructive">
               <CircleAlert className="size-4 shrink-0" aria-hidden />
               {problemMessage(problem)}
             </p>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {!item && (
-              <Field id={`${p}-code`} label="Mã" hint="Chữ in hoa không dấu, ví dụ DV-MASSAGE-60. Không đổi được sau khi tạo." error={errors.code} className="sm:col-span-2">
-                <Input
-                  id={`${p}-code`}
-                  required
-                  maxLength={50}
-                  value={form.code}
-                  onChange={(e) => update({ code: e.target.value })}
-                  onBlur={() => update({ code: normalizeCode(form.code) })}
-                  aria-invalid={Boolean(errors.code)}
-                  aria-describedby={describedBy(`${p}-code`, errors.code, true)}
-                  className="h-11 font-mono sm:h-9"
-                />
+          <FormSection icon={Tag} title="Thông tin chung">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {!item && (
+                <Field id={`${p}-code`} label="Mã" hint="Chữ in hoa không dấu, ví dụ DV-MASSAGE-60. Không đổi được sau khi tạo." error={errors.code} className="sm:col-span-2">
+                  <Input
+                    id={`${p}-code`}
+                    required
+                    maxLength={50}
+                    value={form.code}
+                    onChange={(e) => update({ code: e.target.value })}
+                    onBlur={() => update({ code: normalizeCode(form.code) })}
+                    aria-invalid={Boolean(errors.code)}
+                    aria-describedby={describedBy(`${p}-code`, errors.code, true)}
+                    className="h-11 font-mono sm:h-9"
+                  />
+                </Field>
+              )}
+              <Field id={`${p}-name`} label="Tên" error={errors.name} className="sm:col-span-2">
+                <Input id={`${p}-name`} required maxLength={200} value={form.name} disabled={ro} onChange={(e) => update({ name: e.target.value })} aria-invalid={Boolean(errors.name)} className="h-11 sm:h-9" />
               </Field>
-            )}
-            <Field id={`${p}-name`} label="Tên" error={errors.name} className="sm:col-span-2">
-              <Input id={`${p}-name`} required maxLength={200} value={form.name} disabled={ro} onChange={(e) => update({ name: e.target.value })} aria-invalid={Boolean(errors.name)} className="h-11 sm:h-9" />
-            </Field>
-            <Field id={`${p}-group`} label="Nhóm" hint="Ví dụ: Chăm sóc da, Massage." error={errors.groupName}>
-              <Input id={`${p}-group`} maxLength={100} value={form.groupName} disabled={ro} onChange={(e) => update({ groupName: e.target.value })} aria-invalid={Boolean(errors.groupName)} aria-describedby={describedBy(`${p}-group`, errors.groupName, true)} className="h-11 sm:h-9" />
-            </Field>
-            <Field id={`${p}-price`} label="Giá (đ)" hint="Để trống nếu báo giá sau." error={errors.price}>
-              <Input id={`${p}-price`} {...numberProps} step={1000} value={form.price} disabled={ro} onChange={(e) => update({ price: e.target.value })} aria-invalid={Boolean(errors.price)} aria-describedby={describedBy(`${p}-price`, errors.price, true)} />
-            </Field>
-            {kind !== "product" && (
-              <Field id={`${p}-priceNote`} label="Ghi chú giá" hint='Ví dụ: "tùy vùng da", "đã gồm VAT".' error={errors.priceNote} className="sm:col-span-2">
-                <Input id={`${p}-priceNote`} maxLength={200} value={form.priceNote} disabled={ro} onChange={(e) => update({ priceNote: e.target.value })} aria-invalid={Boolean(errors.priceNote)} aria-describedby={describedBy(`${p}-priceNote`, errors.priceNote, true)} className="h-11 sm:h-9" />
+              <Field id={`${p}-group`} label="Nhóm" hint="Ví dụ: Chăm sóc da, Massage." error={errors.groupName}>
+                <Input id={`${p}-group`} maxLength={100} value={form.groupName} disabled={ro} onChange={(e) => update({ groupName: e.target.value })} aria-invalid={Boolean(errors.groupName)} aria-describedby={describedBy(`${p}-group`, errors.groupName, true)} className="h-11 sm:h-9" />
               </Field>
-            )}
+              <Field id={`${p}-price`} label="Giá (đ)" hint="Để trống nếu báo giá sau." error={errors.price}>
+                <Input id={`${p}-price`} {...numberProps} step={1000} value={form.price} disabled={ro} onChange={(e) => update({ price: e.target.value })} aria-invalid={Boolean(errors.price)} aria-describedby={describedBy(`${p}-price`, errors.price, true)} />
+              </Field>
+              {kind !== "product" && (
+                <Field id={`${p}-priceNote`} label="Ghi chú giá" hint='Ví dụ: "tùy vùng da", "đã gồm VAT".' error={errors.priceNote} className="sm:col-span-2">
+                  <Input id={`${p}-priceNote`} maxLength={200} value={form.priceNote} disabled={ro} onChange={(e) => update({ priceNote: e.target.value })} aria-invalid={Boolean(errors.priceNote)} aria-describedby={describedBy(`${p}-priceNote`, errors.priceNote, true)} className="h-11 sm:h-9" />
+                </Field>
+              )}
+            </div>
+          </FormSection>
 
-            {kind === "service" && (
-              <>
+          {kind === "service" && (
+            <FormSection icon={Clock3} title="Thời gian & đơn vị">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field id={`${p}-duration`} label="Thời lượng (phút)" error={errors.durationMinutes}>
                   <Input id={`${p}-duration`} {...numberProps} step={5} value={form.durationMinutes} disabled={ro} onChange={(e) => update({ durationMinutes: e.target.value })} aria-invalid={Boolean(errors.durationMinutes)} />
                 </Field>
@@ -248,11 +260,13 @@ export function CatalogItemDialog({
                 <Field id={`${p}-unit`} label="Đơn vị" hint='Ví dụ: "lần", "vùng".' error={errors.unit}>
                   <Input id={`${p}-unit`} maxLength={50} value={form.unit} disabled={ro} onChange={(e) => update({ unit: e.target.value })} aria-invalid={Boolean(errors.unit)} aria-describedby={describedBy(`${p}-unit`, errors.unit, true)} className="h-11 sm:h-9" />
                 </Field>
-              </>
-            )}
+              </div>
+            </FormSection>
+          )}
 
-            {kind === "package" && (
-              <>
+          {kind === "package" && (
+            <FormSection icon={CalendarClock} title="Buổi & hạn dùng">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field id={`${p}-sessions`} label="Số buổi" error={errors.sessionCount}>
                   <Input id={`${p}-sessions`} {...numberProps} value={form.sessionCount} disabled={ro} onChange={(e) => update({ sessionCount: e.target.value })} aria-invalid={Boolean(errors.sessionCount)} />
                 </Field>
@@ -265,11 +279,13 @@ export function CatalogItemDialog({
                 <Field id={`${p}-buffer`} label="Dọn sau mỗi buổi (phút)" error={errors.bufferMinutes}>
                   <Input id={`${p}-buffer`} {...numberProps} max={120} step={5} value={form.bufferMinutes} disabled={ro} onChange={(e) => update({ bufferMinutes: e.target.value })} aria-invalid={Boolean(errors.bufferMinutes)} />
                 </Field>
-              </>
-            )}
+              </div>
+            </FormSection>
+          )}
 
-            {kind === "product" && (
-              <>
+          {kind === "product" && (
+            <FormSection icon={Boxes} title="Đơn vị, mã & kho">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Field id={`${p}-unit`} label="Đơn vị" hint='Ví dụ: "chai", "hộp".' error={errors.unit}>
                   <Input id={`${p}-unit`} maxLength={50} value={form.unit} disabled={ro} onChange={(e) => update({ unit: e.target.value })} aria-invalid={Boolean(errors.unit)} aria-describedby={describedBy(`${p}-unit`, errors.unit, true)} className="h-11 sm:h-9" />
                 </Field>
@@ -279,50 +295,63 @@ export function CatalogItemDialog({
                 <Field id={`${p}-cost`} label="Giá vốn (đ)" hint="Chỉ người có quyền xem báo cáo thấy." error={errors.costPrice}>
                   <Input id={`${p}-cost`} {...numberProps} step={1000} value={form.costPrice} disabled={ro} onChange={(e) => update({ costPrice: e.target.value })} aria-invalid={Boolean(errors.costPrice)} aria-describedby={describedBy(`${p}-cost`, errors.costPrice, true)} />
                 </Field>
-                <Label htmlFor={`${p}-track`} className="flex min-h-11 cursor-pointer items-center gap-2 self-end text-sm font-normal">
+                <Label htmlFor={`${p}-track`} className="flex min-h-11 cursor-pointer items-center gap-2 self-end rounded-xl border bg-background px-3 text-sm font-normal">
                   <Checkbox id={`${p}-track`} checked={form.trackInventory} disabled={ro} onCheckedChange={(v) => update({ trackInventory: v === true })} />
                   Theo dõi tồn kho
                 </Label>
-              </>
-            )}
-          </div>
+              </div>
+            </FormSection>
+          )}
 
           {kind === "package" && (
-            <PackageContents contents={contents} services={services} loading={detailLoading} canEdit={canEdit} onChange={setContents} prefix={p} />
+            <FormSection icon={Layers} title="Gói gồm">
+              <PackageContents contents={contents} services={services} loading={detailLoading} canEdit={canEdit} onChange={setContents} prefix={p} />
+            </FormSection>
           )}
 
           {branches.length > 1 && (
-            <fieldset className="flex flex-col gap-2">
-              <legend className="mb-1 text-sm font-medium">Bán ở chi nhánh</legend>
-              <Label htmlFor={`${p}-all-branches`} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-9">
-                <Checkbox id={`${p}-all-branches`} checked={allBranches} disabled={ro || detailLoading} onCheckedChange={(v) => setAllBranches(v === true)} />
-                Mọi chi nhánh
-              </Label>
-              {!allBranches && (
-                <div className="grid gap-1 pl-6 sm:grid-cols-2">
-                  {branches.map((b) => {
-                    const id = `${p}-branch-${b.id}`;
-                    return (
-                      <Label key={b.id} htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-9">
-                        <Checkbox
-                          id={id}
-                          checked={branchIds.includes(b.id)}
-                          disabled={ro}
-                          onCheckedChange={(v) => setBranchIds((ids) => (v === true ? [...ids.filter((x) => x !== b.id), b.id] : ids.filter((x) => x !== b.id)))}
-                        />
-                        {b.name}
-                      </Label>
-                    );
-                  })}
-                </div>
-              )}
-            </fieldset>
+            <FormSection icon={Store} title="Bán ở chi nhánh">
+              <fieldset className="flex flex-col gap-2">
+                <legend className="sr-only">Bán ở chi nhánh</legend>
+                <Label htmlFor={`${p}-all-branches`} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-9">
+                  <Checkbox id={`${p}-all-branches`} checked={allBranches} disabled={ro || detailLoading} onCheckedChange={(v) => setAllBranches(v === true)} />
+                  Mọi chi nhánh
+                </Label>
+                {!allBranches && (
+                  <div className="grid gap-1 pl-6 sm:grid-cols-2">
+                    {branches.map((b) => {
+                      const id = `${p}-branch-${b.id}`;
+                      return (
+                        <Label key={b.id} htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm font-normal hover:bg-background sm:min-h-9">
+                          <Checkbox
+                            id={id}
+                            checked={branchIds.includes(b.id)}
+                            disabled={ro}
+                            onCheckedChange={(v) => setBranchIds((ids) => (v === true ? [...ids.filter((x) => x !== b.id), b.id] : ids.filter((x) => x !== b.id)))}
+                          />
+                          {b.name}
+                        </Label>
+                      );
+                    })}
+                  </div>
+                )}
+              </fieldset>
+            </FormSection>
           )}
 
           {item && (
-            <Label htmlFor={`${p}-active`} className="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-normal sm:min-h-9">
+            <Label
+              htmlFor={`${p}-active`}
+              className={cn(
+                "flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border px-4 text-sm font-normal transition-colors",
+                isActive ? "border-success/25 bg-success/5" : "bg-muted/40",
+              )}
+            >
               <Switch id={`${p}-active`} checked={isActive} disabled={ro} onCheckedChange={setIsActive} />
-              {isActive ? "Đang bán" : "Ngừng bán (ẩn khỏi lịch hẹn và bot)"}
+              <span className="flex flex-col">
+                <span className="font-medium">{isActive ? "Đang bán" : "Ngừng bán"}</span>
+                <span className="text-xs text-muted-foreground">{isActive ? "Hiện trong lịch hẹn, hóa đơn và bot báo giá." : "Ẩn khỏi lịch hẹn và bot."}</span>
+              </span>
             </Label>
           )}
 
@@ -340,6 +369,19 @@ export function CatalogItemDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Một nhóm ô nhập trong hộp thoại: ô biểu tượng nhỏ + tiêu đề, nền xám rất nhạt để tách nhóm. */
+function FormSection({ icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border bg-muted/25 p-4">
+      <h3 className="flex items-center gap-2.5 text-sm font-semibold">
+        <IconTile icon={icon} size="sm" />
+        {title}
+      </h3>
+      {children}
+    </section>
   );
 }
 
@@ -362,15 +404,15 @@ function PackageContents({
   const setRow = (key: number, patch: Partial<Content>) => onChange(contents.map((c) => (c.key === key ? { ...c, ...patch } : c)));
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-sm font-medium">Gói gồm</legend>
+      <legend className="sr-only">Gói gồm</legend>
       {loading ? (
-        <div className="h-9 animate-pulse rounded-md bg-muted motion-reduce:animate-none" aria-hidden />
+        <div className="skeleton h-9" aria-hidden />
       ) : contents.length === 0 ? (
         <p className="text-sm text-muted-foreground">Chưa chọn dịch vụ nào. {services.length === 0 && "Hãy thêm dịch vụ ở tab Dịch vụ trước."}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {contents.map((c) => (
-            <li key={c.key} className="grid grid-cols-[1fr_6rem_auto] items-center gap-2">
+            <li key={c.key} className="grid grid-cols-[1fr_5.5rem_auto] items-center gap-2 rounded-xl border bg-background p-1.5">
               <Label htmlFor={`${prefix}-content-${c.key}`} className="sr-only">
                 Dịch vụ
               </Label>
