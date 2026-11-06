@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { motion } from "motion/react";
 import { LayoutGrid, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { Me } from "@/lib/api/client";
+import { spring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { isActive, mobilePrimary, type NavBadge, type NavGroup, type NavItem } from "./nav-config";
 import { Brand, CountBadge, TenantSwitcher, UserCard, initials } from "./shell-parts";
@@ -13,7 +15,7 @@ import { badgeLabels } from "./sidebar";
 /** Thanh trên (điện thoại): logo + doanh nghiệp, ảnh đại diện mở trang Tài khoản. */
 export function MobileTopBar({ me }: { me: Me }) {
   return (
-    <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur supports-backdrop-filter:bg-card/75 md:hidden">
+    <header className="sticky top-0 z-30 border-b border-border/70 bg-card/85 backdrop-blur-xl supports-backdrop-filter:bg-card/70 md:hidden">
       <div className="flex h-14 items-center gap-3 px-4">
         <Brand compact className="min-w-0 flex-1" />
         {me.currentTenant && <span className="max-w-[40%] truncate text-xs font-medium text-muted-foreground">{me.currentTenant.name}</span>}
@@ -64,7 +66,7 @@ export function MobileTabBar({
     <>
       <nav
         aria-label="Menu nhanh"
-        className="fixed inset-x-0 bottom-0 z-30 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-float backdrop-blur supports-backdrop-filter:bg-card/85 md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-border/70 bg-card/90 pb-[env(safe-area-inset-bottom)] shadow-float backdrop-blur-xl supports-backdrop-filter:bg-card/75 md:hidden"
       >
         <ul className="mx-auto flex max-w-lg">
           {primary.map((item) => (
@@ -82,9 +84,10 @@ export function MobileTabBar({
                 !primaryActive ? "text-primary" : "text-muted-foreground",
               )}
             >
-              <span className="relative">
-                <LayoutGrid className="size-[22px]" aria-hidden />
-                {moreCount > 0 && <span className="absolute -top-0.5 -right-1 size-2.5 rounded-full bg-primary ring-2 ring-card" aria-hidden />}
+              <span className="relative flex h-8 w-14 items-center justify-center">
+                {!primaryActive && <motion.span layoutId="mobile-tab-active" className="absolute inset-0 rounded-full bg-accent" transition={spring} />}
+                <LayoutGrid className="relative size-[22px]" aria-hidden />
+                {moreCount > 0 && <span className="absolute top-0.5 right-3 size-2.5 rounded-full bg-primary ring-2 ring-card" aria-hidden />}
               </span>
               Thêm
               {moreCount > 0 && <span className="sr-only">, có {moreCount} việc đang chờ</span>}
@@ -142,12 +145,13 @@ function TabLink({ item, active, count }: { item: NavItem; active: boolean; coun
       aria-current={active ? "page" : undefined}
       className={cn(
         "relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset",
-        active ? "text-primary after:absolute after:inset-x-5 after:top-0 after:h-0.5 after:rounded-b-full after:bg-primary" : "text-muted-foreground",
+        active ? "text-primary" : "text-muted-foreground",
       )}
     >
-      <span className="relative">
-        <Icon className="size-[22px]" aria-hidden />
-        <CountBadge count={count} label={item.badge ? badgeLabels[item.badge] : ""} className="absolute -top-2 -right-3 h-4 min-w-4 px-1 text-[10px] ring-2 ring-card" />
+      <span className="relative flex h-8 w-14 items-center justify-center">
+        {active && <motion.span layoutId="mobile-tab-active" className="absolute inset-0 rounded-full bg-accent" transition={spring} />}
+        <Icon className="relative size-[22px]" aria-hidden />
+        <CountBadge count={count} label={item.badge ? badgeLabels[item.badge] : ""} className="absolute -top-1 right-1 h-4 min-w-4 px-1 text-[10px] ring-2 ring-card" />
       </span>
       <span className="max-w-full truncate px-1">{item.label}</span>
     </Link>
