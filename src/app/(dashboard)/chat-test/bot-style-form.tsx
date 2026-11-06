@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle, Lock } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Bot, BriefcaseBusiness, CircleAlert, CircleCheck, LoaderCircle, Lock, MessagesSquare, Smile, Sparkles, Zap, type LucideIcon } from "lucide-react";
 import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,21 @@ import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { easeOut } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { toneOptions } from "./labels";
 
 const maxInstructions = 1000;
+
+const toneIcons: Record<string, LucideIcon> = { human: MessagesSquare, friendly: Smile, professional: BriefcaseBusiness, concise: Zap };
+
+/** Vài tin minh họa cho từng giọng văn (chỉ để người dùng hình dung, không phải câu bot sẽ gửi). */
+const toneSamples: Record<string, string[]> = {
+  human: ["Dạ chị ơi, em chào chị nha 😊", "Dịch vụ này bên em làm khoảng 60 phút ạ", "Chị muốn em giữ chỗ giờ nào cho mình nè?"],
+  friendly: ["Chào chị ạ 🌿 Em gửi chị thông tin dịch vụ nhé. Chị cần em tư vấn thêm gì cứ nhắn em nha!"],
+  professional: ["Kính chào quý khách. Em xin gửi thông tin dịch vụ như sau. Quý khách cần hỗ trợ thêm, vui lòng cho em biết ạ."],
+  concise: ["Dạ, dịch vụ này 60 phút. Chị muốn đặt giờ nào ạ?"],
+};
 
 /** Giọng văn + hướng dẫn thêm cho bot. Áp dụng ngay từ tin tiếp theo, kể cả trong khung chat thử. */
 export function BotStyleForm() {
@@ -48,7 +60,7 @@ export function BotStyleForm() {
     return (
       <div role="status" aria-label="Đang tải giọng văn" className="flex flex-col gap-2">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+          <div key={i} className="skeleton h-16 rounded-xl" />
         ))}
       </div>
     );
@@ -74,7 +86,7 @@ export function BotStyleForm() {
   const instructionsError = saveProblem?.fieldErrors.botInstructions;
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+    <form onSubmit={onSubmit} noValidate className="@container flex flex-col gap-5">
       {!canEdit && (
         <Alert>
           <Lock aria-hidden />
@@ -98,27 +110,42 @@ export function BotStyleForm() {
             setSaved(false);
           }}
           disabled={!canEdit}
-          className="gap-2"
+          className="grid gap-2 @2xl:grid-cols-2"
         >
-          {toneOptions.map((option) => (
-            <Label
-              key={option.value}
-              htmlFor={`tone-${option.value}`}
-              className={cn(
-                "flex min-h-11 cursor-pointer items-start gap-3 rounded-md border p-3 font-normal transition-colors hover:bg-muted/50",
-                tone === option.value && "border-primary bg-accent/50",
-                !canEdit && "cursor-not-allowed opacity-70",
-              )}
-            >
-              <RadioGroupItem id={`tone-${option.value}`} value={option.value} className="mt-0.5" />
-              <span className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium">{option.label}</span>
-                <span className="text-sm text-muted-foreground">{option.description}</span>
-              </span>
-            </Label>
-          ))}
+          {toneOptions.map((option) => {
+            const Icon = toneIcons[option.value] ?? MessagesSquare;
+            const active = tone === option.value;
+            return (
+              <Label
+                key={option.value}
+                htmlFor={`tone-${option.value}`}
+                className={cn(
+                  "relative flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border bg-card p-3 font-normal transition-[border-color,background-color,box-shadow] hover:border-primary/30 hover:bg-accent/40",
+                  active && "border-primary/50 bg-accent/60 shadow-card ring-1 ring-primary/20",
+                  !canEdit && "cursor-not-allowed opacity-70",
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    active ? "bg-active-gradient text-white shadow-glow" : "bg-muted text-muted-foreground",
+                  )}
+                  aria-hidden
+                >
+                  <Icon className="size-4" />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="text-sm leading-snug font-medium">{option.label}</span>
+                  <span className="text-[13px] leading-snug text-pretty text-muted-foreground">{option.description}</span>
+                </span>
+                <RadioGroupItem id={`tone-${option.value}`} value={option.value} className="mt-0.5" />
+              </Label>
+            );
+          })}
         </RadioGroup>
       </fieldset>
+
+      <TonePreview tone={tone} />
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="botInstructions" className="font-semibold">
@@ -173,5 +200,54 @@ export function BotStyleForm() {
         </div>
       )}
     </form>
+  );
+}
+
+/** Khung chat nhỏ minh họa giọng văn đang chọn (đổi giọng thì tin minh họa đổi theo). */
+function TonePreview({ tone }: { tone: string }) {
+  const samples = toneSamples[tone] ?? toneSamples.human;
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl border bg-canvas bg-dot-grid p-3">
+      <p className="flex items-center gap-1.5 text-[11px] font-semibold text-ai">
+        <Sparkles className="size-3" aria-hidden />
+        Ví dụ bot sẽ nhắn kiểu này
+      </p>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={tone}
+          className="flex items-end gap-2"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.22, ease: easeOut }}
+        >
+          <span
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--ai),color-mix(in_oklch,var(--ai)_55%,var(--primary)))] text-white shadow-sm"
+            aria-hidden
+          >
+            <Bot className="size-3.5" />
+          </span>
+          <div className="flex min-w-0 flex-col items-start gap-0.5">
+            {samples.map((text, i) => (
+              <p
+                key={i}
+                className={cn(
+                  "max-w-full border border-ai/15 bg-ai-soft px-3 py-1.5 text-[13px] leading-relaxed text-pretty",
+                  samples.length === 1
+                    ? "rounded-2xl rounded-bl-md"
+                    : i === 0
+                      ? "rounded-2xl rounded-bl-md"
+                      : i === samples.length - 1
+                        ? "rounded-2xl rounded-tl-md"
+                        : "rounded-2xl rounded-l-md",
+                )}
+              >
+                {text}
+              </p>
+            ))}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
