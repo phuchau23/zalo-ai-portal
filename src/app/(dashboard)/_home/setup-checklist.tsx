@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "motion/react";
 import { ArrowRight, Check, Rocket } from "lucide-react";
+import { IconTile } from "@/components/common/icon-tile";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
 import { setupProgress, type SetupStep } from "@/lib/home";
+import { easeOut } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 
@@ -82,14 +85,13 @@ export function SetupChecklist() {
   if (!next) return null;
 
   return (
-    <section aria-labelledby="setup" className="surface flex flex-col gap-4 p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section aria-labelledby="setup" className="surface relative isolate flex flex-col gap-5 overflow-hidden rounded-2xl p-5 sm:p-6">
+      <div aria-hidden className="pointer-events-none absolute -top-20 -right-16 -z-10 size-56 rounded-full bg-primary/10 blur-3xl" />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground" aria-hidden>
-            <Rocket className="size-5" />
-          </span>
+          <IconTile icon={Rocket} variant="solid" size="md" />
           <div className="flex flex-col gap-0.5">
-            <h2 id="setup" className="text-base font-semibold">
+            <h2 id="setup" className="text-base font-semibold tracking-tight">
               Thiết lập hệ thống
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -97,14 +99,19 @@ export function SetupChecklist() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 sm:w-56">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Tiến độ thiết lập" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total}>
-            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${(done / total) * 100}%` }} />
+        <div className="flex items-center gap-3 sm:w-64">
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Tiến độ thiết lập" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total}>
+            <motion.div
+              className="h-full rounded-full bg-active-gradient"
+              initial={{ width: 0 }}
+              animate={{ width: `${(done / total) * 100}%` }}
+              transition={{ duration: 0.9, ease: easeOut, delay: 0.15 }}
+            />
           </div>
-          <span className="tabular text-sm font-medium text-muted-foreground">{Math.round((done / total) * 100)}%</span>
+          <span className="tabular text-sm font-bold text-primary">{Math.round((done / total) * 100)}%</span>
         </div>
       </div>
-      <ol className="grid gap-2 md:grid-cols-2">
+      <ol className="grid gap-2.5 md:grid-cols-2">
         {data.map((step, index) => {
           const isNext = step === next;
           return (
@@ -112,14 +119,18 @@ export function SetupChecklist() {
               <Link
                 href={step.href}
                 className={cn(
-                  "group flex h-full items-start gap-3 rounded-xl border p-3 transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
-                  isNext ? "border-primary/40 bg-accent/60 hover:bg-accent" : "hover:bg-muted",
+                  "group flex h-full items-start gap-3 rounded-xl border p-3.5 transition-[background-color,border-color,box-shadow] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                  isNext
+                    ? "border-primary/40 bg-accent/60 shadow-glow hover:bg-accent"
+                    : step.done
+                      ? "border-border/60 bg-muted/20 hover:bg-muted/50"
+                      : "border-border/70 hover:border-primary/25 hover:bg-muted/50",
                 )}
               >
                 <span
                   className={cn(
-                    "tabular mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                    step.done ? "bg-success text-white" : isNext ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                    "tabular mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                    step.done ? "bg-success text-white" : isNext ? "bg-active-gradient text-white shadow-glow" : "bg-muted text-muted-foreground",
                   )}
                   aria-hidden
                 >

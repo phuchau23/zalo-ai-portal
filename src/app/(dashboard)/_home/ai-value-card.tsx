@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Bot, CalendarCheck2, Coins, Sparkles } from "lucide-react";
+import { AnimatedNumber } from "@/components/common/animated-number";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
 import { addDays, defaultTimeZone, todayKey } from "@/lib/appointments";
@@ -31,24 +32,37 @@ export function AiValueCard() {
   return (
     <section
       aria-labelledby="ai-value"
-      className="relative flex flex-col gap-5 overflow-hidden rounded-2xl bg-brand-gradient p-5 text-white shadow-card-hover sm:p-6"
+      className="relative isolate flex flex-col gap-5 overflow-hidden rounded-2xl bg-brand-gradient p-5 text-white shadow-glow-ai sm:p-6"
     >
-      {/* Vòng sáng trang trí, không mang thông tin. */}
-      <div className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-white/10 blur-2xl" aria-hidden />
-      <div className="pointer-events-none absolute -bottom-20 -left-10 size-48 rounded-full bg-white/10 blur-2xl" aria-hidden />
+      {/* Vòng sáng + lưới chấm trang trí, không mang thông tin. */}
+      <div className="pointer-events-none absolute -top-16 -right-16 -z-10 size-52 rounded-full bg-white/15 blur-2xl" aria-hidden />
+      <div className="pointer-events-none absolute -bottom-24 -left-10 -z-10 size-52 rounded-full bg-white/10 blur-2xl" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background-image:radial-gradient(rgb(255_255_255/0.35)_1px,transparent_1px)] [background-size:18px_18px] [mask-image:linear-gradient(to_bottom,black,transparent_70%)]"
+        aria-hidden
+      />
 
       <div className="relative flex items-center justify-between gap-3">
-        <h2 id="ai-value" className="flex items-center gap-2 text-sm font-semibold text-white/90">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-white/15">
+        <h2 id="ai-value" className="flex items-center gap-2.5 text-sm font-semibold text-white/90">
+          <span className="flex size-8 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 ring-inset">
             <Sparkles className="size-4" aria-hidden />
           </span>
           Trợ lý AI · 30 ngày qua
         </h2>
+        {data && !empty && (
+          <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white/90 ring-1 ring-white/20 ring-inset">
+            <span className="relative flex size-1.5" aria-hidden>
+              <span className="absolute inset-0 animate-ping-soft rounded-full bg-white motion-reduce:hidden" />
+              <span className="relative size-1.5 rounded-full bg-white" />
+            </span>
+            Đang trả lời khách
+          </span>
+        )}
       </div>
 
       {!data ? (
         <div role="status" aria-label="Đang tải kết quả của trợ lý AI" className="relative flex flex-col gap-3">
-          <div className="h-9 w-2/3 animate-pulse rounded-md bg-white/20 motion-reduce:animate-none" />
+          <div className="h-9 w-2/3 animate-pulse rounded-lg bg-white/20 motion-reduce:animate-none" />
           <div className="h-24 animate-pulse rounded-xl bg-white/10 motion-reduce:animate-none" />
         </div>
       ) : empty ? (
@@ -69,7 +83,9 @@ export function AiValueCard() {
         <>
           <div className="relative flex flex-col gap-1">
             <p className="text-sm text-white/80">Doanh thu từ khách do bot chốt lịch</p>
-            <p className="tabular text-3xl font-bold tracking-tight sm:text-[2rem]">{formatMoney(data.revenueFromBot)}</p>
+            <p className="text-3xl font-bold tracking-tight sm:text-[2.25rem]">
+              <AnimatedNumber value={data.revenueFromBot} format={formatMoney} />
+            </p>
             {roi !== null && (
               <p className="text-sm text-white/85">
                 Mỗi 1 đồng chi phí AI mang về khoảng <strong className="font-semibold text-white">{roi.toLocaleString("vi-VN")} đồng</strong>.
@@ -103,7 +119,7 @@ export function AiValueCard() {
 
 function Stat({ icon: Icon, label, value, hint }: { icon: typeof Bot; label: string; value: string; hint: string }) {
   return (
-    <div className="flex flex-col gap-1 rounded-xl bg-white/12 p-3 ring-1 ring-white/15 backdrop-blur-sm">
+    <div className="flex flex-col gap-1 rounded-xl bg-white/12 p-3 ring-1 ring-white/15 backdrop-blur-sm transition-colors ring-inset hover:bg-white/[0.18]">
       <dt className="flex items-center gap-1.5 text-xs font-medium text-white/80">
         <Icon className="size-3.5" aria-hidden />
         {label}

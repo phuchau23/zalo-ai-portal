@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight, CircleCheckBig, HeartHandshake, Inbox, ReceiptText, type LucideIcon } from "lucide-react";
+import { AnimatedNumber } from "@/components/common/animated-number";
+import { IconTile } from "@/components/common/icon-tile";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
 import { useApiData } from "@/lib/use-api-data";
@@ -10,6 +12,7 @@ import { cn } from "@/lib/utils";
 /**
  * "Cần xử lý ngay": 3 việc tồn có thể làm mất khách hoặc mất tiền nếu để lâu —
  * khách đang chờ nhân viên, khách cần chăm sóc, hóa đơn còn nợ. Số 0 hiện dấu xong để chủ doanh nghiệp yên tâm.
+ * Còn việc thì thẻ có viền cam, chấm nhấp nháy và số chạy.
  */
 export function ActionCenter({ openInvoices }: { openInvoices: number | undefined }) {
   const waiting = useApiData(() => call(() => api.GET("/inbox/conversations", { params: { query: { filter: "attention", includeTest: true } } })));
@@ -17,7 +20,7 @@ export function ActionCenter({ openInvoices }: { openInvoices: number | undefine
 
   return (
     <section aria-labelledby="todo" className="flex flex-col gap-3">
-      <h2 id="todo" className="text-sm font-semibold text-muted-foreground">
+      <h2 id="todo" className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
         Cần xử lý ngay
       </h2>
       <ul className="grid gap-3 sm:grid-cols-3">
@@ -38,7 +41,7 @@ export function ActionCenter({ openInvoices }: { openInvoices: number | undefine
 
 function Tile({
   href,
-  icon: Icon,
+  icon,
   count,
   label,
   todo,
@@ -57,28 +60,36 @@ function Tile({
     <li>
       <Link
         href={href}
-        className="group surface flex h-full items-center gap-4 p-4 transition-shadow hover:shadow-card-hover focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        className={cn(
+          "group lift relative flex h-full items-center gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-card focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+          pending && "border-warning/30",
+        )}
       >
-        <span
-          className={cn(
-            "flex size-11 shrink-0 items-center justify-center rounded-xl",
-            pending ? "bg-warning/12 text-warning" : "bg-success/10 text-success",
-            loading && "bg-muted text-muted-foreground",
+        {/* Quầng màu nhẹ ở góc khi còn việc. */}
+        {pending && <span aria-hidden className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-warning/15 blur-2xl" />}
+        <span className="relative">
+          {loading ? (
+            <span className="skeleton block size-11 rounded-xl" />
+          ) : (
+            <IconTile icon={pending ? icon : CircleCheckBig} tone={pending ? "warning" : "success"} variant={pending ? "solid" : "soft"} size="md" className="size-11" />
           )}
-          aria-hidden
-        >
-          {pending || loading ? <Icon className="size-5" /> : <CircleCheckBig className="size-5" />}
+          {pending && (
+            <span className="absolute -top-1 -right-1 flex size-3" aria-hidden>
+              <span className="absolute inset-0 animate-ping-soft rounded-full bg-warning motion-reduce:hidden" />
+              <span className="relative size-3 rounded-full bg-warning ring-2 ring-card" />
+            </span>
+          )}
         </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="relative flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-baseline gap-2">
-            <span className={cn("tabular text-2xl leading-none font-semibold", !pending && "text-muted-foreground")}>
-              {loading ? <span className="inline-block h-6 w-6 animate-pulse rounded bg-muted align-middle motion-reduce:animate-none" /> : count}
+            <span className={cn("text-[28px] leading-none font-bold tracking-tight", !pending && "text-muted-foreground")}>
+              {loading ? <span className="skeleton inline-block h-7 w-8 align-middle" /> : <AnimatedNumber value={count} />}
             </span>
             <span className="truncate text-sm font-medium">{label}</span>
           </span>
-          <span className="text-xs text-muted-foreground">{loading ? "Đang tải..." : pending ? todo : clear}</span>
+          <span className={cn("text-xs", pending ? "font-medium text-warning" : "text-muted-foreground")}>{loading ? "Đang tải..." : pending ? todo : clear}</span>
         </span>
-        <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
+        <ArrowRight className="relative size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground motion-reduce:transition-none" aria-hidden />
       </Link>
     </li>
   );
