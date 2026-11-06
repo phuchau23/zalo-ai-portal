@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { CircleAlert, LoaderCircle, Lock, Plus, Ticket } from "lucide-react";
+import { CircleAlert, LoaderCircle, Lock, Plus, Ticket, TicketPercent } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,11 @@ import { voucherIsUsable, voucherValueLabel, type VoucherKind } from "@/lib/sale
 import { useApiData, useNow } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 
+/** Mã voucher hiện như một tấm vé nhỏ (viền nét đứt): còn dùng được thì màu chính, hết/tắt thì xám. */
+const ticketClass = "inline-flex min-h-7 items-center gap-1.5 rounded-lg border border-dashed px-2.5 font-mono text-[13px] font-semibold tracking-wide pointer-coarse:min-h-11";
+const ticketLive = "border-primary/40 bg-primary/[0.06] text-primary";
+const ticketDead = "border-border bg-muted/60 text-muted-foreground";
+
 /** Mã giảm giá: danh sách + tạo/sửa. Sửa cần quyền "Quản lý danh mục bán". */
 export function VouchersSection({ canEdit }: { canEdit: boolean }) {
   const { data, problem, loading, reload } = useApiData(() => call(() => api.GET("/vouchers", { params: { query: { includeInactive: true } } })));
@@ -35,11 +41,20 @@ export function VouchersSection({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Label htmlFor="voucher-inactive" className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-0">
-          <Checkbox id="voucher-inactive" checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(v === true)} />
-          Hiện mã đã tắt
-        </Label>
+      <div className="surface flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <div className="flex items-center gap-3">
+          <IconTile icon={TicketPercent} size="md" />
+          <div className="flex flex-col gap-0.5">
+            <p className="text-sm font-semibold">
+              Mã giảm giá{" "}
+              {data && <span className="tabular font-normal text-muted-foreground">· {data.filter((v) => v.isActive && voucherIsUsable(v, now)).length} mã đang dùng được</span>}
+            </p>
+            <Label htmlFor="voucher-inactive" className="flex min-h-11 w-fit cursor-pointer items-center gap-2 text-sm font-normal text-muted-foreground sm:min-h-0">
+              <Checkbox id="voucher-inactive" checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(v === true)} />
+              Hiện mã đã tắt
+            </Label>
+          </div>
+        </div>
         {canEdit && (
           <Button className="h-11 sm:h-9" onClick={() => setDialog({ voucher: null })}>
             <Plus aria-hidden />
@@ -69,7 +84,7 @@ export function VouchersSection({ canEdit }: { canEdit: boolean }) {
           )}
         </EmptyState>
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -88,15 +103,23 @@ export function VouchersSection({ canEdit }: { canEdit: boolean }) {
                   <TableRow key={v.id} className={cn(canEdit && "cursor-pointer", !v.isActive && "text-muted-foreground")} onClick={() => canEdit && setDialog({ voucher: v })}>
                     <TableCell>
                       {canEdit ? (
-                        <button type="button" className="font-mono font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none" onClick={() => setDialog({ voucher: v })}>
+                        <button
+                          type="button"
+                          className={cn(ticketClass, usable && v.isActive ? ticketLive : ticketDead, "cursor-pointer focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none")}
+                          onClick={() => setDialog({ voucher: v })}
+                        >
+                          <Ticket className="size-3.5" aria-hidden />
                           {v.code}
                         </button>
                       ) : (
-                        <span className="font-mono font-medium">{v.code}</span>
+                        <span className={cn(ticketClass, usable && v.isActive ? ticketLive : ticketDead)}>
+                          <Ticket className="size-3.5" aria-hidden />
+                          {v.code}
+                        </span>
                       )}
-                      {v.note && <div className="max-w-56 truncate text-xs text-muted-foreground">{v.note}</div>}
+                      {v.note && <div className="mt-1 max-w-56 truncate text-xs text-muted-foreground">{v.note}</div>}
                     </TableCell>
-                    <TableCell className="tabular">{voucherValueLabel(v)}</TableCell>
+                    <TableCell className="tabular font-semibold">{voucherValueLabel(v)}</TableCell>
                     <TableCell className="tabular hidden sm:table-cell">{v.minTotal > 0 ? formatMoney(v.minTotal) : "—"}</TableCell>
                     <TableCell className="hidden text-xs md:table-cell">
                       {v.validFrom || v.validTo ? `${v.validFrom ? formatDateTime(v.validFrom) : "…"} → ${v.validTo ? formatDateTime(v.validTo) : "…"}` : "Không giới hạn"}

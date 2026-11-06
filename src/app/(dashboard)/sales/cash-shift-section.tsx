@@ -1,9 +1,28 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { CircleAlert, Clock, LoaderCircle, Lock, LockOpen } from "lucide-react";
+import {
+  ArrowUpRight,
+  Banknote,
+  CircleAlert,
+  CircleCheck,
+  Clock,
+  CreditCard,
+  History,
+  Landmark,
+  LoaderCircle,
+  Lock,
+  LockOpen,
+  Receipt,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import { AnimatedNumber } from "@/components/common/animated-number";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
+import { SectionHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -50,31 +69,46 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
       ) : current.loading && shift === undefined ? (
         <LoadingRows rows={2} columns={3} label="Đang tải ca thu ngân" />
       ) : shift ? (
-        <section className="flex flex-col gap-3 rounded-xl border bg-card border-primary/30 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-base font-semibold">
-              <LockOpen className="size-4 text-success" aria-hidden />
-              Ca đang mở
-            </h2>
+        <section className="surface relative isolate flex flex-col gap-5 overflow-hidden rounded-2xl p-5">
+          <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 -z-10 size-64 rounded-full bg-success/10 blur-3xl" />
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <IconTile icon={LockOpen} tone="success" variant="solid" size="lg" />
+              <div className="flex flex-col gap-0.5">
+                <h2 className="flex items-center gap-2 text-base font-semibold">
+                  Ca đang mở
+                  <span className="relative flex size-2" aria-hidden>
+                    <span className="absolute inset-0 animate-ping-soft rounded-full bg-success motion-reduce:hidden" />
+                    <span className="relative size-2 rounded-full bg-success" />
+                  </span>
+                </h2>
+                <p className="text-sm text-muted-foreground tabular">
+                  Mở lúc {formatDateTime(shift.openedAt)} · Tiền đầu ca {formatMoney(shift.openingCash)}
+                </p>
+              </div>
+            </div>
             <Button className="h-11 sm:h-9" onClick={() => setClosing(true)}>
               <Lock aria-hidden />
               Chốt ca
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Mở lúc {formatDateTime(shift.openedAt)} · Tiền đầu ca {formatMoney(shift.openingCash)}
-          </p>
+
+          <div className="flex flex-col gap-1 rounded-2xl border border-success/20 bg-success/[0.06] px-4 py-3">
+            <span className="text-xs font-medium text-muted-foreground">Tiền mặt dự kiến trong két</span>
+            <span className="text-3xl font-bold tracking-tight">
+              <AnimatedNumber value={shift.openingCash + shift.cashIn - shift.cashOut} format={formatMoney} />
+            </span>
+            <span className="text-xs text-muted-foreground">= đầu ca + thu tiền mặt − chi tiền mặt</span>
+          </div>
+
           <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
-            <Stat label="Thu tiền mặt" value={formatMoney(shift.cashIn)} />
-            <Stat label="Chi tiền mặt" value={formatMoney(shift.cashOut)} />
-            <Stat label="Chuyển khoản" value={formatMoney(shift.transfer)} />
-            <Stat label="Thẻ" value={formatMoney(shift.card)} />
-            <Stat label="Thẻ trả trước" value={formatMoney(shift.wallet)} />
-            <Stat label="Hóa đơn" value={String(shift.invoiceCount)} />
+            <Stat label="Thu tiền mặt" value={formatMoney(shift.cashIn)} icon={Banknote} />
+            <Stat label="Chi tiền mặt" value={formatMoney(shift.cashOut)} icon={ArrowUpRight} />
+            <Stat label="Chuyển khoản" value={formatMoney(shift.transfer)} icon={Landmark} />
+            <Stat label="Thẻ" value={formatMoney(shift.card)} icon={CreditCard} />
+            <Stat label="Thẻ trả trước" value={formatMoney(shift.wallet)} icon={Wallet} />
+            <Stat label="Hóa đơn" value={String(shift.invoiceCount)} icon={Receipt} />
           </dl>
-          <p className="text-sm">
-            Tiền mặt dự kiến trong két: <span className="tabular font-semibold">{formatMoney(shift.openingCash + shift.cashIn - shift.cashOut)}</span>
-          </p>
         </section>
       ) : (
         <OpenShiftForm branchId={branchId} onOpened={changed} />
@@ -83,7 +117,7 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
       {justClosed && <ClosedSummary shift={justClosed} onDismiss={() => setJustClosed(null)} />}
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold">Lịch sử ca</h2>
+        <SectionHeader title="Lịch sử ca" description="30 ca gần nhất của chi nhánh; cột Lệch so tiền đếm được với dự kiến." icon={History} />
         {history.problem && !history.data ? (
           <ErrorState problem={history.problem} onRetry={history.reload} />
         ) : !history.data ? (
@@ -91,7 +125,7 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
         ) : history.data.length === 0 ? (
           <EmptyState icon={Clock} title="Chưa có ca nào" description="Mở ca đầu ngày với số tiền mặt trong két, cuối ngày chốt ca để đối chiếu." />
         ) : (
-          <div className="overflow-x-auto rounded-xl border bg-card">
+          <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -112,14 +146,20 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
                   return (
                     <TableRow key={s.id}>
                       <TableCell className="tabular whitespace-nowrap">{formatDateTime(s.openedAt)}</TableCell>
-                      <TableCell className="tabular whitespace-nowrap">{s.closedAt ? formatDateTime(s.closedAt) : <span className="text-success">Đang mở</span>}</TableCell>
+                      <TableCell className="tabular whitespace-nowrap">{s.closedAt ? formatDateTime(s.closedAt) : <Badge variant="success">Đang mở</Badge>}</TableCell>
                       <TableCell className="tabular text-right">{formatMoney(s.openingCash)}</TableCell>
                       <TableCell className="tabular hidden text-right sm:table-cell">{formatMoney(s.cashIn)}</TableCell>
                       <TableCell className="tabular hidden text-right md:table-cell">{formatMoney(s.transfer)}</TableCell>
                       <TableCell className="tabular text-right">{s.expectedCash === null ? "—" : formatMoney(s.expectedCash)}</TableCell>
                       <TableCell className="tabular text-right">{s.countedCash === null ? "—" : formatMoney(s.countedCash)}</TableCell>
-                      <TableCell className={cn("tabular text-right font-medium", diff === null ? "" : diff === 0 ? "text-success" : "text-destructive")}>
-                        {diff === null ? "—" : diff === 0 ? "Khớp" : `${diff > 0 ? "+" : "−"}${formatMoney(Math.abs(diff))}`}
+                      <TableCell className="tabular text-right">
+                        {diff === null ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : diff === 0 ? (
+                          <Badge variant="success">Khớp</Badge>
+                        ) : (
+                          <Badge variant="destructive">{`${diff > 0 ? "+" : "−"}${formatMoney(Math.abs(diff))}`}</Badge>
+                        )}
                       </TableCell>
                       <TableCell className="tabular hidden text-right lg:table-cell">{s.invoiceCount}</TableCell>
                     </TableRow>
@@ -146,11 +186,14 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, icon: Icon }: { label: string; value: string; icon: LucideIcon }) {
   return (
-    <div className="flex flex-col rounded-md border bg-muted/30 px-3 py-2">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="tabular font-medium">{value}</dd>
+    <div className="flex flex-col gap-1 rounded-xl border bg-muted/30 px-3 py-2.5">
+      <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Icon className="size-3.5 shrink-0" aria-hidden />
+        {label}
+      </dt>
+      <dd className="tabular font-semibold">{value}</dd>
     </div>
   );
 }
@@ -171,9 +214,17 @@ function OpenShiftForm({ branchId, onOpened }: { branchId: string; onOpened: () 
   }
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-md border border-dashed p-4">
-      <h2 className="text-base font-semibold">Chưa có ca nào đang mở</h2>
-      <p className="text-sm text-muted-foreground">Mở ca với số tiền mặt đang có trong két. Hóa đơn vẫn lập được khi chưa mở ca; mở ca để cuối ngày đối chiếu tiền.</p>
+    <form noValidate onSubmit={(e) => void submit(e)} className="surface relative isolate flex flex-col gap-4 overflow-hidden rounded-2xl p-5">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-dot-grid opacity-60 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
+      <div className="flex items-start gap-3">
+        <IconTile icon={Lock} tone="muted" size="lg" />
+        <div className="flex flex-col gap-1">
+          <h2 className="text-base font-semibold">Chưa có ca nào đang mở</h2>
+          <p className="max-w-xl text-sm text-pretty text-muted-foreground">
+            Mở ca với số tiền mặt đang có trong két. Hóa đơn vẫn lập được khi chưa mở ca; mở ca để cuối ngày đối chiếu tiền.
+          </p>
+        </div>
+      </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <Field id="shift-opening" label="Tiền mặt đầu ca" error={problem?.fieldErrors.openingCash} className="sm:w-60">
           <Input
@@ -277,8 +328,11 @@ function CloseShiftDialog({ shift, onClose, onClosed }: { shift: CashShift; onCl
 function ClosedSummary({ shift, onDismiss }: { shift: CashShift; onDismiss: () => void }) {
   const diff = shiftDifference(shift.expectedCash, shift.countedCash);
   return (
-    <div role="status" className="flex flex-col gap-2 rounded-md border border-success/30 bg-success/5 p-4 text-sm">
-      <p className="font-medium">Đã chốt ca lúc {formatDateTime(shift.closedAt)}.</p>
+    <div role="status" className="flex flex-col gap-2 rounded-2xl border border-success/30 bg-success/5 p-4 text-sm">
+      <p className="flex items-center gap-2 font-semibold">
+        <CircleCheck className="size-4 text-success" aria-hidden />
+        Đã chốt ca lúc {formatDateTime(shift.closedAt)}.
+      </p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
         <dt className="text-muted-foreground">Dự kiến</dt>
         <dd className="tabular">{formatMoney(shift.expectedCash)}</dd>
