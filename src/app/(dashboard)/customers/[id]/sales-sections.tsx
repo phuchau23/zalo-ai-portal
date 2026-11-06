@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { ChevronDown, ChevronRight, CircleAlert, Layers, LoaderCircle, Receipt, Wallet } from "lucide-react";
+import { ChevronDown, ChevronRight, CircleAlert, Layers, LoaderCircle, Receipt, Wallet, type LucideIcon } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { InvoiceStatusBadge } from "@/components/common/status-pill";
+import { IconTile } from "@/components/common/icon-tile";
 import { ErrorState } from "@/components/common/states";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +17,7 @@ import { api, type CustomerPackage } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { hasPermission, localToIso, parseOptionalInt } from "@/lib/crm";
 import { formatDateTime, formatMoney } from "@/lib/format";
-import { invoiceStatusOf, packageStatusActions, packageStatusOf, walletKindLabel } from "@/lib/sales";
+import { packageStatusActions, packageStatusOf, walletKindLabel } from "@/lib/sales";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { ContactPicker, type ContactChoice } from "../../appointments/contact-picker";
@@ -44,10 +46,10 @@ export function CustomerPackagesSection({ contactId }: { contactId: string }) {
   const rows = [...(data ?? [])].sort((a, b) => Number(b.status === "active") - Number(a.status === "active") || b.createdAt.localeCompare(a.createdAt));
 
   return (
-    <section aria-labelledby="packages" className="flex flex-col gap-3">
-      <h2 id="packages" className="text-base font-semibold">
+    <section aria-labelledby="packages" className="surface flex flex-col gap-4 rounded-2xl p-5">
+      <CardTitle id="packages" icon={Layers}>
         Gói liệu trình
-      </h2>
+      </CardTitle>
       {actionProblem && (
         <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
           <CircleAlert className="size-4 shrink-0" aria-hidden />
@@ -57,10 +59,10 @@ export function CustomerPackagesSection({ contactId }: { contactId: string }) {
       {problem && !data ? (
         <ErrorState problem={problem} onRetry={reload} />
       ) : !data ? (
-        <div role="status" aria-label="Đang tải gói" className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+        <div role="status" aria-label="Đang tải gói" className="skeleton h-24 rounded-xl" />
       ) : rows.length === 0 ? (
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Layers className="size-4" aria-hidden />
+        <p className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-3 text-sm text-muted-foreground">
+          <Layers className="size-4 shrink-0" aria-hidden />
           Khách chưa mua gói nào. Bán gói qua hóa đơn ở trang Bán hàng.
         </p>
       ) : (
@@ -71,16 +73,16 @@ export function CustomerPackagesSection({ contactId }: { contactId: string }) {
             const pct = p.totalSessions > 0 ? Math.min(100, Math.round((p.usedSessions / p.totalSessions) * 100)) : 0;
             const open = expanded === p.id;
             return (
-              <li key={p.id} className="flex flex-col gap-2 rounded-xl border bg-card p-3">
+              <li key={p.id} className="flex flex-col gap-2.5 rounded-xl border border-border/70 bg-card p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{p.name}</span>
+                  <span className="font-semibold">{p.name}</span>
                   <Badge variant={st.variant}>{st.label}</Badge>
-                  <span className="tabular ml-auto text-sm">
-                    còn <span className="font-semibold">{p.remaining}</span>/{p.totalSessions} buổi
+                  <span className="tabular ml-auto text-sm text-muted-foreground">
+                    còn <span className="text-lg font-bold text-foreground">{p.remaining}</span>/{p.totalSessions} buổi
                   </span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={p.usedSessions} aria-valuemin={0} aria-valuemax={p.totalSessions} aria-label="Đã dùng">
-                  <div className={cn("h-full rounded-full", p.status === "active" ? "bg-primary" : "bg-muted-foreground/40")} style={{ width: `${pct}%` }} />
+                <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={p.usedSessions} aria-valuemin={0} aria-valuemax={p.totalSessions} aria-label="Đã dùng">
+                  <div className={cn("h-full rounded-full transition-[width] duration-700", p.status === "active" ? "bg-active-gradient" : "bg-muted-foreground/40")} style={{ width: `${pct}%` }} />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {p.expiresAt ? `Hạn ${formatDateTime(p.expiresAt)}` : "Không giới hạn hạn dùng"} · Mua {formatMoney(p.pricePaid)} · {formatDateTime(p.createdAt)}
@@ -154,10 +156,10 @@ function Redemptions({ packageId }: { packageId: string }) {
   const { data, problem, reload } = useApiData(() => call(() => api.GET("/customer-packages/{packageId}/redemptions", { params: { path: { packageId } } })));
   const staff = useApiData(() => call(() => api.GET("/staff", { params: { query: { includeInactive: true } } })));
   if (problem && !data) return <ErrorState problem={problem} onRetry={reload} />;
-  if (!data) return <div role="status" aria-label="Đang tải" className="h-10 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />;
+  if (!data) return <div role="status" aria-label="Đang tải" className="skeleton h-10 rounded-lg" />;
   if (data.length === 0) return <p className="text-sm text-muted-foreground">Chưa dùng buổi nào.</p>;
   return (
-    <ol className="flex flex-col divide-y rounded-md border bg-muted/30 text-sm">
+    <ol className="flex flex-col divide-y divide-border/70 rounded-lg border border-border/70 bg-muted/30 text-sm">
       {[...data]
         .sort((a, b) => b.at.localeCompare(a.at))
         .map((r, i) => (
@@ -305,17 +307,17 @@ export function CustomerWalletSection({ contactId }: { contactId: string }) {
   const shown = showAll ? tx : tx.slice(0, 5);
 
   return (
-    <section aria-labelledby="wallet" className="flex flex-col gap-3">
+    <section aria-labelledby="wallet" className="surface flex flex-col gap-4 rounded-2xl p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="wallet" className="text-base font-semibold">
+        <CardTitle id="wallet" icon={Wallet}>
           Thẻ trả trước
-        </h2>
+        </CardTitle>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="h-11 sm:h-8" onClick={() => setDialog("topup")}>
+          <Button size="sm" variant="outline" className="h-11 rounded-full sm:h-8" onClick={() => setDialog("topup")}>
             Nạp tiền
           </Button>
           {canAdjust && (
-            <Button size="sm" variant="ghost" className="h-11 sm:h-8" onClick={() => setDialog("adjust")}>
+            <Button size="sm" variant="ghost" className="h-11 rounded-full sm:h-8" onClick={() => setDialog("adjust")}>
               Điều chỉnh
             </Button>
           )}
@@ -324,20 +326,21 @@ export function CustomerWalletSection({ contactId }: { contactId: string }) {
       {problem && !data ? (
         <ErrorState problem={problem} onRetry={reload} />
       ) : !data ? (
-        <div role="status" aria-label="Đang tải thẻ" className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+        <div role="status" aria-label="Đang tải thẻ" className="skeleton h-20 rounded-xl" />
       ) : (
-        <div className="flex flex-col gap-2 rounded-xl border bg-card p-3">
-          <p className="flex items-center gap-2 text-sm">
-            <Wallet className="size-4 text-muted-foreground" aria-hidden />
-            Số dư: <span className="tabular text-base font-semibold">{formatMoney(data.balance)}</span>
-          </p>
+        <div className="flex flex-col gap-3">
+          <div className="relative isolate overflow-hidden rounded-xl bg-active-gradient p-4 text-white shadow-glow">
+            <div aria-hidden className="absolute -top-10 -right-6 -z-10 size-32 rounded-full bg-white/15 blur-2xl" />
+            <p className="text-xs font-medium text-white/80">Số dư hiện có</p>
+            <p className="tabular text-2xl font-bold tracking-tight">{formatMoney(data.balance)}</p>
+          </div>
           {tx.length === 0 ? (
             <p className="text-sm text-muted-foreground">Chưa có giao dịch. Nạp tiền để khách thanh toán nhanh bằng thẻ ở lần sau.</p>
           ) : (
             <>
-              <ul className="flex flex-col divide-y text-sm">
+              <ul className="flex flex-col divide-y divide-border/70 text-sm">
                 {shown.map((t) => (
-                  <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 py-1.5">
+                  <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 py-2">
                     <span className="font-medium">{walletKindLabel(t.kind)}</span>
                     {t.note && <span className="truncate text-xs text-muted-foreground">{t.note}</span>}
                     <span className="text-xs text-muted-foreground">{formatDateTime(t.at)}</span>
@@ -453,6 +456,18 @@ function WalletDialog({ kind, contactId, onClose, onSaved }: { kind: "topup" | "
   );
 }
 
+/** Tiêu đề thẻ (gói, thẻ trả trước, hóa đơn) trên trang hồ sơ khách: ô biểu tượng + chữ. */
+function CardTitle({ id, icon, children }: { id: string; icon: LucideIcon; children: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <IconTile icon={icon} size="sm" />
+      <h2 id={id} className="text-base font-semibold tracking-tight">
+        {children}
+      </h2>
+    </div>
+  );
+}
+
 /** 10 hóa đơn gần nhất của khách; bấm mở chi tiết. */
 export function CustomerInvoicesSection({ contactId }: { contactId: string }) {
   const { data, problem, reload } = useApiData(() => call(() => api.GET("/invoices", { params: { query: { contactId } } })));
@@ -464,34 +479,36 @@ export function CustomerInvoicesSection({ contactId }: { contactId: string }) {
   const rows = [...(data ?? [])].sort((a, b) => b.issuedAt.localeCompare(a.issuedAt)).slice(0, 10);
 
   return (
-    <section aria-labelledby="invoices" className="flex flex-col gap-3">
-      <h2 id="invoices" className="text-base font-semibold">
+    <section aria-labelledby="invoices" className="surface flex flex-col gap-4 rounded-2xl p-5">
+      <CardTitle id="invoices" icon={Receipt}>
         Hóa đơn
-      </h2>
+      </CardTitle>
       {problem && !data ? (
         <ErrorState problem={problem} onRetry={reload} />
       ) : !data ? (
-        <div role="status" aria-label="Đang tải hóa đơn" className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+        <div role="status" aria-label="Đang tải hóa đơn" className="skeleton h-16 rounded-xl" />
       ) : rows.length === 0 ? (
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Receipt className="size-4" aria-hidden />
+        <p className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-3 text-sm text-muted-foreground">
+          <Receipt className="size-4 shrink-0" aria-hidden />
           Khách chưa có hóa đơn.
         </p>
       ) : (
         <ul className="flex flex-col gap-1.5">
           {rows.map((r) => {
-            const st = invoiceStatusOf(r.status);
             return (
               <li key={r.id}>
                 <button
                   type="button"
                   onClick={() => setDetailId(r.id)}
-                  className="flex min-h-11 w-full flex-wrap items-center gap-x-2 gap-y-0.5 rounded-md border px-3 py-2 text-left text-sm hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  className="group flex min-h-11 w-full cursor-pointer flex-wrap items-center gap-x-2.5 gap-y-0.5 rounded-xl border border-border/70 px-3 py-2.5 text-left text-sm transition-colors hover:border-primary/30 hover:bg-accent/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary" aria-hidden>
+                    <Receipt className="size-4" />
+                  </span>
                   <span className="font-mono font-medium">{r.number}</span>
-                  <Badge variant={st.variant}>{st.label}</Badge>
+                  <InvoiceStatusBadge status={r.status} />
                   <span className="text-xs text-muted-foreground">{formatDateTime(r.issuedAt)}</span>
-                  <span className="tabular ml-auto font-medium">{formatMoney(r.total)}</span>
+                  <span className="tabular ml-auto font-semibold">{formatMoney(r.total)}</span>
                   {r.due > 0 && r.status !== "void" && <span className="tabular text-xs text-warning">nợ {formatMoney(r.due)}</span>}
                 </button>
               </li>
