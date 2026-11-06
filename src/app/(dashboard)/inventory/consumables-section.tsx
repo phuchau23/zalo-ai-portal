@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle, Plus, Scissors, Trash2 } from "lucide-react";
+import { CircleAlert, CircleCheck, LoaderCircle, Package, Plus, Scissors, Sparkles, Trash2 } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
+import { SectionHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -29,13 +31,15 @@ export function ConsumablesSection({ ctx }: { ctx: InventoryContext }) {
   const [serviceId, setServiceId] = useState("");
 
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
+    <div className="surface flex max-w-3xl flex-col gap-5 rounded-2xl p-4 sm:p-6">
+      <SectionHeader icon={Scissors} title="Định mức vật tư theo dịch vụ" description="Mỗi buổi dịch vụ dùng bao nhiêu sản phẩm; hoàn thành lịch hẹn là kho tự trừ." />
       {services.problem && !services.data ? (
         <ErrorState problem={services.problem} onRetry={services.reload} />
       ) : (
         <Field id="cs-service" label="Dịch vụ" hint="Chọn dịch vụ để xem hoặc đặt định mức vật tư mỗi buổi.">
           <Select value={serviceId} onValueChange={setServiceId} disabled={!services.data}>
-            <SelectTrigger id="cs-service" className="h-11 w-full sm:h-9 sm:max-w-md">
+            <SelectTrigger id="cs-service" className="h-11 w-full bg-background sm:h-10 sm:max-w-md *:data-[slot=select-value]:flex-1">
+              <Sparkles className="text-muted-foreground" aria-hidden />
               <SelectValue placeholder={services.data ? "Chọn dịch vụ" : "Đang tải..."} />
             </SelectTrigger>
             <SelectContent>
@@ -49,7 +53,7 @@ export function ConsumablesSection({ ctx }: { ctx: InventoryContext }) {
         </Field>
       )}
 
-      {services.data && services.data.length === 0 && <EmptyState icon={Scissors} title="Chưa có dịch vụ" description="Thêm dịch vụ trong Danh mục trước." />}
+      {services.data && services.data.length === 0 && <EmptyState icon={Scissors} title="Chưa có dịch vụ" description="Thêm dịch vụ trong Danh mục trước." compact />}
 
       {serviceId && <ConsumablesEditor key={serviceId} serviceId={serviceId} ctx={ctx} canEdit={canEdit} products={products} />}
     </div>
@@ -92,7 +96,7 @@ function ConsumablesEditor({ serviceId, ctx, canEdit, products }: { serviceId: s
   }
 
   if (problem && !data) return <ErrorState problem={problem} onRetry={reload} />;
-  if (!rows) return <div role="status" aria-label="Đang tải định mức" className="h-24 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />;
+  if (!rows) return <div role="status" aria-label="Đang tải định mức" className="skeleton h-24 rounded-xl" />;
 
   const errors = saveProblem?.fieldErrors ?? {};
 
@@ -105,14 +109,15 @@ function ConsumablesEditor({ serviceId, ctx, canEdit, products }: { serviceId: s
         </Alert>
       )}
       {current.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Dịch vụ này chưa có định mức. {canEdit ? "Thêm sản phẩm bên dưới." : ""}</p>
+        <p className="rounded-xl border border-dashed px-4 py-5 text-center text-sm text-muted-foreground">Dịch vụ này chưa có định mức. {canEdit ? "Thêm sản phẩm bên dưới." : ""}</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-xl border bg-card">
+        <ul className="flex flex-col divide-y overflow-hidden rounded-xl border bg-card">
           {current.map((r, i) => {
             const product = products.find((p) => p.id === r.productId);
             return (
-              <li key={r.productId} className="flex items-end gap-2 p-3">
-                <div className="flex min-w-0 flex-1 flex-col pb-2.5">
+              <li key={r.productId} className="flex items-end gap-3 p-3">
+                <IconTile icon={Package} size="sm" className="mb-1" />
+                <div className="flex min-w-0 flex-1 flex-col pb-1.5">
                   <span className="truncate text-sm font-medium">{product?.name ?? "(sản phẩm không còn theo dõi kho)"}</span>
                   {product?.unit && <span className="text-xs text-muted-foreground">Đơn vị: {product.unit}</span>}
                 </div>
@@ -151,7 +156,7 @@ function ConsumablesEditor({ serviceId, ctx, canEdit, products }: { serviceId: s
             onValueChange={(id) => setRows((rs) => [...rs, { productId: id, quantity: "1" }])}
             disabled={saving || remaining.length === 0}
           >
-            <SelectTrigger id="cs-add" className="h-11 w-full sm:h-9 sm:max-w-md">
+            <SelectTrigger id="cs-add" className="h-11 w-full border-dashed bg-background sm:h-9 sm:max-w-md *:data-[slot=select-value]:flex-1">
               <Plus className="text-muted-foreground" aria-hidden />
               <SelectValue placeholder={products.length === 0 ? "Chưa có sản phẩm theo dõi kho" : remaining.length === 0 ? "Đã thêm hết" : "Chọn sản phẩm / vật tư"} />
             </SelectTrigger>

@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { ArrowLeftRight, ArrowRight, CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { SectionHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -64,7 +65,8 @@ export function TransfersSection({ ctx }: { ctx: InventoryContext }) {
   }
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex max-w-2xl flex-col gap-5">
+    <form noValidate onSubmit={(e) => void submit(e)} className="surface flex max-w-3xl flex-col gap-5 rounded-2xl p-4 sm:p-6">
+      <SectionHeader icon={ArrowLeftRight} title="Chuyển hàng giữa chi nhánh" description="Trừ kho nơi đi, cộng kho nơi đến; lịch sử ghi lại ở cả hai chi nhánh." />
       {problem && !Object.keys(errors).length && (
         <Alert variant="destructive">
           <CircleAlert aria-hidden />
@@ -72,16 +74,16 @@ export function TransfersSection({ ctx }: { ctx: InventoryContext }) {
         </Alert>
       )}
       {done && (
-        <p role="status" className="flex items-center gap-1.5 text-sm text-success">
+        <p role="status" className="flex items-center gap-1.5 rounded-xl border border-success/25 bg-success/5 px-3 py-2 text-sm text-success">
           <CircleCheck className="size-4" aria-hidden />
           {done}
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
+      <div className="grid gap-4 rounded-2xl border bg-muted/30 p-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
         <Field id="tr-from" label="Từ chi nhánh" error={errors.fromBranchId}>
           <Select value={fromId} onValueChange={setFromId} disabled={saving}>
-            <SelectTrigger id="tr-from" className="h-11 w-full sm:h-9" aria-invalid={Boolean(errors.fromBranchId)}>
+            <SelectTrigger id="tr-from" className="h-11 w-full bg-background sm:h-9" aria-invalid={Boolean(errors.fromBranchId)}>
               <SelectValue placeholder="Chọn" />
             </SelectTrigger>
             <SelectContent>
@@ -93,10 +95,12 @@ export function TransfersSection({ ctx }: { ctx: InventoryContext }) {
             </SelectContent>
           </Select>
         </Field>
-        <ArrowRight className="hidden size-5 text-muted-foreground sm:mb-2 sm:block" aria-hidden />
+        <span className="hidden size-9 items-center justify-center rounded-full bg-active-gradient text-white shadow-glow sm:mb-0.5 sm:flex" aria-hidden>
+          <ArrowRight className="size-4" />
+        </span>
         <Field id="tr-to" label="Đến chi nhánh" error={errors.toBranchId ?? (fromId && fromId === toId ? "Chọn chi nhánh khác nơi đi." : undefined)}>
           <Select value={toId} onValueChange={setToId} disabled={saving}>
-            <SelectTrigger id="tr-to" className="h-11 w-full sm:h-9" aria-invalid={Boolean(errors.toBranchId) || (Boolean(fromId) && fromId === toId)}>
+            <SelectTrigger id="tr-to" className="h-11 w-full bg-background sm:h-9" aria-invalid={Boolean(errors.toBranchId) || (Boolean(fromId) && fromId === toId)}>
               <SelectValue placeholder="Chọn" />
             </SelectTrigger>
             <SelectContent>
