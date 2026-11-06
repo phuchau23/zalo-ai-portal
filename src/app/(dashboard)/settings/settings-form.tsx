@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle, Lock } from "lucide-react";
+import { CircleAlert, CircleCheck, LoaderCircle, Lock, ShieldAlert, ShieldCheck } from "lucide-react";
 import { FormGroup as Group, stickySaveBar } from "@/components/common/form-layout";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api, type Industry, type Schemas } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { cn } from "@/lib/utils";
+import { FormSkeleton } from "./settings-ui";
 
 type FormValues = Schemas["UpdateTenantSettingsRequest"];
 
@@ -63,18 +66,7 @@ export function SettingsForm({
 
   if (loadProblem) return <ErrorState problem={loadProblem} />;
 
-  if (!values) {
-    return (
-      <div role="status" aria-label="Đang tải cài đặt" className="flex flex-col gap-6 py-6">
-        {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="grid gap-4 md:grid-cols-[16rem_1fr]">
-            <div className="h-4 w-32 animate-pulse rounded-sm bg-muted motion-reduce:animate-none" />
-            <div className="h-9 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  if (!values) return <FormSkeleton rows={Math.max(2, sections.length)} />;
 
   const update = (patch: Partial<FormValues>) => {
     setValues({ ...values, ...patch });
@@ -116,6 +108,15 @@ export function SettingsForm({
           <CircleAlert aria-hidden />
           <AlertDescription>{problemMessage(saveProblem)}</AlertDescription>
         </Alert>
+      )}
+
+      {sections.includes("business") && (
+        <BusinessPreview
+          name={values.name}
+          industry={industries.find((i) => i.slug === values.industrySlug)?.name}
+          privacyUrl={values.privacyUrl}
+          showPrivacy={sections.includes("privacy")}
+        />
       )}
 
       {sections.includes("business") && (
@@ -227,6 +228,44 @@ export function SettingsForm({
         </div>
       )}
     </form>
+  );
+}
+
+/** Thẻ xem trước hồ sơ doanh nghiệp: đổi tên/ngành là thấy ngay; báo đã có link chính sách bảo mật chưa. */
+function BusinessPreview({
+  name,
+  industry,
+  privacyUrl,
+  showPrivacy,
+}: {
+  name: string;
+  industry: string | undefined;
+  privacyUrl: string | null | undefined;
+  showPrivacy: boolean;
+}) {
+  const hasPrivacy = Boolean(privacyUrl?.trim());
+  return (
+    <div className="relative mb-2 flex flex-col gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:p-5">
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/10 via-accent/40 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-dot-grid [mask-image:linear-gradient(to_left,black,transparent)]" />
+      <PersonAvatar name={name || "Doanh nghiệp"} size="xl" className="relative" />
+      <div className="relative flex min-w-0 flex-1 flex-col gap-1">
+        <span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">Hồ sơ doanh nghiệp</span>
+        <span className="truncate text-lg font-bold tracking-tight">{name.trim() || "Chưa đặt tên"}</span>
+        <span className="text-sm text-muted-foreground">{industry ?? "Chưa chọn ngành"}</span>
+      </div>
+      {showPrivacy && (
+        <span
+          className={cn(
+            "relative inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold",
+            hasPrivacy ? "bg-success/10 text-success" : "bg-warning/10 text-warning",
+          )}
+        >
+          {hasPrivacy ? <ShieldCheck className="size-3.5" aria-hidden /> : <ShieldAlert className="size-3.5" aria-hidden />}
+          {hasPrivacy ? "Đã có chính sách bảo mật" : "Thiếu link chính sách bảo mật"}
+        </span>
+      )}
+    </div>
   );
 }
 

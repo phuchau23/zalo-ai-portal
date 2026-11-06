@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { CircleAlert, KeyRound, LoaderCircle, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
+import { Crown, KeyRound, LoaderCircle, Mail, MapPin, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
 import { SectionHeader } from "@/components/common/page-header";
 import { CopyButton } from "@/components/common/copy-button";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import {
   AlertDialog,
@@ -26,9 +28,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api, type Branch, type Schemas } from "@/lib/api/client";
-import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { type ApiProblem } from "@/lib/api/problem";
 import { branchName, permissionLabels, permissionSummary } from "@/lib/crm";
 import { useApiData } from "@/lib/use-api-data";
+import { cn } from "@/lib/utils";
+import { ActionError, AddPanel, MotionItem, MotionList } from "./settings-ui";
 
 type Member = Schemas["TeamMemberResponse"];
 
@@ -91,6 +95,7 @@ function TeamManager() {
   return (
     <div id="team" className="flex flex-col gap-5">
       <SectionHeader
+        icon={Users}
         title="Tài khoản & phân quyền"
         description="Mỗi người một tài khoản đăng nhập riêng để biết ai đã trả lời khách, ai đã thu tiền. Chủ doanh nghiệp có toàn quyền; nhân viên chỉ làm được những việc bạn bật ở nút Quyền."
       />
@@ -102,12 +107,7 @@ function TeamManager() {
         }}
       />
 
-      {actionProblem && (
-        <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
-          <CircleAlert className="size-4 shrink-0" aria-hidden />
-          {problemMessage(actionProblem)}
-        </p>
-      )}
+      <ActionError problem={actionProblem} />
 
       {problem && !data ? (
         <ErrorState problem={problem} onRetry={reload} />
@@ -116,19 +116,43 @@ function TeamManager() {
       ) : !data || data.length === 0 ? (
         <EmptyState icon={Users} title="Chưa có ai" />
       ) : (
-        <ul className="flex flex-col divide-y rounded-xl border bg-card">
+        <MotionList label="Tài khoản của doanh nghiệp">
           {data.map((m) => (
-            <li key={m.userId} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="flex flex-wrap items-center gap-2 font-medium">
-                  {m.name}
-                  {m.isYou && <Badge variant="secondary">Bạn</Badge>}
-                </span>
-                <span className="text-sm break-all text-muted-foreground">{m.email}</span>
-                <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                  <Badge variant={m.role === "owner" ? "info" : m.permissions.length ? "secondary" : "outline"}>{permissionSummary(m.role, m.permissions)}</Badge>
-                  {m.role !== "owner" && <span>{branchName(branches.data, m.branchId)}</span>}
-                </span>
+            <MotionItem key={m.userId} className={cn("flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:p-4", m.isYou && "border-primary/25 bg-primary/[0.02]")}>
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <PersonAvatar
+                  name={m.name}
+                  size="md"
+                  badge={
+                    m.role === "owner" ? (
+                      <span className="flex size-[18px] items-center justify-center rounded-full bg-warning text-white ring-2 ring-card">
+                        <Crown className="size-2.5" />
+                      </span>
+                    ) : undefined
+                  }
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="flex flex-wrap items-center gap-2 font-semibold">
+                    {m.name}
+                    {m.isYou && <Badge variant="secondary">Bạn</Badge>}
+                  </span>
+                  <span className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
+                    <Mail className="size-3.5 shrink-0" aria-hidden />
+                    <span className="break-all">{m.email}</span>
+                  </span>
+                  <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    <Badge variant={m.role === "owner" ? "warning" : m.permissions.length ? "info" : "outline"} className="gap-1">
+                      {m.role === "owner" ? <Crown aria-hidden /> : <ShieldCheck aria-hidden />}
+                      {permissionSummary(m.role, m.permissions)}
+                    </Badge>
+                    {m.role !== "owner" && (
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="size-3" aria-hidden />
+                        {branchName(branches.data, m.branchId)}
+                      </span>
+                    )}
+                  </span>
+                </div>
               </div>
               {m.isYou ? (
                 <Badge variant="outline" className="self-start sm:self-center">
@@ -169,9 +193,9 @@ function TeamManager() {
                   </Button>
                 </div>
               )}
-            </li>
+            </MotionItem>
           ))}
-        </ul>
+        </MotionList>
       )}
 
       <AlertDialog open={issued !== null} onOpenChange={(open) => !open && setIssued(null)}>
@@ -183,17 +207,7 @@ function TeamManager() {
               mật khẩu ở trang Tài khoản sau khi đăng nhập.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {issued && (
-            <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 rounded-md border bg-muted/40 p-3 text-sm">
-              <dt className="text-muted-foreground">Email</dt>
-              <dd className="font-medium break-all">{issued.email}</dd>
-              <dt className="text-muted-foreground">Mật khẩu tạm</dt>
-              <dd className="flex flex-wrap items-center gap-2">
-                <code className="font-mono font-semibold">{issued.password}</code>
-                <CopyButton text={issued.password} />
-              </dd>
-            </dl>
-          )}
+          {issued && <CredentialBox email={issued.email} password={issued.password} />}
           <AlertDialogFooter>
             <AlertDialogAction>Đã lưu, đóng lại</AlertDialogAction>
           </AlertDialogFooter>
@@ -275,7 +289,10 @@ function PermissionsDialog({
     <Dialog open onOpenChange={(open) => !open && !saving && onClose()}>
       <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Quyền của {member.name}</DialogTitle>
+          <div className="flex items-center gap-3">
+            <PersonAvatar name={member.name} size="md" />
+            <DialogTitle>Quyền của {member.name}</DialogTitle>
+          </div>
           <DialogDescription>
             Nhân viên luôn được trả lời khách ở Hộp thư và xem Cần chăm sóc. Tích thêm các quyền bên dưới nếu cần.
           </DialogDescription>
@@ -297,13 +314,17 @@ function PermissionsDialog({
           </Select>
         </Field>
 
-        <fieldset className="flex flex-col gap-1">
+        <fieldset className="flex flex-col gap-1.5">
           <legend className="mb-2 text-sm font-medium">Quyền thêm</legend>
           {allPermissions.map((code) => {
             const id = `perm-${member.userId}-${code}`;
             const meta = permissionLabels[code];
             return (
-              <Label key={code} htmlFor={id} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-md px-2 py-2 hover:bg-muted">
+              <Label
+                key={code}
+                htmlFor={id}
+                className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border border-transparent px-3 py-2.5 transition-colors hover:bg-muted has-data-checked:border-primary/30 has-data-checked:bg-primary/5"
+              >
                 <Checkbox id={id} className="mt-0.5" checked={selected.includes(code)} onCheckedChange={(v) => toggle(code, v === true)} />
                 <span className="flex flex-col gap-0.5 font-normal">
                   <span className="text-sm">{meta?.label ?? code}</span>
@@ -314,12 +335,7 @@ function PermissionsDialog({
           })}
         </fieldset>
 
-        {problem && (
-          <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
-            <CircleAlert className="size-4 shrink-0" aria-hidden />
-            {problemMessage(problem)}
-          </p>
-        )}
+        <ActionError problem={problem} />
 
         <DialogFooter>
           <Button variant="outline" className="h-11 sm:h-9" disabled={saving} onClick={onClose}>
@@ -359,8 +375,9 @@ function AddMemberForm({ onAdded }: { onAdded: (email: string, temporaryPassword
   }
 
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3 rounded-xl border bg-card p-4">
-      <div className="grid gap-3 sm:grid-cols-[1fr_1fr_12rem_auto] sm:items-end">
+    <AddPanel icon={UserPlus} title="Thêm người vào doanh nghiệp" description="Hệ thống cấp mật khẩu tạm, hiện một lần để bạn gửi cho người đó.">
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_12rem_auto] lg:items-end">
         <div className="flex flex-col gap-2">
           <Label htmlFor="member-email">Email đăng nhập</Label>
           <Input
@@ -372,7 +389,7 @@ function AddMemberForm({ onAdded }: { onAdded: (email: string, temporaryPassword
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             aria-invalid={Boolean(errors.email)}
-            className="h-11 sm:h-9"
+            className="h-11 bg-card sm:h-9"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -384,13 +401,13 @@ function AddMemberForm({ onAdded }: { onAdded: (email: string, temporaryPassword
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-invalid={Boolean(errors.name)}
-            className="h-11 sm:h-9"
+            className="h-11 bg-card sm:h-9"
           />
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="member-role">Vai trò</Label>
           <Select value={role} onValueChange={setRole}>
-            <SelectTrigger id="member-role" className="h-11 w-full sm:h-9">
+            <SelectTrigger id="member-role" className="h-11 w-full bg-card sm:h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -403,16 +420,20 @@ function AddMemberForm({ onAdded }: { onAdded: (email: string, temporaryPassword
           </Select>
         </div>
         <Button type="submit" disabled={saving || !email.trim() || !name.trim()} className="h-11 sm:h-9">
-          <UserPlus aria-hidden />
+          {saving ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <UserPlus aria-hidden />}
           {saving ? "Đang thêm..." : "Thêm"}
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">{roles.find((r) => r.value === role)?.hint}</p>
-      {problem && (
-        <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
-          <CircleAlert className="size-4 shrink-0" aria-hidden />
-          {Object.values(problem.fieldErrors)[0] ?? problemMessage(problem)}
+      <p className="flex items-start gap-1.5 text-xs text-pretty text-muted-foreground">
+        {role === "owner" ? <Crown className="mt-px size-3.5 shrink-0 text-warning" aria-hidden /> : <ShieldCheck className="mt-px size-3.5 shrink-0 text-primary" aria-hidden />}
+        {roles.find((r) => r.value === role)?.hint}
+      </p>
+      {problem && Object.values(problem.fieldErrors)[0] ? (
+        <p role="alert" className="flex items-center gap-1.5 rounded-xl bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {Object.values(problem.fieldErrors)[0]}
         </p>
+      ) : (
+        <ActionError problem={problem} />
       )}
       {notice && (
         <p role="status" className="text-sm text-success">
@@ -420,5 +441,31 @@ function AddMemberForm({ onAdded }: { onAdded: (email: string, temporaryPassword
         </p>
       )}
     </form>
+    </AddPanel>
+  );
+}
+
+/** Email + mật khẩu tạm vừa cấp, có nút chép. */
+export function CredentialBox({ email, password }: { email: string; password: string | null }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border bg-muted/40 p-4">
+      <div className="flex items-center gap-3">
+        <IconTile icon={Mail} size="sm" />
+        <div className="flex min-w-0 flex-col">
+          <span className="text-xs text-muted-foreground">Email đăng nhập</span>
+          <span className="text-sm font-medium break-all">{email}</span>
+        </div>
+      </div>
+      {password && (
+        <div className="flex flex-wrap items-center gap-3">
+          <IconTile icon={KeyRound} tone="warning" size="sm" />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="text-xs text-muted-foreground">Mật khẩu tạm (chỉ hiện một lần)</span>
+            <code className="font-mono text-base font-semibold tracking-wider select-all">{password}</code>
+          </div>
+          <CopyButton text={password} />
+        </div>
+      )}
+    </div>
   );
 }
