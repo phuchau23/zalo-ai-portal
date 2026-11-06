@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle, Lock } from "lucide-react";
+import { CalendarCog, CircleAlert, CircleCheck, LoaderCircle, Lock, Sparkles } from "lucide-react";
 import { Field, describedBy } from "@/components/common/field";
+import { FormGroup, stickySaveBar } from "@/components/common/form-layout";
 import { SectionHeader } from "@/components/common/page-header";
 import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,6 +16,8 @@ import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api, type Schemas } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { cn } from "@/lib/utils";
+import { FormSkeleton } from "./settings-ui";
 
 type FormValues = Schemas["UpdateCrmSettingsRequest"];
 
@@ -110,17 +113,13 @@ export function CrmSettingsForm() {
 
   return (
     <div id="crm" className="flex flex-col gap-5">
-      <SectionHeader title="Lịch & bán hàng" description="Quy ước chung cho lịch hẹn và hóa đơn ở mọi chi nhánh." />
+      <SectionHeader icon={CalendarCog} title="Lịch & bán hàng" description="Quy ước chung cho lịch hẹn và hóa đơn ở mọi chi nhánh." />
       {loadProblem ? (
         <ErrorState problem={loadProblem} />
       ) : !values ? (
-        <div role="status" aria-label="Đang tải cài đặt" className="grid gap-4 sm:grid-cols-2">
-          {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
-          ))}
-        </div>
+        <FormSkeleton rows={2} />
       ) : (
-        <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+        <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col [&>[role=alert]]:mb-4 [&>[data-slot=alert]]:mb-4">
           {!canEdit && (
             <Alert>
               <Lock aria-hidden />
@@ -133,6 +132,7 @@ export function CrmSettingsForm() {
               <AlertDescription>{problemMessage(saveProblem)}</AlertDescription>
             </Alert>
           )}
+          <FormGroup title="Quy ước chung" description="Múi giờ, bước lịch hẹn, mức giảm giá cần duyệt và thời gian dọn giữa hai lịch.">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="crm-timeZone" label="Múi giờ" hint="Ví dụ: Asia/Ho_Chi_Minh" error={fieldError("timeZone")}>
               <Input
@@ -201,17 +201,31 @@ export function CrmSettingsForm() {
               />
             </Field>
           </div>
+          </FormGroup>
 
-          <div className="flex flex-col gap-1 border-t pt-4">
-            <h3 className="text-sm font-semibold">Đặt lịch</h3>
-            <p className="text-sm text-muted-foreground">Áp dụng cho cả bot đặt qua chat lẫn nhân viên đặt trên lịch.</p>
-          </div>
-          <Label htmlFor="crm-botBooking" className="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-normal sm:min-h-9">
-            <Switch id="crm-botBooking" checked={values.botBookingEnabled} disabled={!canEdit} onCheckedChange={(v) => update({ botBookingEnabled: v })} />
-            <span className="flex flex-col">
-              <span className="font-medium">Bot tự chốt lịch qua chat</span>
-              <span className="text-xs text-muted-foreground">Tắt thì bot chỉ ghi nhận nhu cầu và chuyển nhân viên xếp lịch.</span>
+          <FormGroup title="Đặt lịch" description="Áp dụng cho cả bot đặt qua chat lẫn nhân viên đặt trên lịch.">
+          <Label
+            htmlFor="crm-botBooking"
+            className={cn(
+              "flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border bg-card p-3.5 text-sm font-normal transition-colors hover:border-ai/30",
+              values.botBookingEnabled && "border-ai/30 bg-ai-soft/60",
+              !canEdit && "cursor-not-allowed opacity-70",
+            )}
+          >
+            <span
+              className={cn(
+                "flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors",
+                values.botBookingEnabled ? "bg-ai text-white shadow-glow-ai" : "bg-muted text-muted-foreground",
+              )}
+              aria-hidden
+            >
+              <Sparkles className="size-4" />
             </span>
+            <span className="flex flex-1 flex-col">
+              <span className="font-semibold">Bot tự chốt lịch qua chat</span>
+              <span className="text-xs text-pretty text-muted-foreground">Tắt thì bot chỉ ghi nhận nhu cầu và chuyển nhân viên xếp lịch.</span>
+            </span>
+            <Switch id="crm-botBooking" checked={values.botBookingEnabled} disabled={!canEdit} onCheckedChange={(v) => update({ botBookingEnabled: v })} />
           </Label>
           <div className="grid gap-4 sm:grid-cols-2">
             {bookingNumberFields.map((f) => (
@@ -232,18 +246,23 @@ export function CrmSettingsForm() {
               </Field>
             ))}
           </div>
+          </FormGroup>
           {canEdit && (
-            <div className="flex items-center gap-3">
+            <div className={stickySaveBar}>
+              <p role="status" className="mr-auto text-sm text-muted-foreground">
+                {saved ? (
+                  <span className="inline-flex items-center gap-1.5 text-success">
+                    <CircleCheck className="size-4" aria-hidden />
+                    Đã lưu
+                  </span>
+                ) : (
+                  dirty && "Có thay đổi chưa lưu"
+                )}
+              </p>
               <Button type="submit" disabled={saving || !dirty} className="h-11 sm:h-9">
                 {saving && <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden />}
-                {saving ? "Đang lưu..." : "Lưu"}
+                {saving ? "Đang lưu..." : "Lưu cài đặt"}
               </Button>
-              {saved && (
-                <span role="status" className="inline-flex items-center gap-1.5 text-sm text-success">
-                  <CircleCheck className="size-4" aria-hidden />
-                  Đã lưu
-                </span>
-              )}
             </div>
           )}
         </form>

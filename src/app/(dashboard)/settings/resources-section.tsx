@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { BedDouble, CircleAlert, LoaderCircle, Pencil, Plus } from "lucide-react";
+import { BedDouble, Cpu, DoorOpen, LoaderCircle, Pencil, Plus } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
 import { ErrorState } from "@/components/common/states";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { call } from "@/lib/api/call";
 import { api, type Resource } from "@/lib/api/client";
-import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { type ApiProblem } from "@/lib/api/problem";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
+import { ActionError } from "./settings-ui";
 
 type ResourceKind = "bed" | "room" | "device";
 
@@ -23,6 +25,8 @@ const kinds: { value: ResourceKind; label: string }[] = [
   { value: "room", label: "Phòng" },
   { value: "device", label: "Máy / thiết bị" },
 ];
+
+const kindIcons = { bed: BedDouble, room: DoorOpen, device: Cpu } as const;
 
 export function resourceKindLabel(value: string): string {
   return kinds.find((k) => k.value === value)?.label ?? value;
@@ -51,38 +55,49 @@ export function ResourcesEditor({ branchId, canEdit }: { branchId: string; canEd
   }
 
   const sorted = [...(data ?? [])].sort((a, b) => Number(b.isActive) - Number(a.isActive) || a.name.localeCompare(b.name, "vi"));
+  const activeCount = sorted.filter((r) => r.isActive).length;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5">
-        <h3 className="text-sm font-semibold">Giường / phòng</h3>
-        <p className="text-sm text-muted-foreground">Chỗ làm dịch vụ để xếp lịch không bị trùng. Chưa cần thì bỏ qua.</p>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <IconTile icon={BedDouble} size="sm" />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h3 className="text-sm font-semibold">Giường / phòng</h3>
+          <p className="text-sm text-pretty text-muted-foreground">Chỗ làm dịch vụ để xếp lịch không bị trùng. Chưa cần thì bỏ qua.</p>
+        </div>
+        {data && sorted.length > 0 && (
+          <Badge variant="secondary" className="tabular">
+            {activeCount}/{sorted.length} đang dùng
+          </Badge>
+        )}
       </div>
 
       {canEdit && <AddResourceForm branchId={branchId} onAdded={reload} />}
 
-      {actionProblem && (
-        <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
-          <CircleAlert className="size-4 shrink-0" aria-hidden />
-          {problemMessage(actionProblem)}
-        </p>
-      )}
+      <ActionError problem={actionProblem} />
 
       {problem && !data ? (
         <ErrorState problem={problem} onRetry={reload} />
       ) : !data ? (
-        <div role="status" aria-label="Đang tải giường / phòng" className="h-10 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+        <div role="status" aria-label="Đang tải giường / phòng" className="grid gap-2 sm:grid-cols-2">
+          <div className="skeleton h-14 rounded-xl" />
+          <div className="skeleton h-14 rounded-xl opacity-70" />
+        </div>
       ) : sorted.length === 0 ? (
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <BedDouble className="size-4" aria-hidden />
+        <p className="flex items-center gap-2 rounded-xl border border-dashed px-3 py-3 text-sm text-muted-foreground">
+          <BedDouble className="size-4 shrink-0" aria-hidden />
           Chưa có giường / phòng nào.
         </p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border bg-background">
+        <ul className="grid gap-2 lg:grid-cols-2">
           {sorted.map((r) => {
             const busy = busyId === r.id;
+            const Icon = kindIcons[r.kind as ResourceKind] ?? BedDouble;
             return (
-              <li key={r.id} className="flex flex-col gap-2 px-3 py-2 text-sm">
+              <li
+                key={r.id}
+                className={cn("flex flex-col gap-2 rounded-xl border bg-background p-2.5 text-sm transition-colors", !r.isActive && "bg-muted/40", editing === r.id && "lg:col-span-2")}
+              >
                 {editing === r.id ? (
                   <RenameForm
                     resource={r}
@@ -93,10 +108,23 @@ export function ResourcesEditor({ branchId, canEdit }: { branchId: string; canEd
                     }}
                   />
                 ) : (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={cn("min-w-0 flex-1 truncate font-medium", !r.isActive && "text-muted-foreground")}>{r.name}</span>
-                    <Badge variant="outline">{resourceKindLabel(r.kind)}</Badge>
-                    {!r.isActive && <Badge variant="secondary">Ngừng dùng</Badge>}
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span
+                      className={cn(
+                        "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                        r.isActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                      )}
+                      aria-hidden
+                    >
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                      <span className={cn("truncate font-medium", !r.isActive && "text-muted-foreground line-through decoration-muted-foreground/40")}>{r.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {resourceKindLabel(r.kind)}
+                        {!r.isActive && " · Ngừng dùng"}
+                      </span>
+                    </span>
                     {canEdit && (
                       <>
                         <Button variant="ghost" size="icon-sm" className="size-11 sm:size-8" aria-label={`Đổi tên ${r.name}`} disabled={busy} onClick={() => setEditing(r.id)}>
@@ -104,7 +132,7 @@ export function ResourcesEditor({ branchId, canEdit }: { branchId: string; canEd
                         </Button>
                         <Label htmlFor={`res-${r.id}-active`} className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-normal sm:min-h-8">
                           <Switch id={`res-${r.id}-active`} checked={r.isActive} disabled={busy} onCheckedChange={(v) => void save(r, { isActive: v })} />
-                          Đang dùng
+                          <span className="sr-only sm:not-sr-only">Đang dùng</span>
                         </Label>
                       </>
                     )}
@@ -139,14 +167,14 @@ function AddResourceForm({ branchId, onAdded }: { branchId: string; onAdded: () 
 
   const p = `res-new-${branchId}`;
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-2">
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-2 rounded-xl bg-muted/50 p-3">
       <div className="grid gap-3 sm:grid-cols-[1fr_11rem_auto] sm:items-end">
         <Field id={`${p}-name`} label="Tên" error={errors.name}>
-          <Input id={`${p}-name`} required maxLength={100} placeholder="Giường 1" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={Boolean(errors.name)} className="h-11 sm:h-9" />
+          <Input id={`${p}-name`} required maxLength={100} placeholder="Giường 1" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={Boolean(errors.name)} className="h-11 bg-card sm:h-9" />
         </Field>
         <Field id={`${p}-kind`} label="Loại" error={errors.kind}>
           <Select value={kind} onValueChange={(v) => setKind(v as ResourceKind)}>
-            <SelectTrigger id={`${p}-kind`} className="h-11 w-full sm:h-9">
+            <SelectTrigger id={`${p}-kind`} className="h-11 w-full bg-card sm:h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -163,12 +191,7 @@ function AddResourceForm({ branchId, onAdded }: { branchId: string; onAdded: () 
           {saving ? "Đang thêm..." : "Thêm"}
         </Button>
       </div>
-      {problem && !Object.keys(errors).length && (
-        <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
-          <CircleAlert className="size-4 shrink-0" aria-hidden />
-          {problemMessage(problem)}
-        </p>
-      )}
+      {!Object.keys(errors).length && <ActionError problem={problem} />}
     </form>
   );
 }
