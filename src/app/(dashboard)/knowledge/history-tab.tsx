@@ -1,15 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, History } from "lucide-react";
+import { motion } from "motion/react";
+import { ChevronRight, CircleCheck, CircleX, Clock3, History, type LucideIcon } from "lucide-react";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { call } from "@/lib/api/call";
 import { api, type Schemas } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/format";
+import { fadeUp, stagger } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
+
+/** Chấm trên dòng thời gian theo trạng thái lần nhập (luôn kèm nhãn chữ bên cạnh). */
+const statusDot: Record<string, { icon: LucideIcon; className: string }> = {
+  preview: { icon: Clock3, className: "bg-info text-white" },
+  applied: { icon: CircleCheck, className: "bg-success text-white" },
+  discarded: { icon: CircleX, className: "bg-muted text-muted-foreground" },
+};
 
 export const importStatus: Record<string, { label: string; variant: "info" | "success" | "secondary" }> = {
   preview: { label: "Chờ duyệt", variant: "info" },
@@ -52,49 +60,45 @@ export function HistoryTab() {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>File</TableHead>
-            <TableHead className="hidden sm:table-cell">Thời gian</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead className="hidden md:table-cell">Thay đổi</TableHead>
-            <TableHead className="w-10">
-              <span className="sr-only">Mở</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((i) => {
-            const status = importStatus[i.status] ?? { label: i.status, variant: "secondary" as const };
-            return (
-              <TableRow key={i.id} className="group relative">
-                <TableCell className="whitespace-normal">
-                  {/* Link phủ cả dòng (after:inset-0) để bấm chỗ nào cũng mở. */}
-                  <Link
-                    className="font-medium after:absolute after:inset-0 hover:text-primary focus-visible:outline-none focus-visible:after:ring-3 focus-visible:after:ring-ring/50 focus-visible:after:ring-inset"
-                    href={`/knowledge/imports/${i.id}`}
-                  >
-                    {i.fileName}
-                  </Link>
-                  <div className="text-xs text-muted-foreground sm:hidden">{formatDateTime(i.createdAt)}</div>
-                </TableCell>
-                <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDateTime(i.createdAt)}</TableCell>
-                <TableCell>
+    <motion.ol
+      variants={stagger}
+      initial="hidden"
+      animate="show"
+      aria-label="Các lần nhập dữ liệu"
+      className="relative flex flex-col gap-3 before:absolute before:top-5 before:bottom-5 before:left-[19px] before:w-px before:bg-border"
+    >
+      {data.map((i) => {
+        const status = importStatus[i.status] ?? { label: i.status, variant: "secondary" as const };
+        const dot = statusDot[i.status] ?? statusDot.discarded;
+        const DotIcon = dot.icon;
+        return (
+          <motion.li key={i.id} variants={fadeUp} className="relative flex gap-3 sm:gap-4">
+            <span className={cn("relative z-10 mt-4 flex size-10 shrink-0 items-center justify-center rounded-full ring-4 ring-canvas", dot.className)} aria-hidden>
+              <DotIcon className="size-4.5" />
+            </span>
+            <div className="surface lift group relative flex min-w-0 flex-1 flex-col gap-2 p-4 sm:flex-row sm:items-center sm:gap-4">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                {/* Link phủ cả thẻ (after:inset-0) để bấm chỗ nào cũng mở. */}
+                <Link
+                  className="font-semibold break-all after:absolute after:inset-0 after:rounded-[inherit] group-hover:text-primary focus-visible:outline-none focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
+                  href={`/knowledge/imports/${i.id}`}
+                >
+                  {i.fileName}
+                </Link>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <Badge variant={status.variant}>{status.label}</Badge>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">
-                  <ChangeCounts summary={i.summary} />
-                </TableCell>
-                <TableCell>
-                  <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden />
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+                  <span className="tabular">{formatDateTime(i.createdAt)}</span>
+                </div>
+              </div>
+              <ChangeCounts summary={i.summary} className="text-[13px]" />
+              <ChevronRight
+                className="hidden size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none sm:block"
+                aria-hidden
+              />
+            </div>
+          </motion.li>
+        );
+      })}
+    </motion.ol>
   );
 }

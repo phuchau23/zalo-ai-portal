@@ -75,8 +75,8 @@ export function KnowledgePage({ initialTab }: { initialTab: KnowledgeTab }) {
       <StatusBar />
 
       <Tabs value={tab} onValueChange={changeTab} className="gap-0">
-        <div className="overflow-x-auto border-b">
-          <TabsList variant="line" className="group-data-horizontal/tabs:h-10">
+        <div className="-mx-1 overflow-x-auto px-1 pt-1 pb-2 [scrollbar-width:none]">
+          <TabsList variant="pill">
             {(Object.keys(tabs) as KnowledgeTab[]).map((key) => {
               const Icon = tabs[key].icon;
               return (
@@ -88,19 +88,19 @@ export function KnowledgePage({ initialTab }: { initialTab: KnowledgeTab }) {
             })}
           </TabsList>
         </div>
-        <TabsContent value="items" className="pt-5">
+        <TabsContent value="items" className="pt-3">
           <ItemsTab canEdit={canEdit} onImport={() => changeTab("import")} />
         </TabsContent>
-        <TabsContent value="import" className="pt-5">
+        <TabsContent value="import" className="pt-3">
           <ImportTab canEdit={canEdit} />
         </TabsContent>
-        <TabsContent value="history" className="pt-5">
+        <TabsContent value="history" className="pt-3">
           <HistoryTab />
         </TabsContent>
-        <TabsContent value="documents" className="pt-5">
+        <TabsContent value="documents" className="pt-3">
           <DocumentsTab canEdit={canEdit} />
         </TabsContent>
-        <TabsContent value="search" className="pt-5">
+        <TabsContent value="search" className="pt-3">
           <SearchTab />
         </TabsContent>
       </Tabs>

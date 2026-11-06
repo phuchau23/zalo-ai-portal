@@ -1,7 +1,26 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, Database, FileUp, Search, SearchX } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronRight,
+  Database,
+  FileUp,
+  HandHeart,
+  Info,
+  Layers,
+  MessageCircleQuestion,
+  Package,
+  Search,
+  SearchX,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
+import { FilterLayout, FilterSection } from "@/components/common/filter-layout";
+import { FilterPills } from "@/components/common/filter-pills";
+import { IconTile, type Tone } from "@/components/common/icon-tile";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,15 +43,17 @@ const kinds = [
   { value: "info", label: "Thông tin chung" },
 ];
 
-/** Chấm màu theo loại để quét bảng nhanh (luôn đi kèm chữ, không dùng màu một mình). */
-const kindDot: Record<string, string> = {
-  service: "bg-primary",
-  package: "bg-chart-2",
-  product: "bg-chart-4",
-  faq: "bg-success",
-  policy: "bg-warning",
-  info: "bg-muted-foreground",
+/** Biểu tượng + màu theo loại để quét bảng nhanh (luôn đi kèm chữ, không dùng màu một mình). */
+const kindStyle: Record<string, { icon: LucideIcon; tone: Tone }> = {
+  service: { icon: HandHeart, tone: "primary" },
+  package: { icon: Layers, tone: "primary" },
+  product: { icon: Package, tone: "warning" },
+  faq: { icon: MessageCircleQuestion, tone: "success" },
+  policy: { icon: ShieldCheck, tone: "muted" },
+  info: { icon: Info, tone: "muted" },
 };
+
+const kindOf = (kind: string): { icon: LucideIcon; tone: Tone } => kindStyle[kind] ?? { icon: Info, tone: "muted" };
 
 type SortKey = "title" | "kind" | "price";
 type Sort = { key: SortKey; dir: "asc" | "desc" } | null;
@@ -123,40 +144,51 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
     );
   }
 
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="relative w-full lg:w-72">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-          <Input
-            type="search"
-            className="pl-9"
-            placeholder="Tìm theo tên hoặc mã"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label="Tìm theo tên hoặc mã"
-          />
-        </div>
-        <div role="group" aria-label="Lọc theo loại" className="flex gap-1.5 overflow-x-auto pb-1 lg:pb-0">
-          {kinds
-            .filter((k) => k.value === "all" || counts[k.value])
-            .map((k) => (
-              <Button
-                key={k.value}
-                variant="outline"
-                size="sm"
-                aria-pressed={kind === k.value}
-                onClick={() => setKind(k.value)}
-                className="aria-pressed:border-primary aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-              >
-                {k.label}
-                <span className="tabular text-xs text-muted-foreground">{counts[k.value] ?? 0}</span>
-              </Button>
-            ))}
-        </div>
-      </div>
+  const filtered = query.trim() !== "" || kind !== "all";
+  function resetFilters() {
+    setQuery("");
+    setKind("all");
+  }
 
-      <div className="overflow-hidden rounded-xl border bg-card">
+  return (
+    <FilterLayout
+      onReset={filtered ? resetFilters : undefined}
+      filters={
+        <>
+          <FilterSection label="Tìm kiếm" htmlFor="knowledge-item-search">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <Input
+                id="knowledge-item-search"
+                type="search"
+                className="h-10 rounded-xl pl-9"
+                placeholder="Tên hoặc mã"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+          </FilterSection>
+          <FilterSection label="Loại dữ liệu">
+            <FilterPills
+              label="Lọc theo loại"
+              variant="list"
+              value={kind}
+              onChange={setKind}
+              options={kinds
+                .filter((k) => k.value === "all" || counts[k.value])
+                .map((k) => ({ value: k.value, label: k.label, count: counts[k.value] ?? 0, icon: k.value === "all" ? Database : kindOf(k.value).icon }))}
+            />
+          </FilterSection>
+        </>
+      }
+      footer={
+        <>
+          <p className="text-xs text-pretty text-muted-foreground">Sửa nhiều mục cùng lúc: xuất Excel ở đầu trang, sửa, rồi nhập lại.</p>
+          <DownloadButtons showExport={false} />
+        </>
+      }
+    >
+      <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -164,10 +196,10 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
                 <span className="sr-only">Mở rộng</span>
               </TableHead>
               <SortHead label="Tên" sortKey="title" sort={sort} onSort={toggleSort} />
-              <SortHead label="Loại" sortKey="kind" sort={sort} onSort={toggleSort} className="hidden md:table-cell" />
+              <SortHead label="Loại" sortKey="kind" sort={sort} onSort={toggleSort} className="hidden 2xl:table-cell" />
               <TableHead className="hidden sm:table-cell">Nội dung</TableHead>
               <SortHead label="Giá" sortKey="price" sort={sort} onSort={toggleSort} className="text-right" />
-              <TableHead className="hidden lg:table-cell">Mã</TableHead>
+              <TableHead className="hidden xl:table-cell">Mã</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -194,20 +226,19 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
                       </Button>
                     </TableCell>
                     <TableCell className="whitespace-normal">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-medium">{item.title}</span>
-                        {item.medicallyReviewed && <MedicalReviewBadge />}
-                      </div>
-                      <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground md:hidden">
-                        <span className={cn("size-1.5 rounded-full", kindDot[item.kind] ?? "bg-muted-foreground")} aria-hidden />
-                        {item.kindLabel}
+                      <div className="flex items-start gap-3">
+                        <IconTile icon={kindOf(item.kind).icon} tone={kindOf(item.kind).tone} size="sm" className="mt-0.5" />
+                        <div className="flex min-w-0 flex-col gap-1">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="font-medium">{item.title}</span>
+                            {item.medicallyReviewed && <MedicalReviewBadge />}
+                          </div>
+                          <div className="text-xs text-muted-foreground 2xl:hidden">{item.kindLabel}</div>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <span className="inline-flex items-center gap-1.5 text-sm">
-                        <span className={cn("size-2 rounded-full", kindDot[item.kind] ?? "bg-muted-foreground")} aria-hidden />
-                        {item.kindLabel}
-                      </span>
+                    <TableCell className="hidden 2xl:table-cell">
+                      <span className="inline-flex items-center rounded-full bg-muted/70 px-2.5 py-0.5 text-xs font-medium text-foreground/80">{item.kindLabel}</span>
                     </TableCell>
                     <TableCell className="hidden max-w-md whitespace-normal text-muted-foreground sm:table-cell">
                       <span className="line-clamp-2">{detail(item) || "—"}</span>
@@ -223,12 +254,14 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="hidden font-mono text-xs text-muted-foreground lg:table-cell">{item.code}</TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <span className="rounded-md bg-muted/70 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">{item.code}</span>
+                    </TableCell>
                   </TableRow>
                   {expanded && (
                     <TableRow id={`item-${item.id}`} className="bg-muted/30 hover:bg-muted/30">
                       <TableCell colSpan={6} className="whitespace-normal">
-                        <dl className="grid gap-x-6 gap-y-2.5 py-2 pl-10 text-sm sm:grid-cols-[12rem_1fr]">
+                        <dl className="grid gap-x-6 gap-y-2.5 rounded-xl border bg-card px-4 py-3 text-sm shadow-card sm:ml-10 sm:grid-cols-[12rem_1fr]">
                           <dt className="text-muted-foreground">Mã</dt>
                           <dd className="font-mono text-xs">{item.code}</dd>
                           {item.fields.map((f) => (
@@ -255,16 +288,9 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
 
         {rows.length === 0 && (
           <div className="flex flex-col items-center gap-2 px-4 py-10 text-center text-sm text-muted-foreground">
-            <SearchX className="size-5" aria-hidden />
+            <IconTile icon={SearchX} tone="muted" size="md" />
             Không có mục nào khớp bộ lọc.
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => {
-                setQuery("");
-                setKind("all");
-              }}
-            >
+            <Button variant="link" size="sm" onClick={resetFilters}>
               Xóa bộ lọc
             </Button>
           </div>
@@ -277,7 +303,7 @@ export function ItemsTab({ canEdit, onImport }: { canEdit: boolean; onImport: ()
           <span className="hidden sm:inline">Bấm vào một dòng để xem đầy đủ</span>
         </div>
       </div>
-    </div>
+    </FilterLayout>
   );
 }
 
@@ -302,7 +328,7 @@ function SortHead({
         type="button"
         onClick={() => onSort(sortKey)}
         className={cn(
-          "-mx-1.5 inline-flex h-7 items-center gap-1 rounded-sm px-1.5 hover:bg-accent hover:text-accent-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+          "-mx-1.5 inline-flex h-7 cursor-pointer items-center gap-1 rounded-md px-1.5 tracking-wider uppercase hover:bg-accent hover:text-accent-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
           active && "text-foreground",
         )}
       >
