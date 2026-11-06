@@ -2,22 +2,25 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bot, Inbox, Siren, UserRound } from "lucide-react";
-import { EmptyState, ErrorState } from "@/components/common/states";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "motion/react";
+import { Bot, Hand, MessagesSquare, Sparkles } from "lucide-react";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
-import { api, type InboxItem } from "@/lib/api/client";
+import { api } from "@/lib/api/client";
+import { easeOut } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
-import { handoffReasonLabel } from "../chat-test/labels";
+import { ConversationList } from "./conversation-list";
 import { ConversationView } from "./conversation-view";
-import { documentTitle, elapsed, filters, priorityOf, type InboxFilter, type Priority } from "./inbox-utils";
+import { documentTitle, type InboxFilter } from "./inbox-utils";
 
 /** Dự phòng khi kết nối realtime rớt (proxy, mạng): tải lại danh sách định kỳ. */
 const fallbackPollMs = 20_000;
 
+/**
+ * Hộp thư kiểu ứng dụng nhắn tin, chiếm trọn tấm nội dung (AppShell: trang "full bleed").
+ * Máy tính: danh sách | khung chat | thông tin khách. Điện thoại: danh sách → bấm vào thì trượt sang khung chat.
+ */
 export function InboxPage({ initialConversationId }: { initialConversationId?: string }) {
   const { me } = useSession();
   const router = useRouter();
@@ -72,144 +75,103 @@ export function InboxPage({ initialConversationId }: { initialConversationId?: s
     router.replace(id ? `/inbox?c=${id}` : "/inbox", { scroll: false });
   }
 
-  const items = data ?? [];
-
   return (
-    <div className="grid h-[calc(100dvh-9rem)] min-h-[32rem] overflow-hidden rounded-lg border bg-card lg:grid-cols-[22rem_minmax(0,1fr)]">
-      {/* Danh sách — trên điện thoại ẩn khi đang mở một hội thoại */}
-      <section aria-label="Danh sách hội thoại" className={cn("flex min-h-0 flex-col border-r", selectedId && "hidden lg:flex")}>
-        <div className="flex flex-col gap-2 border-b p-3">
-          <div role="group" aria-label="Lọc hội thoại" className="flex gap-1.5 overflow-x-auto pb-1">
-            {filters.map((f) => (
-              <Button
-                key={f.value}
-                size="sm"
-                variant="outline"
-                aria-pressed={filter === f.value}
-                onClick={() => setFilter(f.value)}
-                className="shrink-0 aria-pressed:border-primary aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-              >
-                {f.label}
-                {f.value === "attention" && attentionCount > 0 && (
-                  <span className="tabular rounded-full bg-warning px-1.5 text-xs text-white">{attentionCount}</span>
-                )}
-              </Button>
-            ))}
-          </div>
-        </div>
+    // Điện thoại: cao bằng màn hình trừ thanh trên (3.5rem) và phần chừa cho thanh dưới (5rem) → không cuộn cả trang.
+    <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] min-h-[28rem] overflow-hidden md:h-auto md:min-h-0 md:flex-1">
+      <ConversationList
+        items={data}
+        loading={loading}
+        problem={problem}
+        filter={filter}
+        attentionCount={attentionCount}
+        selectedId={selectedId}
+        now={now}
+        onFilter={setFilter}
+        onSelect={select}
+        onRetry={reload}
+        className={cn("w-full shrink-0 border-r lg:w-[23.5rem]", selectedId && "hidden lg:flex")}
+      />
 
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {problem && !data && (
-            <div className="p-3">
-              <ErrorState problem={problem} onRetry={reload} />
-            </div>
+      <section aria-label="Hội thoại" className={cn("min-w-0 flex-1", !selectedId && "hidden lg:block")}>
+        <AnimatePresence mode="wait" initial={false}>
+          {selectedId ? (
+            <motion.div
+              key={selectedId}
+              className="h-full"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22, ease: easeOut }}
+            >
+              <ConversationView conversationId={selectedId} version={version} now={now} onBack={() => select(null)} onChanged={refreshAll} />
+            </motion.div>
+          ) : (
+            <motion.div key="empty" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <NoConversation attentionCount={attentionCount} onShowAttention={() => setFilter("attention")} />
+            </motion.div>
           )}
-          {loading && !data && (
-            <div role="status" aria-label="Đang tải hội thoại" className="flex flex-col gap-2 p-3">
-              {Array.from({ length: 6 }, (_, i) => (
-                <div key={i} className="h-16 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
-              ))}
-            </div>
-          )}
-          {data && items.length === 0 && (
-            <EmptyState
-              icon={Inbox}
-              title={filter === "attention" ? "Không có khách nào đang chờ" : "Chưa có hội thoại"}
-              description={
-                filter === "attention"
-                  ? "Bot đang tự trả lời. Khách cần người sẽ hiện ở đây kèm thông báo."
-                  : "Khi khách nhắn vào Zalo OA (hoặc bạn chat thử), hội thoại sẽ hiện ở đây."
-              }
-              className="m-3 border-0"
-            />
-          )}
-          <ul className="flex flex-col">
-            {items.map((item) => (
-              <ConversationRow key={item.id} item={item} now={now} selected={item.id === selectedId} onSelect={() => select(item.id)} />
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* Khung hội thoại */}
-      <section aria-label="Hội thoại" className={cn("min-h-0", !selectedId && "hidden lg:block")}>
-        {selectedId ? (
-          <ConversationView key={selectedId} conversationId={selectedId} version={version} now={now} onBack={() => select(null)} onChanged={refreshAll} />
-        ) : (
-          <EmptyState
-            icon={UserRound}
-            title="Chọn một hội thoại"
-            description="Ca có màu cam/đỏ là khách đang chờ người trả lời. Bấm vào để xem và tiếp quản."
-            className="m-6 border-0"
-          />
-        )}
+        </AnimatePresence>
       </section>
     </div>
   );
 }
 
-const priorityStyles: Record<Priority, { bar: string; badge?: { label: string; variant: "destructive" | "warning" } }> = {
-  urgent: { bar: "bg-destructive", badge: { label: "Khẩn cấp", variant: "destructive" } },
-  attention: { bar: "bg-warning", badge: { label: "Cần bạn", variant: "warning" } },
-  human: { bar: "bg-primary/40" },
-  bot: { bar: "bg-transparent" },
-};
-
-function ConversationRow({ item, now, selected, onSelect }: { item: InboxItem; now: number; selected: boolean; onSelect: () => void }) {
-  const priority = priorityOf(item);
-  const style = priorityStyles[priority];
-  const waiting = item.needsAttentionSince ? elapsed(item.needsAttentionSince, now) : null;
+/** Khung giữa khi chưa chọn hội thoại: giải thích ba trạng thái và nhắc khách đang chờ. */
+function NoConversation({ attentionCount, onShowAttention }: { attentionCount: number; onShowAttention: () => void }) {
   return (
-    <li>
-      <button
-        type="button"
-        onClick={onSelect}
-        aria-current={selected ? "true" : undefined}
-        className={cn(
-          "relative flex w-full cursor-pointer gap-3 border-b px-3 py-3 text-left transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none",
-          selected && "bg-accent/60 hover:bg-accent/60",
-          priority === "bot" && !selected && "opacity-80",
-        )}
-      >
-        <span className={cn("absolute inset-y-0 left-0 w-1", style.bar)} aria-hidden />
-        <span
-          className={cn(
-            "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full",
-            priority === "urgent" ? "bg-destructive/10 text-destructive" : priority === "bot" ? "bg-muted text-muted-foreground" : "bg-accent text-accent-foreground",
-          )}
-          aria-hidden
+    <div className="relative isolate flex h-full flex-col items-center justify-center gap-6 overflow-hidden bg-canvas px-6 text-center">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-dot-grid [mask-image:radial-gradient(ellipse_at_center,black_10%,transparent_70%)]" />
+      <div aria-hidden className="pointer-events-none absolute top-1/4 left-1/2 -z-10 size-80 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+
+      <div aria-hidden className="relative flex size-36 items-center justify-center">
+        <span className="absolute inset-0 rounded-full border border-dashed border-primary/20" />
+        <span className="absolute inset-5 rounded-full border border-primary/15 bg-card/60" />
+        <span className="relative flex size-16 animate-float-slow items-center justify-center rounded-3xl bg-active-gradient text-white shadow-glow motion-reduce:animate-none">
+          <MessagesSquare className="size-7" />
+        </span>
+        <span className="absolute top-3 right-2 flex size-9 items-center justify-center rounded-2xl bg-ai text-white shadow-glow-ai">
+          <Sparkles className="size-4" />
+        </span>
+      </div>
+
+      <div className="flex max-w-md flex-col gap-2">
+        <h2 className="text-xl font-bold tracking-tight">Chọn một hội thoại để xem</h2>
+        <p className="text-sm text-pretty text-muted-foreground">Bot trả lời khách 24/7. Bạn chỉ cần vào khi khách cần người thật.</p>
+      </div>
+
+      <ul className="grid w-full max-w-lg gap-2 text-left sm:grid-cols-3">
+        <Legend icon={Bot} tone="bg-ai" title="Bot đang trả lời" text="Không cần làm gì." />
+        <Legend icon={Hand} tone="bg-warning" title="Cần bạn" text="Khách chờ nhân viên." />
+        <Legend icon={MessagesSquare} tone="bg-primary" title="Nhân viên xử lý" text="Bot đã dừng." />
+      </ul>
+
+      {attentionCount > 0 && (
+        <button
+          type="button"
+          onClick={onShowAttention}
+          className="flex h-10 cursor-pointer items-center gap-2 rounded-full bg-warning/10 px-4 text-sm font-semibold text-warning ring-1 ring-warning/25 transition-colors hover:bg-warning/15 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
-          {priority === "urgent" ? <Siren className="size-4" /> : item.mode === "bot" ? <Bot className="size-4" /> : <UserRound className="size-4" />}
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="flex items-center gap-2">
-            <span className={cn("truncate text-sm", item.needsAttentionSince ? "font-semibold" : "font-medium")}>{item.contactName}</span>
-            {item.isTest && (
-              <Badge variant="outline" className="shrink-0">
-                Chat thử
-              </Badge>
-            )}
-            <span className="tabular ml-auto shrink-0 text-xs text-muted-foreground">{elapsed(item.lastMessageAt, now)}</span>
+          <span className="relative flex size-2">
+            <span className="absolute inset-0 animate-ping-soft rounded-full bg-warning motion-reduce:hidden" />
+            <span className="relative size-2 rounded-full bg-warning" />
           </span>
-          <span className="line-clamp-1 text-sm text-muted-foreground">
-            {item.lastSender === "customer" ? "" : item.lastSender === "staff" ? "Bạn: " : item.lastSender === "bot" ? "Bot: " : ""}
-            {item.lastMessagePreview ?? "…"}
-          </span>
-          {(style.badge || item.handoffReason) && (
-            <span className="flex flex-wrap items-center gap-1.5">
-              {style.badge && (
-                <Badge variant={style.badge.variant}>
-                  {style.badge.label}
-                  {waiting && ` · chờ ${waiting}`}
-                </Badge>
-              )}
-              {item.needsAttentionSince && item.handoffReason && (
-                <span className="truncate text-xs text-muted-foreground">{handoffReasonLabel(item.handoffReason)}</span>
-              )}
-            </span>
-          )}
-        </span>
-      </button>
+          Xem {attentionCount} khách đang chờ bạn
+        </button>
+      )}
+    </div>
+  );
+}
+
+function Legend({ icon: Icon, tone, title, text }: { icon: typeof Bot; tone: string; title: string; text: string }) {
+  return (
+    <li className="flex items-center gap-2.5 rounded-xl border bg-card/80 p-2.5 shadow-card backdrop-blur">
+      <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-full text-white", tone)} aria-hidden>
+        <Icon className="size-3.5" />
+      </span>
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="text-[13px] font-semibold">{title}</span>
+        <span className="text-[11px] text-muted-foreground">{text}</span>
+      </span>
     </li>
   );
 }
