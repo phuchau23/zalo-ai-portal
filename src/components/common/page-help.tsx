@@ -40,7 +40,7 @@ export function PageHelp({ storageKey, children }: { storageKey: string; childre
         onClick={toggle}
         aria-expanded={open}
         aria-controls={id}
-        className="inline-flex min-h-9 w-fit items-center gap-1.5 rounded-full border bg-card px-3 text-[13px] font-medium text-foreground/80 shadow-card transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none pointer-coarse:min-h-11"
+        className="inline-flex min-h-8 w-fit cursor-pointer items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-3 text-[13px] font-medium text-foreground/75 shadow-card backdrop-blur transition-colors hover:border-warning/40 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none pointer-coarse:min-h-11"
       >
         <Lightbulb className="size-4 text-warning" aria-hidden />
         Cách dùng trang này

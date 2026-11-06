@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { motion } from "motion/react";
 import type { LucideIcon } from "lucide-react";
+import { spring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export type SubNavItem = { href: string; label: string; description: string; icon: LucideIcon };
@@ -46,20 +48,34 @@ export function SubNavLayout({
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "group flex min-h-11 items-center gap-2.5 rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none md:min-h-0 md:items-start md:rounded-lg md:border-transparent md:px-3 md:py-2.5 md:whitespace-normal",
+                      "group relative flex min-h-11 items-center gap-3 rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none md:min-h-0 md:items-start md:rounded-xl md:border-transparent md:p-2.5 md:whitespace-normal",
                       isActive
-                        ? "border-primary/30 bg-card font-medium text-foreground shadow-card md:border-border"
-                        : "bg-card text-muted-foreground hover:text-foreground md:bg-transparent md:hover:bg-card/70",
+                        ? "border-primary/30 bg-card font-medium text-foreground shadow-card md:bg-transparent md:shadow-none"
+                        : "bg-card text-muted-foreground hover:text-foreground md:bg-transparent md:hover:bg-card/60",
                     )}
                   >
-                    <Icon
+                    {isActive && (
+                      <motion.span
+                        aria-hidden
+                        layoutId={`subnav-${label}`}
+                        className="absolute inset-0 hidden rounded-xl border bg-card shadow-card md:block"
+                        transition={spring}
+                      />
+                    )}
+                    <span
                       className={cn(
-                        "size-4 shrink-0 md:mt-0.5",
-                        isActive ? (tone === "ai" ? "text-ai" : "text-primary") : "text-muted-foreground group-hover:text-foreground",
+                        "relative flex size-4 shrink-0 items-center justify-center rounded-lg transition-colors md:size-8",
+                        isActive
+                          ? tone === "ai"
+                            ? "text-ai md:bg-ai md:text-white md:shadow-glow-ai"
+                            : "text-primary md:bg-active-gradient md:text-white md:shadow-glow"
+                          : "text-muted-foreground group-hover:text-foreground md:bg-muted md:group-hover:bg-background",
                       )}
                       aria-hidden
-                    />
-                    <span className="flex flex-col gap-0.5">
+                    >
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="relative flex flex-col gap-0.5 md:pt-0.5">
                       <span>{item.label}</span>
                       <span className="hidden text-xs leading-snug font-normal text-muted-foreground md:block">{item.description}</span>
                     </span>
@@ -69,7 +85,7 @@ export function SubNavLayout({
             })}
           </ul>
         </nav>
-        <div className="surface min-w-0 p-5 md:p-6">{children}</div>
+        <div className="surface min-w-0 rounded-2xl p-5 md:p-6">{children}</div>
       </div>
     </div>
   );
