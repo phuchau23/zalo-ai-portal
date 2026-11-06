@@ -254,7 +254,7 @@ export function AppointmentDialog({
                   {services.length === 0 && packages.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Chưa có dịch vụ nào trong Danh mục. Thêm dịch vụ trước khi đặt lịch.</p>
                   ) : (
-                    <div className="max-h-56 overflow-y-auto rounded-xl border bg-card">
+                    <div className="scrollbar-thin max-h-56 overflow-y-auto rounded-2xl border bg-card shadow-card">
                       <ItemList idPrefix={`${p}-svc`} items={services} selectedIds={selectedIds} onToggle={toggleItem} disabled={saving} />
                       {packages.length > 0 && (
                         <>
@@ -314,7 +314,7 @@ export function AppointmentDialog({
               ) : slotGroups.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Ngày này không còn giờ trống. Chọn ngày khác hoặc gõ giờ tay nếu muốn xếp chồng.</p>
               ) : (
-                <div role="group" aria-label="Giờ còn trống" className="flex flex-wrap gap-1.5">
+                <div role="group" aria-label="Giờ còn trống" className="flex flex-wrap gap-2 rounded-2xl border bg-muted/30 p-2">
                   {slotGroups.map((g) => {
                     const t = formatTime(g.startAt, timeZone);
                     const names = g.staff.map((s) => s.name).filter(Boolean).join(", ");
@@ -328,9 +328,9 @@ export function AppointmentDialog({
                         aria-pressed={active}
                         title={!staffId && names ? names : undefined}
                         className={cn(
-                          "flex min-h-11 min-w-16 flex-col items-center justify-center rounded-md border px-2 py-1 text-sm tabular transition-colors sm:min-h-9",
+                          "flex min-h-11 min-w-16 cursor-pointer flex-col items-center justify-center rounded-xl border px-2.5 py-1 text-sm tabular transition-all duration-150 active:scale-[0.97] sm:min-h-9 motion-reduce:active:scale-100",
                           "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
-                          active ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted",
+                          active ? "border-transparent bg-active-gradient text-primary-foreground shadow-glow" : "bg-background shadow-xs hover:border-primary/40 hover:bg-primary/5",
                         )}
                       >
                         <span className="font-medium">{t}</span>

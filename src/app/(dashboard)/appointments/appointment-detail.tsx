@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Bot, CalendarClock, CircleAlert, CircleCheck, ExternalLink, LoaderCircle, Receipt, Sparkles, UserRound } from "lucide-react";
+import { Bot, CalendarClock, CircleAlert, CircleCheck, CircleDashed, ExternalLink, LoaderCircle, Receipt, Sparkles, UserRound } from "lucide-react";
+import { IconTile } from "@/components/common/icon-tile";
+import { LeadStatusBadge } from "@/components/common/lead-status-badge";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { ErrorState } from "@/components/common/states";
 import {
   AlertDialog,
@@ -38,7 +41,6 @@ import {
   toLocalInput,
   type AppointmentStatus,
 } from "@/lib/appointments";
-import { leadStatusOf } from "@/lib/customers";
 import { formatMoney } from "@/lib/format";
 import { useApiData, useNow } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
@@ -153,28 +155,33 @@ export function AppointmentDetailDialog({
               <DialogTitle>Lịch hẹn</DialogTitle>
               <DialogDescription>Đang tải chi tiết...</DialogDescription>
             </DialogHeader>
-            <div role="status" aria-label="Đang tải lịch hẹn" className="h-64 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+            <div role="status" aria-label="Đang tải lịch hẹn" className="skeleton h-64 rounded-2xl" />
           </>
         ) : (
           <div className="flex flex-col gap-5">
-            <DialogHeader>
-              <DialogTitle className="flex flex-wrap items-center gap-2">
-                <span className={cn(isTerminal(a.status) && a.status !== "done" && "text-muted-foreground line-through")}>{a.contactName}</span>
-                <Badge variant={status.variant}>{status.label}</Badge>
-                {a.source === "bot" && (
-                  <Badge variant="outline" className="gap-1">
-                    <Bot aria-hidden />
-                    Bot đặt
-                  </Badge>
-                )}
-              </DialogTitle>
-              <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <CalendarClock className="size-4" aria-hidden />
-                <span className="font-medium text-foreground">{formatDayLong(toLocalInput(a.startAt, timeZone).slice(0, 10))}</span>
-                <span className="tabular font-medium text-foreground">{formatTimeRange(a.startAt, a.endAt, timeZone)}</span>
-                {a.bufferMinutes > 0 && <span>+{a.bufferMinutes} phút dọn</span>}
-                <span>· {a.branchName}</span>
-              </DialogDescription>
+            <DialogHeader className="flex-row items-center gap-3.5 text-left">
+              <PersonAvatar name={a.contactName} size="lg" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <DialogTitle className="flex flex-wrap items-center gap-2 text-lg">
+                  <span className={cn(isTerminal(a.status) && a.status !== "done" && "text-muted-foreground line-through")}>{a.contactName}</span>
+                  <Badge variant={status.variant}>{status.label}</Badge>
+                  {a.source === "bot" && (
+                    <Badge className="gap-1 border-ai/20 bg-ai-soft text-ai">
+                      <Bot aria-hidden />
+                      Bot đặt
+                    </Badge>
+                  )}
+                </DialogTitle>
+                <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                    <CalendarClock className="size-3.5" aria-hidden />
+                    {formatDayLong(toLocalInput(a.startAt, timeZone).slice(0, 10))}
+                    <span className="tabular">· {formatTimeRange(a.startAt, a.endAt, timeZone)}</span>
+                  </span>
+                  {a.bufferMinutes > 0 && <span className="text-xs">+{a.bufferMinutes} phút dọn</span>}
+                  <span className="text-xs">· {a.branchName}</span>
+                </DialogDescription>
+              </div>
             </DialogHeader>
 
             {actionProblem && (
@@ -185,13 +192,13 @@ export function AppointmentDetailDialog({
             )}
 
             {a.cancelReason && (
-              <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm">
+              <p className="rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-2 text-sm">
                 <span className="font-medium">Lý do hủy:</span> {a.cancelReason}
               </p>
             )}
 
             {(!isTerminal(a.status) || a.status === "done") && (
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Thao tác">
+              <div className="flex flex-wrap gap-2 rounded-2xl border bg-muted/40 p-2" role="group" aria-label="Thao tác">
                 <Button size="sm" variant={a.status === "done" ? "default" : "outline"} className="h-11 sm:h-9" disabled={busy} onClick={() => void pay()}>
                   <Receipt aria-hidden />
                   {a.status === "done" ? "Thanh toán / hóa đơn" : "Thanh toán"}
@@ -238,17 +245,17 @@ export function AppointmentDetailDialog({
 
             <div className="grid gap-5 sm:grid-cols-2">
               <section className="flex flex-col gap-2">
-                <h3 className="text-sm font-semibold">Dịch vụ</h3>
-                <ul className="flex flex-col divide-y rounded-xl border bg-card text-sm">
+                <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Dịch vụ</h3>
+                <ul className="flex flex-col divide-y overflow-hidden rounded-2xl border bg-card text-sm shadow-card">
                   {a.items.map((i) => (
-                    <li key={i.catalogItemId} className="flex items-center gap-2 px-3 py-2">
-                      <span className="min-w-0 flex-1">{i.name}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{i.durationMinutes} phút</span>
-                      <span className="shrink-0 tabular">{formatMoney(i.price)}</span>
+                    <li key={i.catalogItemId} className="flex items-center gap-2 px-3 py-2.5">
+                      <span className="min-w-0 flex-1 font-medium">{i.name}</span>
+                      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{i.durationMinutes} phút</span>
+                      <span className="shrink-0 tabular font-medium">{formatMoney(i.price)}</span>
                     </li>
                   ))}
                   {a.items.length > 1 && hasAllPrices && (
-                    <li className="flex items-center justify-between px-3 py-2 font-medium">
+                    <li className="flex items-center justify-between bg-muted/40 px-3 py-2.5 font-semibold">
                       <span>Tạm tính</span>
                       <span className="tabular">{formatMoney(total)}</span>
                     </li>
@@ -279,12 +286,12 @@ export function AppointmentDetailDialog({
               </section>
 
               <section className="flex flex-col gap-2">
-                <h3 className="text-sm font-semibold">Khách</h3>
+                <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Khách</h3>
                 <Link
                   href={`/customers/${a.contactId}`}
-                  className="flex min-h-11 items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  className="flex min-h-11 items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm shadow-card lift focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
-                  <UserRound className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <UserRound className="size-4 shrink-0 text-primary" aria-hidden />
                   <span className="min-w-0 flex-1 truncate">
                     <span className="font-medium">
                       {a.contactSalutation ? `${a.contactSalutation} ` : ""}
@@ -297,7 +304,7 @@ export function AppointmentDetailDialog({
                 <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
                   <dt className="text-muted-foreground">Tiềm năng</dt>
                   <dd>
-                    {data.contactLeadStatus ? <Badge variant={leadStatusOf(data.contactLeadStatus).variant}>{leadStatusOf(data.contactLeadStatus).label}</Badge> : "—"}
+                    {data.contactLeadStatus ? <LeadStatusBadge status={data.contactLeadStatus} size="sm" /> : "—"}
                   </dd>
                   <dt className="text-muted-foreground">Đã đến</dt>
                   <dd>
@@ -325,18 +332,18 @@ export function AppointmentDetailDialog({
               </section>
             </div>
 
-            <section className="flex flex-col gap-2">
-              <h3 className="flex items-center gap-1.5 text-sm font-semibold">
-                <Sparkles className="size-4 text-primary" aria-hidden />
+            <section className="relative flex flex-col gap-2 overflow-hidden rounded-2xl border border-ai/15 bg-ai-soft/60 p-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <IconTile icon={Sparkles} tone="ai" variant="solid" size="sm" />
                 Tóm tắt cho kỹ thuật viên
               </h3>
               {a.aiBrief ? (
-                <div className="rounded-md border bg-muted/30 p-3 text-sm whitespace-pre-wrap">
+                <div className="text-sm leading-relaxed whitespace-pre-wrap">
                   {a.aiBrief}
                   {a.aiBriefAt && <p className="mt-2 text-xs text-muted-foreground">AI viết lúc {formatDateTimeTz(a.aiBriefAt, timeZone)} từ cuộc trò chuyện với khách.</p>}
                 </div>
               ) : briefPending ? (
-                <p role="status" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <p role="status" className="flex items-center gap-1.5 text-sm text-ai">
                   <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
                   AI đang viết...
                 </p>
@@ -347,13 +354,13 @@ export function AppointmentDetailDialog({
               )}
             </section>
 
-            <section className="flex flex-col gap-1 text-sm">
-              <h3 className="text-sm font-semibold">Nhắc lịch</h3>
-              <p className="text-muted-foreground">
-                Nhắc lần 1: {a.reminder1SentAt ? formatDateTimeTz(a.reminder1SentAt, timeZone) : "chưa"} · Nhắc lần 2:{" "}
-                {a.reminder2SentAt ? formatDateTimeTz(a.reminder2SentAt, timeZone) : "chưa"} · Khách xác nhận:{" "}
-                {a.customerConfirmedAt ? <span className="text-success">{formatDateTimeTz(a.customerConfirmedAt, timeZone)}</span> : "chưa"}
-              </p>
+            <section className="flex flex-col gap-2 text-sm">
+              <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Nhắc lịch</h3>
+              <ul className="grid gap-2 sm:grid-cols-3">
+                <ReminderStep label="Nhắc lần 1" at={a.reminder1SentAt} timeZone={timeZone} />
+                <ReminderStep label="Nhắc lần 2" at={a.reminder2SentAt} timeZone={timeZone} />
+                <ReminderStep label="Khách xác nhận" at={a.customerConfirmedAt} timeZone={timeZone} />
+              </ul>
             </section>
 
             <NoteEditor appointmentId={appointmentId} note={a.note} onSaved={reload} />
@@ -451,16 +458,32 @@ function NoteEditor({ appointmentId, note, onSaved }: { appointmentId: string; n
   );
 }
 
+/** Một bước nhắc lịch: đã làm (dấu tích xanh + giờ) hoặc "chưa". */
+function ReminderStep({ label, at, timeZone }: { label: string; at: string | null; timeZone: string }) {
+  return (
+    <li className={cn("flex items-center gap-2.5 rounded-xl border px-3 py-2", at ? "border-success/25 bg-success/[0.06]" : "bg-muted/40")}>
+      {at ? <CircleCheck className="size-4 shrink-0 text-success" aria-hidden /> : <CircleDashed className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="text-xs font-medium">{label}</span>
+        <span className={cn("truncate text-xs tabular", at ? "text-success" : "text-muted-foreground")}>{at ? formatDateTimeTz(at, timeZone) : "Chưa"}</span>
+      </span>
+    </li>
+  );
+}
+
 function Timeline({ events, timeZone }: { events: AppointmentEvent[]; timeZone: string }) {
   if (events.length === 0) return null;
   const sorted = [...events].sort((a, b) => b.at.localeCompare(a.at));
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold">Lịch sử</h3>
-      <ol className="flex flex-col gap-2 border-l-2 border-border pl-4 text-sm">
+      <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Lịch sử</h3>
+      <ol className="ml-1 flex flex-col gap-2.5 border-l-2 border-primary/15 pl-4 text-sm">
         {sorted.map((e, i) => (
           <li key={`${e.at}-${i}`} className="relative flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="absolute top-1.5 -left-[1.4rem] size-2.5 rounded-full border-2 border-background bg-primary" aria-hidden />
+            <span
+              className={cn("absolute top-1.5 -left-[1.4rem] size-2.5 rounded-full ring-4 ring-card", i === 0 ? "bg-active-gradient" : "bg-primary/40")}
+              aria-hidden
+            />
             <span className="font-medium">{eventKindLabel(e.kind)}</span>
             <span className="text-muted-foreground">
               {actorLabel(e.actor)} · {formatDateTimeTz(e.at, timeZone)}
