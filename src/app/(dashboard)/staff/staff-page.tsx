@@ -1,21 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronRight, CircleAlert, Lock, Plus, UserRound, Users } from "lucide-react";
+import { motion } from "motion/react";
+import { CalendarCheck, ChevronRight, CircleAlert, KeyRound, Lock, Plus, Store, UserRound, UserRoundCheck, UserRoundPlus, UserRoundX, Users } from "lucide-react";
+import { IconTile } from "@/components/common/icon-tile";
+import { FilterPills } from "@/components/common/filter-pills";
 import { PageHeader } from "@/components/common/page-header";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api, type Branch, type StaffMember, type TeamMember } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { branchName, hasPermission, staffStatusLabels, statusOf } from "@/lib/crm";
+import { fadeUp, stagger } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { StaffDetail } from "./staff-detail";
@@ -48,6 +51,7 @@ export function StaffPage() {
     [staff.data, includeInactive, branchFilter],
   );
   const inactiveCount = (staff.data ?? []).filter((s) => s.status !== "active").length;
+  const openStaff = (staff.data ?? []).find((s) => s.id === open) ?? null;
 
   async function toggleStatus(member: StaffMember) {
     setActionProblem(null);
@@ -101,27 +105,35 @@ export function StaffPage() {
         </Alert>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        {branchList.length > 1 && (
-          <Select value={branchFilter} onValueChange={setBranchFilter}>
-            <SelectTrigger aria-label="Lọc theo chi nhánh" className="h-11 w-full sm:h-9 sm:w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Mọi chi nhánh</SelectItem>
-              {branchList.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        <Label htmlFor="staff-inactive" className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-0">
-          <Checkbox id="staff-inactive" checked={includeInactive} onCheckedChange={(v) => setIncludeInactive(v === true)} />
-          Hiện người đã nghỉ {inactiveCount > 0 && <span className="tabular text-muted-foreground">({inactiveCount})</span>}
-        </Label>
-      </div>
+      {(staff.data?.length ?? 0) > 0 && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <FilterPills
+            label="Lọc nhân viên theo trạng thái"
+            value={includeInactive ? "all" : "active"}
+            onChange={(v) => setIncludeInactive(v === "all")}
+            options={[
+              { value: "active", label: "Đang làm", count: (staff.data ?? []).length - inactiveCount },
+              { value: "all", label: "Tất cả", count: (staff.data ?? []).length },
+            ]}
+          />
+          {branchList.length > 1 && (
+            <Select value={branchFilter} onValueChange={setBranchFilter}>
+              <SelectTrigger aria-label="Lọc theo chi nhánh" className="h-11 w-full rounded-xl bg-card shadow-card sm:h-10 sm:w-56 *:data-[slot=select-value]:flex-1">
+                <Store className="text-muted-foreground" aria-hidden />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Mọi chi nhánh</SelectItem>
+                {branchList.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      )}
 
       {actionProblem && (
         <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
@@ -157,63 +169,114 @@ export function StaffPage() {
           </Button>
         </EmptyState>
       ) : (
-        <ul className="flex flex-col divide-y rounded-xl border bg-card">
+        <motion.ul variants={stagger} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map((s) => {
-            const expanded = open === s.id;
             const status = statusOf(staffStatusLabels, s.status);
+            const active = s.status === "active";
+            const showBranch = branchList.length > 1 || !s.branchId;
             return (
-              <li key={s.id} className="flex flex-col">
-                <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
-                  <button
-                    type="button"
-                    aria-expanded={expanded}
-                    aria-controls={`staff-${s.id}`}
-                    onClick={() => setOpen(expanded ? null : s.id)}
-                    className="flex min-w-0 flex-1 items-center gap-2 rounded-sm text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                  >
-                    <ChevronRight className={cn("size-4 shrink-0 text-muted-foreground transition-transform", expanded && "rotate-90")} aria-hidden />
-                    {/* Màu riêng của nhân viên do BE lưu (#rrggbb), dùng để nhận ra trên lịch; không phải màu giao diện. */}
-                    <span className="size-3 shrink-0 rounded-full ring-1 ring-foreground/10" style={{ backgroundColor: s.color }} aria-hidden />
-                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className={cn("flex flex-wrap items-center gap-2 font-medium", s.status !== "active" && "text-muted-foreground")}>
-                        {s.displayName}
-                        {s.bookable && s.status === "active" && <Badge variant="info">Nhận lịch</Badge>}
-                        {s.status !== "active" && <Badge variant={status.variant}>{status.label}</Badge>}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {[s.title, branchList.length > 1 || !s.branchId ? branchName(branchList, s.branchId) : null].filter(Boolean).join(" · ")}
-                      </span>
+              <motion.li key={s.id} variants={fadeUp} className={cn("surface lift group flex flex-col overflow-hidden rounded-2xl", !active && "opacity-75")}>
+                {/* Dải màu riêng của nhân viên do BE lưu (#rrggbb) — màu nhận ra trên lịch, không phải màu giao diện. */}
+                <span className="h-1.5 w-full shrink-0" style={{ backgroundColor: s.color }} aria-hidden />
+                <button
+                  type="button"
+                  onClick={() => setOpen(s.id)}
+                  aria-haspopup="dialog"
+                  className="flex flex-1 cursor-pointer flex-col gap-4 p-4 text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset"
+                >
+                  <span className="flex items-center gap-3">
+                    <PersonAvatar
+                      name={s.displayName}
+                      size="lg"
+                      badge={active ? <span className="size-3 rounded-full bg-success ring-2 ring-card" /> : undefined}
+                    />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate font-semibold transition-colors group-hover:text-primary">{s.displayName}</span>
+                      <span className="truncate text-sm text-muted-foreground">{s.title ?? "Chưa có chức danh"}</span>
                     </span>
-                  </button>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
+                  </span>
+                  <span className="flex flex-wrap gap-1.5">
+                    {active ? (
+                      s.bookable ? (
+                        <Badge variant="info">
+                          <CalendarCheck aria-hidden />
+                          Nhận lịch
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Không nhận lịch</Badge>
+                      )
+                    ) : (
+                      <Badge variant={status.variant}>{status.label}</Badge>
+                    )}
+                    {showBranch && (
+                      <Badge variant="outline">
+                        <Store aria-hidden />
+                        {branchName(branchList, s.branchId)}
+                      </Badge>
+                    )}
+                    {s.userId && (
+                      <Badge variant="secondary">
+                        <KeyRound aria-hidden />
+                        Có tài khoản
+                      </Badge>
+                    )}
+                  </span>
+                </button>
+                <div className="flex min-h-12 items-center justify-between gap-2 border-t bg-muted/30 px-4 py-1.5">
+                  <span className="text-xs text-muted-foreground">Bấm để xem dịch vụ, ca làm, nghỉ phép</span>
                   {canEdit && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={cn("h-11 sm:h-8", s.status === "active" && "text-destructive hover:bg-destructive/10 hover:text-destructive")}
+                      className={cn("h-11 shrink-0 sm:h-8", active && "text-destructive hover:bg-destructive/10 hover:text-destructive")}
                       disabled={busyId === s.id}
                       onClick={() => void toggleStatus(s)}
                     >
-                      {s.status === "active" ? "Đánh dấu đã nghỉ" : "Làm lại"}
+                      {active ? <UserRoundX aria-hidden /> : <UserRoundCheck aria-hidden />}
+                      {active ? "Đã nghỉ" : "Làm lại"}
+                      <span className="sr-only"> — {s.displayName}</span>
                     </Button>
                   )}
                 </div>
-                {expanded && (
-                  <div id={`staff-${s.id}`} className="border-t bg-muted/30 px-4 py-4">
-                    <StaffDetail staff={s} branches={branchList} team={team.data ?? null} services={services.data ?? []} canEdit={canEdit} onChanged={staff.reload} />
-                  </div>
-                )}
-              </li>
+              </motion.li>
             );
           })}
-        </ul>
+        </motion.ul>
+      )}
+
+      {openStaff && (
+        <Dialog open onOpenChange={(o) => !o && setOpen(null)}>
+          <DialogContent className="max-h-[calc(100svh-2rem)] gap-0 overflow-y-auto p-0 sm:max-w-3xl">
+            <div className="relative overflow-hidden border-b px-5 pt-6 pb-5 sm:px-6">
+              <div aria-hidden className="absolute inset-x-0 top-0 h-full bg-primary/[0.07]" />
+              <div aria-hidden className="absolute inset-x-0 top-0 h-full bg-dot-grid opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+              <DialogHeader className="relative flex-row items-center gap-4 text-left">
+                <PersonAvatar name={openStaff.displayName} size="xl" />
+                <div className="flex min-w-0 flex-col gap-1">
+                  <DialogTitle className="text-lg">{openStaff.displayName}</DialogTitle>
+                  <DialogDescription>
+                    {[openStaff.title, branchName(branchList, openStaff.branchId), statusOf(staffStatusLabels, openStaff.status).label].filter(Boolean).join(" · ")}
+                  </DialogDescription>
+                </div>
+              </DialogHeader>
+            </div>
+            <div className="px-5 py-5 sm:px-6">
+              <StaffDetail staff={openStaff} branches={branchList} team={team.data ?? null} services={services.data ?? []} canEdit={canEdit} onChanged={staff.reload} />
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {adding && (
         <Dialog open onOpenChange={(o) => !o && setAdding(false)}>
           <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-xl">
-            <DialogHeader>
-              <DialogTitle>Thêm nhân viên</DialogTitle>
-              <DialogDescription>Sau khi thêm, mở hồ sơ để chọn dịch vụ làm được và ca cố định.</DialogDescription>
+            <DialogHeader className="flex-row items-center gap-3 text-left">
+              <IconTile icon={UserRoundPlus} variant="solid" size="md" />
+              <div className="flex min-w-0 flex-col gap-1">
+                <DialogTitle>Thêm nhân viên</DialogTitle>
+                <DialogDescription>Sau khi thêm, hồ sơ mở ra để chọn dịch vụ làm được và ca cố định.</DialogDescription>
+              </div>
             </DialogHeader>
             <StaffForm
               idPrefix="s-new"

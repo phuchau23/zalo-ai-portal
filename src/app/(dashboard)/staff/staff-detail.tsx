@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { CalendarOff, CircleAlert, CircleCheck, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, CalendarOff, CircleAlert, CircleCheck, IdCard, LoaderCircle, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
+import { SectionHeader } from "@/components/common/page-header";
 import { ErrorState, LoadingRows } from "@/components/common/states";
 import { WeekWindowsEditor } from "@/components/common/week-windows-editor";
 import { Button } from "@/components/ui/button";
@@ -40,9 +42,9 @@ export function StaffDetail({
   if (!data) return <LoadingRows rows={2} columns={2} label="Đang tải nhân viên" />;
 
   return (
-    <div className={cn("flex flex-col gap-8", loading && "opacity-70")}>
-      <section className="flex flex-col gap-3">
-        <h3 className="text-sm font-semibold">Thông tin</h3>
+    <div className={cn("flex flex-col gap-4 transition-opacity", loading && "opacity-70")}>
+      <section className={sectionCard}>
+        <SectionHeader icon={IdCard} title="Thông tin" description="Tên trên lịch, chức danh, chi nhánh, tài khoản đăng nhập." />
         <StaffForm
           idPrefix={`s-${staff.id}`}
           initial={data.staff}
@@ -63,12 +65,19 @@ export function StaffDetail({
 
       <ServicesEditor staffId={staff.id} serviceIds={data.serviceIds} services={services} canEdit={canEdit} onSaved={reload} />
 
-      <ShiftTemplatesEditor staffId={staff.id} templates={data.shiftTemplates} canEdit={canEdit} onSaved={reload} />
+      {/* Bộ sửa ca có tiêu đề riêng: chừa chỗ bên trái tiêu đề cho ô biểu tượng để giống các phần khác. */}
+      <section className={cn(sectionCard, "relative [&>div>div:first-child]:min-h-8 [&>div>div:first-child]:justify-center [&>div>div:first-child]:pl-11")}>
+        <IconTile icon={CalendarClock} size="sm" className="absolute top-4 left-4 sm:top-5 sm:left-5" />
+        <ShiftTemplatesEditor staffId={staff.id} templates={data.shiftTemplates} canEdit={canEdit} onSaved={reload} />
+      </section>
 
       <TimeOffEditor staffId={staff.id} timeOff={data.timeOff} canEdit={canEdit} onChanged={reload} />
     </div>
   );
 }
+
+/** Mỗi phần của hồ sơ nhân viên là một thẻ riêng. */
+const sectionCard = "flex flex-col gap-4 rounded-2xl border bg-card p-4 shadow-card sm:p-5";
 
 function ServicesEditor({
   staffId,
@@ -105,11 +114,8 @@ function ServicesEditor({
   };
 
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5">
-        <h3 className="text-sm font-semibold">Dịch vụ làm được</h3>
-        <p className="text-sm text-muted-foreground">Khi đặt lịch chỉ gợi ý nhân viên làm được dịch vụ đó.</p>
-      </div>
+    <section className={sectionCard}>
+      <SectionHeader icon={Sparkles} title="Dịch vụ làm được" description="Khi đặt lịch chỉ gợi ý nhân viên làm được dịch vụ đó." />
       <Label htmlFor={`sv-${staffId}-all`} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-9">
         <Checkbox
           id={`sv-${staffId}-all`}
@@ -126,11 +132,15 @@ function ServicesEditor({
         (services.length === 0 ? (
           <p className="text-sm text-muted-foreground">Chưa có dịch vụ nào trong Danh mục.</p>
         ) : (
-          <div className="grid gap-1 rounded-md border bg-background p-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-1 rounded-xl border bg-muted/30 p-2 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((s) => {
               const id = `sv-${staffId}-${s.id}`;
               return (
-                <Label key={s.id} htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-2 rounded-sm px-2 text-sm font-normal hover:bg-muted sm:min-h-9">
+                <Label
+                  key={s.id}
+                  htmlFor={id}
+                  className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-sm font-normal transition-colors hover:bg-background has-data-[state=checked]:bg-accent has-data-[state=checked]:text-accent-foreground sm:min-h-9"
+                >
                   <Checkbox
                     id={id}
                     checked={selected.includes(s.id)}
@@ -244,11 +254,8 @@ function TimeOffEditor({ staffId, timeOff, canEdit, onChanged }: { staffId: stri
   const sorted = [...timeOff].sort((a, b) => b.fromAt.localeCompare(a.fromAt));
   const p = `to-${staffId}`;
   return (
-    <section className="flex flex-col gap-3">
-      <div className="flex flex-col gap-0.5">
-        <h3 className="text-sm font-semibold">Nghỉ phép</h3>
-        <p className="text-sm text-muted-foreground">Trong khoảng này không nhận lịch hẹn cho nhân viên.</p>
-      </div>
+    <section className={sectionCard}>
+      <SectionHeader icon={CalendarOff} title="Nghỉ phép" description="Trong khoảng này không nhận lịch hẹn cho nhân viên." />
       {canEdit && (
         <form noValidate onSubmit={(e) => void add(e)} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
           <Field id={`${p}-from`} label="Từ" error={problem?.fieldErrors.fromAt}>
@@ -273,14 +280,14 @@ function TimeOffEditor({ staffId, timeOff, canEdit, onChanged }: { staffId: stri
         </p>
       )}
       {sorted.length === 0 ? (
-        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <CalendarOff className="size-4" aria-hidden />
-          Chưa có lịch nghỉ nào.
-        </p>
+        <p className="rounded-xl border border-dashed px-4 py-4 text-center text-sm text-muted-foreground">Chưa có lịch nghỉ nào.</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border bg-background">
+        <ul className="flex flex-col divide-y overflow-hidden rounded-xl border bg-background">
           {sorted.map((t) => (
             <li key={t.id} className="flex items-center gap-3 px-3 py-2 text-sm">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-warning/10 text-warning" aria-hidden>
+                <CalendarOff className="size-3.5" />
+              </span>
               <span className="tabular font-medium">
                 {formatDateTime(t.fromAt)} → {formatDateTime(t.toAt)}
               </span>
