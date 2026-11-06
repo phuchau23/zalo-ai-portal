@@ -2,9 +2,32 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { Ban, CircleAlert, CircleCheck, ExternalLink, LoaderCircle, Pencil, QrCode, Receipt, RotateCcw, Send, UserRound, Wallet } from "lucide-react";
+import {
+  BadgePercent,
+  Ban,
+  Banknote,
+  CircleAlert,
+  CircleCheck,
+  CircleDollarSign,
+  CreditCard,
+  ExternalLink,
+  HandCoins,
+  Landmark,
+  LoaderCircle,
+  Pencil,
+  QrCode,
+  Receipt,
+  RotateCcw,
+  Send,
+  UserRound,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { CopyButton } from "@/components/common/copy-button";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
+import { InvoiceStatusBadge } from "@/components/common/status-pill";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { ErrorState } from "@/components/common/states";
 import {
   AlertDialog,
@@ -16,7 +39,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -43,6 +65,9 @@ import {
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { InvoiceEditorDialog } from "./invoice-editor";
+
+/** Biểu tượng theo hình thức thu/hoàn tiền (chỉ trang trí, tên hình thức luôn hiện bên cạnh). */
+const methodIcons: Record<string, LucideIcon> = { cash: Banknote, transfer: Landmark, card: CreditCard, wallet: Wallet, refund: RotateCcw };
 
 /**
  * Chi tiết hóa đơn: dòng, giảm giá, tổng, thanh toán, thu tiền, mã QR chuyển khoản, phiếu thu, hủy, hoàn tiền.
@@ -100,21 +125,26 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onChanged }: { invoice
               <DialogTitle>Hóa đơn</DialogTitle>
               <DialogDescription>Đang tải chi tiết...</DialogDescription>
             </DialogHeader>
-            <div role="status" aria-label="Đang tải hóa đơn" className="h-64 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+            <div role="status" aria-label="Đang tải hóa đơn" className="skeleton h-64 rounded-2xl" />
           </>
         ) : (
           <div className="flex flex-col gap-5">
-            <DialogHeader>
-              <DialogTitle className="flex flex-wrap items-center gap-2">
-                <span className="font-mono">{inv.number}</span>
-                <Badge variant={status.variant}>{status.label}</Badge>
-              </DialogTitle>
-              <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span>{inv.branchName}</span>
-                <span>· Lập lúc {formatDateTime(inv.issuedAt)}</span>
-                {inv.paidAt && <span>· Thu đủ lúc {formatDateTime(inv.paidAt)}</span>}
-              </DialogDescription>
+            <DialogHeader className="flex-row items-center gap-3.5 text-left">
+              <IconTile icon={Receipt} variant="solid" size="lg" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <DialogTitle className="flex flex-wrap items-center gap-2 text-lg">
+                  <span className="font-mono tracking-tight">{inv.number}</span>
+                  <InvoiceStatusBadge status={inv.status} />
+                </DialogTitle>
+                <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs tabular">
+                  <span>{inv.branchName}</span>
+                  <span>· Lập lúc {formatDateTime(inv.issuedAt)}</span>
+                  {inv.paidAt && <span className="text-success">· Thu đủ lúc {formatDateTime(inv.paidAt)}</span>}
+                </DialogDescription>
+              </div>
             </DialogHeader>
+
+            <AmountStrip invoice={inv} />
 
             {actionProblem && (
               <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
@@ -124,28 +154,30 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onChanged }: { invoice
             )}
 
             {inv.voidReason && (
-              <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm">
+              <p className="rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-2 text-sm">
                 <span className="font-medium">Lý do hủy:</span> {inv.voidReason}
                 {inv.voidedAt && <span className="text-muted-foreground"> · {formatDateTime(inv.voidedAt)}</span>}
               </p>
             )}
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {inv.contactId ? (
                 <Link
                   href={`/customers/${inv.contactId}`}
-                  className="flex min-h-11 items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:min-h-9"
+                  className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl border bg-card py-1.5 pr-3 pl-1.5 text-sm shadow-card lift focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
-                  <UserRound className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <PersonAvatar name={inv.contactName ?? "Khách"} size="sm" />
                   <span className="min-w-0 flex-1 truncate">
-                    <span className="font-medium">{inv.contactName ?? "Khách"}</span>
-                    {inv.contactPhone && <span className="text-muted-foreground"> · {inv.contactPhone}</span>}
+                    <span className="font-semibold">{inv.contactName ?? "Khách"}</span>
+                    {inv.contactPhone && <span className="text-muted-foreground tabular"> · {inv.contactPhone}</span>}
                   </span>
                   <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
                 </Link>
               ) : (
                 <p className="flex min-h-9 items-center gap-2 text-sm text-muted-foreground">
-                  <UserRound className="size-4" aria-hidden />
+                  <span className="flex size-8 items-center justify-center rounded-full bg-muted" aria-hidden>
+                    <UserRound className="size-4" />
+                  </span>
                   Khách lẻ (không lưu hồ sơ)
                 </p>
               )}
@@ -195,9 +227,9 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onChanged }: { invoice
               <div className="flex flex-col gap-4">
                 {can("discount") && <DiscountForm invoice={inv} busy={busy} onDone={changed} />}
                 {inv.note && (
-                  <section className="flex flex-col gap-1 text-sm">
-                    <h3 className="font-semibold">Ghi chú</h3>
-                    <p className="whitespace-pre-wrap text-muted-foreground">{inv.note}</p>
+                  <section className="flex flex-col gap-1 rounded-xl border border-dashed bg-muted/30 px-3 py-2.5 text-sm">
+                    <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Ghi chú</h3>
+                    <p className="whitespace-pre-wrap">{inv.note}</p>
                   </section>
                 )}
                 <Payments invoice={inv} />
@@ -229,28 +261,66 @@ export function InvoiceDetailDialog({ invoiceId, onClose, onChanged }: { invoice
   );
 }
 
+/** Ba con số chính của hóa đơn ngay dưới tiêu đề; "Còn phải thu" nổi bật (cam khi còn nợ, xanh khi đã đủ). */
+function AmountStrip({ invoice: inv }: { invoice: Invoice }) {
+  const settled = inv.due <= 0;
+  return (
+    <dl className="grid grid-cols-3 gap-2 sm:gap-3">
+      <div className="flex flex-col gap-0.5 rounded-2xl border bg-muted/30 px-3 py-2.5">
+        <dt className="text-[11px] font-medium text-muted-foreground">Tổng</dt>
+        <dd className="truncate text-base font-bold tracking-tight tabular sm:text-lg">{formatMoney(inv.total)}</dd>
+      </div>
+      <div className="flex flex-col gap-0.5 rounded-2xl border bg-muted/30 px-3 py-2.5">
+        <dt className="text-[11px] font-medium text-muted-foreground">Đã thu</dt>
+        <dd className="truncate text-base font-bold tracking-tight tabular sm:text-lg">{formatMoney(inv.paidAmount)}</dd>
+      </div>
+      <div
+        className={cn(
+          "flex flex-col gap-0.5 rounded-2xl border px-3 py-2.5",
+          settled ? "border-success/25 bg-success/[0.07] text-success" : "border-warning/30 bg-warning/[0.08] text-warning",
+        )}
+      >
+        <dt className="flex items-center gap-1 text-[11px] font-semibold">
+          {settled ? <CircleCheck className="size-3.5" aria-hidden /> : <CircleDollarSign className="size-3.5" aria-hidden />}
+          {settled ? "Đã đủ" : "Còn phải thu"}
+        </dt>
+        <dd className="truncate text-base font-bold tracking-tight tabular sm:text-lg">{formatMoney(inv.due)}</dd>
+      </div>
+    </dl>
+  );
+}
+
 function LinesTable({ invoice, staff }: { invoice: Invoice; staff: StaffMember[] }) {
   const performer = (id: string | null) => (id ? (staff.find((s) => s.id === id)?.displayName ?? "(đã nghỉ)") : null);
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold">Các dòng ({invoice.lines.length})</h3>
-      <ul className="flex flex-col divide-y rounded-xl border bg-card text-sm">
-        {invoice.lines.map((l) => {
+      <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Các dòng ({invoice.lines.length})</h3>
+      <ul className="flex flex-col divide-y divide-dashed overflow-hidden rounded-2xl border bg-card text-sm shadow-card">
+        {invoice.lines.map((l, i) => {
           const who = performer(l.performerStaffId);
           return (
-            <li key={l.id} className="flex flex-col gap-1 px-3 py-2 sm:flex-row sm:items-center sm:gap-3">
-              <div className="flex min-w-0 flex-1 flex-col">
-                <span className="font-medium">{l.description}</span>
-                <span className="text-xs text-muted-foreground">
-                  {lineKindLabel(l.kind)}
-                  {who && ` · ${who}`}
+            <li key={l.id} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:gap-3">
+              <div className="flex min-w-0 flex-1 items-start gap-3">
+                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-semibold text-muted-foreground tabular" aria-hidden>
+                  {i + 1}
                 </span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="font-medium">{l.description}</span>
+                  <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+                    {lineKindLabel(l.kind)}
+                    {who && (
+                      <span className="inline-flex items-center gap-1">
+                        · <PersonAvatar name={who} size="xs" /> {who}
+                      </span>
+                    )}
+                  </span>
+                </div>
               </div>
-              <span className="tabular text-xs text-muted-foreground sm:w-40 sm:text-right">
+              <span className="tabular pl-9 text-xs text-muted-foreground sm:w-40 sm:pl-0 sm:text-right">
                 {l.quantity} × {formatMoney(l.unitPrice)}
                 {l.discount > 0 && <span className="text-destructive"> − {formatMoney(l.discount)}</span>}
               </span>
-              <span className="tabular font-medium sm:w-28 sm:text-right">{formatMoney(l.lineTotal)}</span>
+              <span className="tabular pl-9 font-semibold sm:w-28 sm:pl-0 sm:text-right">{formatMoney(l.lineTotal)}</span>
             </li>
           );
         })}
@@ -267,8 +337,11 @@ function Totals({ invoice: inv }: { invoice: Invoice }) {
     </div>
   );
   return (
-    <section className="flex flex-col gap-2 rounded-md border bg-muted/30 p-3 text-sm">
-      <dl className="flex flex-col gap-1">
+    <section className="relative flex flex-col gap-2 overflow-hidden rounded-2xl border bg-card p-4 text-sm shadow-card">
+      {/* Mép răng cưa trên cùng: gợi hình tờ hóa đơn. */}
+      <div aria-hidden className="absolute inset-x-0 top-0 h-1.5 bg-[radial-gradient(circle_at_6px_-2px,transparent_5px,var(--muted)_5.5px)] bg-[length:12px_8px]" />
+      <h3 className="pt-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Thanh toán</h3>
+      <dl className="flex flex-col gap-1.5">
         {row("Tạm tính", inv.subtotal)}
         {inv.discountAmount > 0 && (
           <div className="flex items-center justify-between gap-3 text-destructive">
@@ -287,15 +360,20 @@ function Totals({ invoice: inv }: { invoice: Invoice }) {
             <dd className="tabular">− {formatMoney(inv.voucherAmount)}</dd>
           </div>
         )}
-        <div className="flex items-center justify-between gap-3 border-t pt-1 text-base font-semibold">
+        <div className="mt-1 flex items-center justify-between gap-3 border-t border-dashed pt-2 text-base font-bold">
           <dt>Tổng</dt>
           <dd className="tabular">{formatMoney(inv.total)}</dd>
         </div>
         {row("Đã thu", inv.paidAmount)}
         {inv.refundedAmount > 0 && row("Đã hoàn", inv.refundedAmount)}
-        <div className={cn("flex items-center justify-between gap-3 font-medium", inv.due > 0 ? "text-warning" : "text-success")}>
+        <div
+          className={cn(
+            "mt-1 flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 font-semibold",
+            inv.due > 0 ? "bg-warning/10 text-warning" : "bg-success/10 text-success",
+          )}
+        >
           <dt>Còn phải thu</dt>
-          <dd className="tabular">{formatMoney(inv.due)}</dd>
+          <dd className="tabular text-xl font-bold tracking-tight">{formatMoney(inv.due)}</dd>
         </div>
       </dl>
     </section>
@@ -306,19 +384,33 @@ function Payments({ invoice }: { invoice: Invoice }) {
   if (invoice.payments.length === 0) return null;
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold">Thanh toán</h3>
-      <ul className="flex flex-col divide-y rounded-xl border bg-card text-sm">
-        {invoice.payments.map((p) => (
-          <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2">
-            <span className="font-medium">{paymentMethodLabel(p.method)}</span>
-            {p.reference && <span className="text-xs text-muted-foreground">{p.reference}</span>}
-            <span className="text-xs text-muted-foreground">{formatDateTime(p.receivedAt)}</span>
-            <span className={cn("tabular ml-auto font-medium", p.method === "refund" && "text-destructive")}>
-              {p.method === "refund" ? "− " : ""}
-              {formatMoney(Math.abs(p.amount))}
-            </span>
-          </li>
-        ))}
+      <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">Lần thu tiền</h3>
+      <ul className="flex flex-col divide-y overflow-hidden rounded-2xl border bg-card text-sm shadow-card">
+        {invoice.payments.map((p) => {
+          const Icon = methodIcons[p.method] ?? Banknote;
+          const refund = p.method === "refund";
+          return (
+            <li key={p.id} className="flex items-center gap-3 px-3 py-2.5">
+              <span
+                className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", refund ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success")}
+                aria-hidden
+              >
+                <Icon className="size-4" />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-medium">{paymentMethodLabel(p.method)}</span>
+                <span className="truncate text-xs text-muted-foreground tabular">
+                  {formatDateTime(p.receivedAt)}
+                  {p.reference && ` · ${p.reference}`}
+                </span>
+              </span>
+              <span className={cn("tabular shrink-0 font-semibold", refund ? "text-destructive" : "text-success")}>
+                {refund ? "− " : "+ "}
+                {formatMoney(Math.abs(p.amount))}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
@@ -353,8 +445,11 @@ function DiscountForm({ invoice, busy, onDone }: { invoice: Invoice; busy: boole
   const message = problem ? (problem.status === 403 ? "Giảm vượt mức cho phép, cần chủ duyệt." : problemMessage(problem)) : null;
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-xl border bg-card p-3">
-      <h3 className="text-sm font-semibold">Giảm giá</h3>
+    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-card">
+      <h3 className="flex items-center gap-2 text-sm font-semibold">
+        <IconTile icon={BadgePercent} size="sm" />
+        Giảm giá
+      </h3>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field id="inv-discount" label="Giảm (đ)" error={errors.amount}>
           <Input
@@ -456,22 +551,39 @@ function PaymentForm({ invoice, busy, onDone, onQr }: { invoice: Invoice; busy: 
   }
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3 rounded-xl border bg-card border-primary/30 p-3">
-      <h3 className="text-sm font-semibold">Thu tiền</h3>
+    <form
+      noValidate
+      onSubmit={(e) => void submit(e)}
+      className="relative isolate flex flex-col gap-3 overflow-hidden rounded-2xl border border-primary/25 bg-card p-4 shadow-card ring-4 ring-primary/[0.04]"
+    >
+      <div aria-hidden className="pointer-events-none absolute -top-16 -right-12 -z-10 size-44 rounded-full bg-primary/10 blur-2xl" />
+      <h3 className="flex items-center gap-2 text-sm font-semibold">
+        <IconTile icon={HandCoins} variant="solid" size="sm" />
+        Thu tiền
+      </h3>
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium">Hình thức</legend>
         <RadioGroup value={method} onValueChange={(v) => setMethod(v as PaymentMethod)} disabled={saving || busy} className="grid grid-cols-2 gap-2">
-          {methods.map((m) => (
+          {methods.map((m) => {
+            const Icon = methodIcons[m.value] ?? Banknote;
+            const selected = method === m.value;
+            return (
             <Label
               key={m.value}
               htmlFor={`pay-${m.value}`}
               className={cn(
-                "flex min-h-11 cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-normal transition-colors hover:bg-muted/50",
-                method === m.value && "border-primary bg-accent/50",
+                "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2 text-sm font-normal transition-all duration-150 hover:border-primary/40 hover:bg-primary/[0.03] has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
+                selected && "border-primary bg-primary/[0.06] shadow-sm ring-1 ring-primary/20",
               )}
             >
-              <RadioGroupItem id={`pay-${m.value}`} value={m.value} />
-              <span className="flex flex-col">
+              <RadioGroupItem id={`pay-${m.value}`} value={m.value} className="sr-only" />
+              <span
+                className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors", selected ? "bg-active-gradient text-white shadow-glow" : "bg-muted text-muted-foreground")}
+                aria-hidden
+              >
+                <Icon className="size-4" />
+              </span>
+              <span className="flex min-w-0 flex-col">
                 <span className="font-medium">{m.label}</span>
                 {m.value === "wallet" && (
                   <span className="text-xs text-muted-foreground">
@@ -479,8 +591,10 @@ function PaymentForm({ invoice, busy, onDone, onQr }: { invoice: Invoice; busy: 
                   </span>
                 )}
               </span>
+              {selected && <CircleCheck className="ml-auto size-4 shrink-0 text-primary" aria-hidden />}
             </Label>
-          ))}
+            );
+          })}
         </RadioGroup>
       </fieldset>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -552,20 +666,26 @@ function TransferQrDialog({ invoiceId, amount, onClose }: { invoiceId: string; a
             <ErrorState problem={problem} onRetry={reload} />
           )
         ) : !data ? (
-          <div role="status" aria-label="Đang tạo mã QR" className="mx-auto size-64 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+          <div role="status" aria-label="Đang tạo mã QR" className="skeleton mx-auto size-64 rounded-3xl" />
         ) : (
-          <div className="flex flex-col items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element -- ảnh base64 do BE sinh, không qua tối ưu ảnh */}
-            <img src={`data:image/png;base64,${data.pngBase64}`} alt={`Mã QR chuyển ${formatMoney(data.amount)}`} className="size-64 rounded-md border bg-white" />
-            <dl className="grid w-full grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative rounded-3xl bg-brand-gradient p-[3px] shadow-glow">
+              <div className="flex flex-col items-center gap-2 rounded-[calc(1.5rem-3px)] bg-white p-3">
+                {/* eslint-disable-next-line @next/next/no-img-element -- ảnh base64 do BE sinh, không qua tối ưu ảnh */}
+                <img src={`data:image/png;base64,${data.pngBase64}`} alt={`Mã QR chuyển ${formatMoney(data.amount)}`} className="size-60 rounded-xl" />
+              </div>
+            </div>
+            <p className="text-center">
+              <span className="block text-xs text-muted-foreground">Số tiền</span>
+              <span className="text-2xl font-bold tracking-tight tabular">{formatMoney(data.amount)}</span>
+            </p>
+            <dl className="grid w-full grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 rounded-2xl border bg-muted/30 p-3 text-sm">
               <dt className="text-muted-foreground">Ngân hàng</dt>
               <dd>{data.bankName}</dd>
               <dt className="text-muted-foreground">Số tài khoản</dt>
               <dd className="font-mono">{data.accountNo}</dd>
               <dt className="text-muted-foreground">Chủ tài khoản</dt>
-              <dd>{data.accountName}</dd>
-              <dt className="text-muted-foreground">Số tiền</dt>
-              <dd className="tabular font-medium">{formatMoney(data.amount)}</dd>
+              <dd className="font-medium">{data.accountName}</dd>
               <dt className="text-muted-foreground">Nội dung</dt>
               <dd className="font-mono break-all">{data.purpose}</dd>
             </dl>
@@ -609,9 +729,11 @@ function ReceiptDialog({ invoiceId, hasContact, onClose, onSent }: { invoiceId: 
         {problem ? (
           <ErrorState problem={problem} onRetry={reload} />
         ) : !data ? (
-          <div role="status" aria-label="Đang tải phiếu thu" className="h-40 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+          <div role="status" aria-label="Đang tải phiếu thu" className="skeleton h-40 rounded-2xl" />
         ) : (
-          <pre className="max-h-72 overflow-auto rounded-md border bg-muted/30 p-3 font-sans text-sm whitespace-pre-wrap">{data.text}</pre>
+          <pre className="scrollbar-thin max-h-72 overflow-auto rounded-2xl border border-dashed bg-muted/30 p-4 font-sans text-sm leading-relaxed whitespace-pre-wrap">
+            {data.text}
+          </pre>
         )}
         {sendProblem && (
           <p role="alert" className="text-sm text-destructive">

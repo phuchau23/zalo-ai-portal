@@ -2,13 +2,28 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Clock, Plus, Receipt, Ticket, type LucideIcon } from "lucide-react";
+import {
+  Building2,
+  CircleDollarSign,
+  Clock,
+  Plus,
+  Receipt,
+  Ticket,
+  TrendingUp,
+  UserRound,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import { AnimatedNumber } from "@/components/common/animated-number";
+import { FilterLayout, FilterSection } from "@/components/common/filter-layout";
+import { FilterPills } from "@/components/common/filter-pills";
+import { IconTile, type Tone } from "@/components/common/icon-tile";
 import { PageHeader } from "@/components/common/page-header";
+import { InvoiceStatusBadge, invoiceStatusLook } from "@/components/common/status-pill";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -100,9 +115,9 @@ export function SalesPage({ initialTab, openNew = false }: { initialTab: SalesTa
         <EmptyState icon={Receipt} title="Chưa có chi nhánh" description="Thêm chi nhánh ở Cài đặt trước khi lập hóa đơn." />
       ) : (
         <Tabs value={tab} onValueChange={changeTab} className="gap-0">
-          <div className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="overflow-x-auto">
-              <TabsList variant="line" className="group-data-horizontal/tabs:h-10">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-full overflow-x-auto [scrollbar-width:none]">
+              <TabsList variant="pill">
                 {salesTabs.map((t) => (
                   <TabsTrigger key={t.value} value={t.value}>
                     <t.icon aria-hidden />
@@ -113,7 +128,8 @@ export function SalesPage({ initialTab, openNew = false }: { initialTab: SalesTa
             </div>
             {branchList.length > 1 && tab !== "vouchers" && (
               <Select value={branchId} onValueChange={setSelectedBranch}>
-                <SelectTrigger aria-label="Chi nhánh" className="h-11 w-full sm:h-9 sm:w-56">
+                <SelectTrigger aria-label="Chi nhánh" className="h-11 w-full bg-card shadow-card sm:h-9 sm:w-56">
+                  <Building2 className="text-muted-foreground" aria-hidden />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -127,13 +143,13 @@ export function SalesPage({ initialTab, openNew = false }: { initialTab: SalesTa
             )}
           </div>
 
-          <TabsContent value="invoices" className="pt-4">
+          <TabsContent value="invoices" className="pt-5">
             {tab === "invoices" && <InvoicesTab branchId={branchId} multiBranch={branchList.length > 1} version={version} onOpen={setDetailId} onCreate={() => setCreating(true)} />}
           </TabsContent>
-          <TabsContent value="shift" className="pt-4">
+          <TabsContent value="shift" className="pt-5">
             {tab === "shift" && branchId && <CashShiftSection branchId={branchId} />}
           </TabsContent>
-          <TabsContent value="vouchers" className="pt-4">
+          <TabsContent value="vouchers" className="pt-5">
             {tab === "vouchers" && <VouchersSection canEdit={canEditVouchers} />}
           </TabsContent>
         </Tabs>
@@ -168,9 +184,11 @@ function InvoicesTab({
   onOpen: (id: string) => void;
   onCreate: () => void;
 }) {
-  const [range, setRange] = useState(() => defaultDateRange(30));
+  const [defaults] = useState(() => defaultDateRange(30));
+  const [range, setRange] = useState(defaults);
   const [status, setStatus] = useState(ALL);
   const iso = dateRangeToIso(range.from, range.to);
+  const filtered = range.from !== defaults.from || range.to !== defaults.to || status !== ALL;
 
   const invoices = useApiData<InvoiceSummary[]>(() =>
     call(() => api.GET("/invoices", { params: { query: { from: iso.from, to: iso.to, branchId: branchId || undefined, status: status === ALL ? undefined : status } } })),
@@ -181,36 +199,54 @@ function InvoicesTab({
   }, [iso.from, iso.to, branchId, status, version]);
 
   const rows = useMemo(() => [...(invoices.data ?? [])].sort((a, b) => b.issuedAt.localeCompare(a.issuedAt)), [invoices.data]);
-  const sum = rows.reduce((s, r) => (r.status === "void" ? s : s + r.total), 0);
+  const live = rows.filter((r) => r.status !== "void");
+  const sum = live.reduce((s, r) => s + r.total, 0);
+  const paid = live.reduce((s, r) => s + r.paidAmount, 0);
+  const due = live.reduce((s, r) => s + r.due, 0);
+  const statusOptions = [
+    { value: ALL, label: "Tất cả", icon: Receipt, tone: "primary" as Tone },
+    ...invoiceStatuses.map((s) => ({ value: s as string, label: invoiceStatusOf(s).label, ...invoiceStatusLook[s] })),
+  ];
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="inv-from">Từ ngày</Label>
-          <Input id="inv-from" type="date" value={range.from} max={range.to} onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} className="h-11 sm:h-9" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="inv-to">Đến ngày</Label>
-          <Input id="inv-to" type="date" value={range.to} min={range.from} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} className="h-11 sm:h-9" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="inv-status">Trạng thái</Label>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger id="inv-status" className="h-11 w-full sm:h-9 sm:w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Mọi trạng thái</SelectItem>
-              {invoiceStatuses.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {invoiceStatusOf(s).label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+    <FilterLayout
+      onReset={
+        filtered
+          ? () => {
+              setRange(defaults);
+              setStatus(ALL);
+            }
+          : undefined
+      }
+      filters={
+        <>
+          <FilterSection label="Từ ngày" htmlFor="inv-from">
+            <Input
+              id="inv-from"
+              type="date"
+              value={range.from}
+              max={range.to}
+              onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
+              className="h-11 w-full sm:h-9"
+            />
+          </FilterSection>
+          <FilterSection label="Đến ngày" htmlFor="inv-to">
+            <Input id="inv-to" type="date" value={range.to} min={range.from} onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} className="h-11 w-full sm:h-9" />
+          </FilterSection>
+          <FilterSection label="Trạng thái">
+            <FilterPills label="Lọc theo trạng thái" variant="list" value={status} options={statusOptions} onChange={setStatus} />
+          </FilterSection>
+        </>
+      }
+    >
+      {invoices.data && rows.length > 0 && (
+        <dl className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
+          <MoneyStat label="Doanh thu" hint="Tổng hóa đơn, trừ đã hủy" value={sum} icon={TrendingUp} tone="primary" />
+          <MoneyStat label="Đã thu" hint="Tiền khách đã trả" value={paid} icon={Wallet} tone="success" />
+          <MoneyStat label="Còn nợ" hint="Chưa thu hết" value={due} icon={CircleDollarSign} tone={due > 0 ? "warning" : "muted"} />
+          <MoneyStat label="Hóa đơn" hint="Trong khoảng ngày" value={rows.length} icon={Receipt} tone="muted" plain />
+        </dl>
+      )}
 
       {invoices.problem && !invoices.data ? (
         <ErrorState problem={invoices.problem} onRetry={invoices.reload} />
@@ -224,7 +260,7 @@ function InvoicesTab({
           </Button>
         </EmptyState>
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -239,37 +275,75 @@ function InvoicesTab({
             </TableHeader>
             <TableBody>
               {rows.map((r) => {
-                const st = invoiceStatusOf(r.status);
+                const voided = r.status === "void";
                 return (
-                  <TableRow key={r.id} className={cn("cursor-pointer", r.status === "void" && "text-muted-foreground")} onClick={() => onOpen(r.id)}>
+                  <TableRow key={r.id} className={cn("cursor-pointer", voided && "text-muted-foreground")} onClick={() => onOpen(r.id)}>
                     <TableCell>
-                      <button type="button" className="font-mono font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none" onClick={() => onOpen(r.id)}>
+                      <button
+                        type="button"
+                        className={cn(
+                          "inline-flex min-h-6 cursor-pointer items-center rounded-md bg-muted/70 px-2 font-mono text-[13px] font-semibold focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none pointer-coarse:min-h-11",
+                          voided && "line-through",
+                        )}
+                        onClick={() => onOpen(r.id)}
+                      >
                         {r.number}
                       </button>
-                      <div className="text-xs text-muted-foreground lg:hidden">{formatDateTime(r.issuedAt)}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground tabular lg:hidden">{formatDateTime(r.issuedAt)}</div>
                     </TableCell>
-                    <TableCell className="max-w-40 truncate">
-                      {r.contactName ?? <span className="text-muted-foreground">Khách lẻ</span>}
-                      {multiBranch && <div className="text-xs text-muted-foreground">{r.branchName}</div>}
+                    <TableCell className="max-w-48">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        {r.contactName ? (
+                          <PersonAvatar name={r.contactName} size="sm" />
+                        ) : (
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden>
+                            <UserRound className="size-4" />
+                          </span>
+                        )}
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-medium">{r.contactName ?? <span className="text-muted-foreground">Khách lẻ</span>}</span>
+                          {multiBranch && <span className="truncate text-xs text-muted-foreground">{r.branchName}</span>}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={st.variant}>{st.label}</Badge>
+                      <InvoiceStatusBadge status={r.status} />
                     </TableCell>
-                    <TableCell className="tabular text-right font-medium">{formatMoney(r.total)}</TableCell>
-                    <TableCell className="tabular hidden text-right sm:table-cell">{formatMoney(r.paidAmount)}</TableCell>
-                    <TableCell className={cn("tabular hidden text-right md:table-cell", r.due > 0 && r.status !== "void" && "text-warning")}>{formatMoney(r.due)}</TableCell>
+                    <TableCell className="tabular text-right font-semibold">{formatMoney(r.total)}</TableCell>
+                    <TableCell className="tabular hidden text-right text-muted-foreground sm:table-cell">{formatMoney(r.paidAmount)}</TableCell>
+                    <TableCell className={cn("tabular hidden text-right md:table-cell", r.due > 0 && !voided ? "font-semibold text-warning" : "text-muted-foreground")}>
+                      {formatMoney(r.due)}
+                    </TableCell>
                     <TableCell className="tabular hidden text-muted-foreground lg:table-cell">{formatDateTime(r.issuedAt)}</TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
-          <div className="flex items-center justify-between gap-2 border-t bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex items-center justify-between gap-2 border-t bg-muted/40 px-4 py-2.5 text-xs text-muted-foreground">
             <span className="tabular">{rows.length} hóa đơn</span>
-            <span className="tabular">Tổng (trừ đã hủy): {formatMoney(sum)}</span>
+            <span className="tabular">
+              Tổng (trừ đã hủy): <span className="font-semibold text-foreground">{formatMoney(sum)}</span>
+            </span>
           </div>
         </div>
       )}
+    </FilterLayout>
+  );
+}
+
+/** Thẻ số liệu nhanh của khoảng ngày đang lọc (doanh thu, đã thu, còn nợ, số hóa đơn): số chạy lên khi đổi bộ lọc. */
+function MoneyStat({ label, hint, value, icon, tone, plain = false }: { label: string; hint: string; value: number; icon: LucideIcon; tone: Tone; plain?: boolean }) {
+  return (
+    <div className="surface flex items-center gap-3 rounded-2xl p-3.5">
+      <IconTile icon={icon} tone={tone} size="md" />
+      <div className="flex min-w-0 flex-col">
+        <dt className="truncate text-xs font-medium text-muted-foreground">{label}</dt>
+        <dd className={cn("truncate text-xl leading-tight font-bold tracking-tight", tone === "warning" && "text-warning")}>
+          <AnimatedNumber value={value} format={plain ? undefined : formatMoney} />
+        </dd>
+        <dd className="hidden truncate text-[11px] text-muted-foreground sm:block">{hint}</dd>
+      </div>
     </div>
   );
 }

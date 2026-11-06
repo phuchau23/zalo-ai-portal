@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { CircleAlert, LoaderCircle, Plus, Trash2, UserRound } from "lucide-react";
+import { CircleAlert, LoaderCircle, Plus, ShoppingBag, Trash2, UserRound } from "lucide-react";
 import { Field } from "@/components/common/field";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -226,13 +226,19 @@ export function InvoiceEditorDialog({ mode, onClose, onSaved }: { mode: EditorMo
               </p>
             )}
             {lines.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Chưa có dòng nào. Chọn mục bên dưới để thêm.</p>
+              <p className="flex items-center gap-2.5 rounded-2xl border border-dashed bg-muted/30 px-4 py-5 text-sm text-muted-foreground">
+                <ShoppingBag className="size-5 shrink-0" aria-hidden />
+                Chưa có dòng nào. Chọn dịch vụ, gói hoặc sản phẩm ở ô &quot;Thêm dòng&quot; bên dưới.
+              </p>
             ) : (
-              <ul className="flex flex-col divide-y rounded-xl border bg-card">
+              <ul className="flex flex-col gap-2">
                 {lines.map((l, i) => {
                   const amount = lineTotal({ quantity: Number(l.quantity) || 0, unitPrice: Number(l.unitPrice) || 0, discount: Number(l.discount) || 0 });
                   return (
-                    <li key={l.key} className="flex flex-col gap-2 p-3">
+                    <li
+                      key={l.key}
+                      className="flex flex-col gap-2 rounded-2xl border bg-card p-3 shadow-card animate-in fade-in-0 slide-in-from-top-1 duration-200 motion-reduce:animate-none"
+                    >
                       <div className="flex items-start gap-2">
                         {l.kind === "custom" ? (
                           <Field id={`${p}-desc-${l.key}`} label="Mô tả" error={lineError(i, "description")} className="min-w-0 flex-1">
@@ -249,9 +255,14 @@ export function InvoiceEditorDialog({ mode, onClose, onSaved }: { mode: EditorMo
                             />
                           </Field>
                         ) : (
-                          <div className="flex min-w-0 flex-1 flex-col pt-1">
-                            <span className="text-sm font-medium">{l.description}</span>
-                            <span className="text-xs text-muted-foreground">{l.kind === "package" ? "Dùng buổi gói (0 đ)" : "Từ danh mục"}</span>
+                          <div className="flex min-w-0 flex-1 items-center gap-2.5 pt-0.5">
+                            <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-semibold text-muted-foreground tabular" aria-hidden>
+                              {i + 1}
+                            </span>
+                            <span className="flex min-w-0 flex-col">
+                              <span className="text-sm font-semibold">{l.description}</span>
+                              <span className="text-xs text-muted-foreground">{l.kind === "package" ? "Dùng buổi gói (0 đ)" : "Từ danh mục"}</span>
+                            </span>
                           </div>
                         )}
                         <Button type="button" variant="ghost" size="icon-sm" className="size-9 shrink-0" aria-label="Bỏ dòng" disabled={saving} onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}>
@@ -325,7 +336,10 @@ export function InvoiceEditorDialog({ mode, onClose, onSaved }: { mode: EditorMo
                           </Select>
                         </Field>
                       </div>
-                      <p className="tabular text-right text-sm font-medium">{formatMoney(amount)}</p>
+                      <p className="flex items-center justify-end gap-2 border-t border-dashed pt-2 text-sm">
+                        <span className="text-xs text-muted-foreground">Thành tiền</span>
+                        <span className="tabular font-semibold">{formatMoney(amount)}</span>
+                      </p>
                     </li>
                   );
                 })}
@@ -337,7 +351,7 @@ export function InvoiceEditorDialog({ mode, onClose, onSaved }: { mode: EditorMo
                 Thêm dòng
               </Label>
               <Select value={picker} onValueChange={addLine} disabled={saving || loading}>
-                <SelectTrigger id={`${p}-add`} className="h-11 w-full sm:h-9 sm:max-w-md">
+                <SelectTrigger id={`${p}-add`} className="h-11 w-full border-dashed border-primary/40 bg-primary/[0.03] hover:bg-primary/[0.06] sm:h-10 sm:max-w-md">
                   <Plus className="text-muted-foreground" aria-hidden />
                   <SelectValue placeholder={loading ? "Đang tải danh mục..." : "Chọn dịch vụ, gói, sản phẩm hoặc dòng tự nhập"} />
                 </SelectTrigger>
@@ -378,7 +392,7 @@ export function InvoiceEditorDialog({ mode, onClose, onSaved }: { mode: EditorMo
             <Field id={`${p}-note`} label="Ghi chú" error={errors.note}>
               <Textarea id={`${p}-note`} rows={2} maxLength={1000} value={note} disabled={saving} onChange={(e) => setNote(e.target.value)} aria-invalid={Boolean(errors.note)} />
             </Field>
-            <dl className="flex min-w-48 flex-col gap-1 rounded-md border bg-muted/30 p-3 text-sm">
+            <dl className="flex min-w-56 flex-col gap-1.5 self-start rounded-2xl border bg-card p-4 text-sm shadow-card">
               <div className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">Tạm tính</dt>
                 <dd className="tabular">{formatMoney(totals.subtotal)}</dd>
@@ -389,9 +403,9 @@ export function InvoiceEditorDialog({ mode, onClose, onSaved }: { mode: EditorMo
                   <dd className="tabular">− {formatMoney(totals.discount + totals.voucher)}</dd>
                 </div>
               )}
-              <div className="flex justify-between gap-3 border-t pt-1 font-semibold">
-                <dt>Tổng</dt>
-                <dd className="tabular">{formatMoney(totals.total)}</dd>
+              <div className="mt-1 flex items-baseline justify-between gap-3 rounded-xl bg-primary/[0.07] px-3 py-2.5">
+                <dt className="font-semibold">Tổng</dt>
+                <dd className="tabular text-xl font-bold tracking-tight text-primary">{formatMoney(totals.total)}</dd>
               </div>
             </dl>
           </div>
