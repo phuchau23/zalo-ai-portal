@@ -8,6 +8,13 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-canvas: var(--canvas);
+  --color-shell: var(--shell);
+  --color-shell-foreground: var(--shell-foreground);
+  --color-shell-muted: var(--shell-muted);
+  --color-shell-accent: var(--shell-accent);
+  --color-shell-border: var(--shell-border);
+  --color-shell-deep: var(--shell-deep);
+  --color-primary-deep: var(--primary-deep);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
@@ -55,70 +62,123 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Thang bóng đổ dùng chung: card (thẻ nằm trên nền), card-hover (thẻ bấm được), float (thanh dưới điện thoại). */
+/*
+ * Thang bóng đổ dùng chung: card (thẻ nằm trên nền), card-hover (thẻ bấm được), float (thanh dưới điện thoại),
+ * panel (tấm nội dung nổi trên khung tối), glow (nút/mục đang chọn phát sáng nhẹ).
+ * Hiệu ứng: shimmer (khung xương đang tải), float-slow (biểu tượng trạng thái trống), ping-soft (chấm "đang hoạt động").
+ */
 @theme {
   --shadow-card: 0 1px 2px 0 oklch(0.25 0.04 265 / 0.05), 0 1px 3px 0 oklch(0.25 0.04 265 / 0.04);
   --shadow-card-hover: 0 2px 4px -1px oklch(0.25 0.04 265 / 0.06), 0 8px 20px -6px oklch(0.25 0.05 265 / 0.12);
   --shadow-float: 0 -1px 0 0 oklch(0.25 0.04 265 / 0.04), 0 -8px 24px -12px oklch(0.25 0.05 265 / 0.18);
+  --shadow-panel: 0 0 0 1px oklch(0.2 0.03 265 / 0.07), 0 2px 12px -4px oklch(0.25 0.05 265 / 0.1);
+  --shadow-glow: 0 8px 24px -10px color-mix(in oklch, var(--primary) 70%, transparent);
+  --shadow-glow-ai: 0 8px 24px -10px color-mix(in oklch, var(--ai) 70%, transparent);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-float-slow: float-slow 5s ease-in-out infinite;
+  --animate-ping-soft: ping-soft 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes float-slow {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  @keyframes ping-soft {
+    75%,
+    100% {
+      transform: scale(2.2);
+      opacity: 0;
+    }
+  }
 }
 
 /*
- * Bộ màu: xanh dương (primary) trên nền xám-xanh rất nhạt (canvas), thẻ trắng (card).
+ * Bộ màu: **xanh Zalo** (#0068FF = primary, chủ dự án chốt 2026-11-01) trên nền xám-xanh rất nhạt (canvas), thẻ trắng (card).
+ * `--primary-deep` (#0050C8): đầu đậm của dải màu nút/mục đang chọn.
  * `--background` giữ màu trắng cho ô nhập, nút viền, tab đang chọn; `--canvas` là nền vùng nội dung.
  * `--ai` (tím) chỉ dùng cho những gì AI làm (bot tự chốt lịch, doanh thu bot mang về...) để người dùng nhận ra ngay.
  * success/warning/info dùng cho trạng thái dữ liệu. Mọi màu chữ trên nền trắng đạt tương phản >= 4.5:1.
+ * `--shell*`: khung trắng bao quanh tấm nội dung trên máy tính — chứa thanh bên (chủ dự án chọn 2026-11-01: thanh bên xanh đậm
+ * bị chói → trắng, xanh Zalo chỉ làm điểm nhấn: mục đang chọn, logo, nút chính). Tấm nội dung nền `--canvas` có viền mảnh.
  */
 :root {
   --background: oklch(1 0 0);
-  --canvas: oklch(0.982 0.0045 256);
+  --canvas: oklch(0.975 0.008 258);
+  --shell: oklch(1 0 0);
+  --shell-deep: oklch(0.99 0.004 258);
+  --shell-foreground: oklch(0.33 0.035 260);
+  --shell-muted: oklch(0.51 0.04 257.4);
+  --shell-accent: oklch(0.955 0.014 258);
+  --shell-border: oklch(0.922 0.012 258);
   --foreground: oklch(0.21 0.034 264.7);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.034 264.7);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.21 0.034 264.7);
-  --primary: oklch(0.53 0.2 260);
+  --primary: oklch(0.567 0.239 260.5);
+  --primary-deep: oklch(0.473 0.198 260.5);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0.014 254.6);
-  --secondary-foreground: oklch(0.42 0.17 264);
-  --muted: oklch(0.966 0.007 250);
+  --secondary: oklch(0.968 0.016 259);
+  --secondary-foreground: oklch(0.45 0.19 260.5);
+  --muted: oklch(0.966 0.007 255);
   --muted-foreground: oklch(0.51 0.04 257.4);
-  --accent: oklch(0.958 0.022 254);
-  --accent-foreground: oklch(0.44 0.18 263);
+  --accent: oklch(0.956 0.024 259);
+  --accent-foreground: oklch(0.45 0.19 260.5);
   --destructive: oklch(0.55 0.22 27.3);
   --success: oklch(0.52 0.13 152);
   --warning: oklch(0.55 0.15 50);
-  --info: oklch(0.53 0.2 260);
+  --info: oklch(0.567 0.239 260.5);
   --ai: oklch(0.53 0.22 293);
   --ai-foreground: oklch(1 0 0);
   --ai-soft: oklch(0.96 0.03 293);
-  --border: oklch(0.922 0.011 256);
-  --input: oklch(0.875 0.018 254);
-  --ring: oklch(0.62 0.18 259.8);
-  --chart-1: oklch(0.53 0.2 260);
-  --chart-2: oklch(0.7 0.14 245);
+  --border: oklch(0.922 0.012 258);
+  --input: oklch(0.875 0.02 258);
+  --ring: oklch(0.62 0.2 260);
+  --chart-1: oklch(0.567 0.239 260.5);
+  --chart-2: oklch(0.72 0.13 235);
   --chart-3: oklch(0.53 0.22 293);
-  --chart-4: oklch(0.82 0.08 240);
-  --chart-5: oklch(0.32 0.1 265);
+  --chart-4: oklch(0.83 0.08 245);
+  --chart-5: oklch(0.394 0.169 260.9);
   --radius: 0.625rem;
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.37 0.04 257);
-  --sidebar-primary: oklch(0.53 0.2 260);
+  --sidebar-primary: oklch(0.567 0.239 260.5);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.955 0.028 256);
-  --sidebar-accent-foreground: oklch(0.42 0.17 264);
-  --sidebar-border: oklch(0.922 0.011 256);
-  --sidebar-ring: oklch(0.62 0.18 259.8);
+  --sidebar-accent: oklch(0.956 0.024 259);
+  --sidebar-accent-foreground: oklch(0.45 0.19 260.5);
+  --sidebar-border: oklch(0.922 0.012 258);
+  --sidebar-ring: oklch(0.62 0.2 260);
 }
 
 .dark {
   --background: oklch(0.21 0.03 265);
   --canvas: oklch(0.17 0.025 265);
+  --shell: oklch(0.19 0.028 265);
+  --shell-deep: oklch(0.17 0.025 265);
+  --shell-foreground: oklch(0.88 0.02 255);
+  --shell-muted: oklch(0.72 0.03 255);
+  --shell-accent: oklch(1 0 0 / 0.07);
+  --shell-border: oklch(1 0 0 / 0.1);
+  --primary-deep: oklch(0.56 0.2 260);
   --foreground: oklch(0.97 0.006 248);
   --card: oklch(0.21 0.03 265);
   --card-foreground: oklch(0.97 0.006 248);
   --popover: oklch(0.21 0.03 265);
   --popover-foreground: oklch(0.97 0.006 248);
-  --primary: oklch(0.66 0.17 255);
+  --primary: oklch(0.68 0.17 258);
   --primary-foreground: oklch(0.17 0.025 265);
   --secondary: oklch(0.27 0.05 262);
   --secondary-foreground: oklch(0.88 0.06 250);
@@ -163,6 +223,84 @@
 /* Dải màu thương hiệu (xanh → tím AI) cho logo và thẻ nổi bật về AI. */
 @utility bg-brand-gradient {
   background-image: linear-gradient(135deg, var(--primary) 0%, var(--ai) 100%);
+}
+
+/* Nền mục đang chọn / nút chính: xanh Zalo → xanh đậm, chữ trắng đạt tương phản. */
+@utility bg-active-gradient {
+  background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-deep) 100%);
+}
+
+/* Nền khung của thanh bên (máy tính): trắng, nhạt dần rất nhẹ xuống dưới. */
+@utility bg-shell-gradient {
+  background-color: var(--shell);
+  background-image: linear-gradient(180deg, var(--shell) 0%, var(--shell-deep) 100%);
+}
+
+/* Chữ dải màu (tiêu đề lớn, số nổi bật). */
+@utility text-brand-gradient {
+  background-image: linear-gradient(120deg, var(--primary) 10%, var(--ai) 90%);
+  background-clip: text;
+  color: transparent;
+}
+
+/* Lưới chấm mờ: nền khung chat, phần trang trí sau tiêu đề trang, trạng thái trống. */
+@utility bg-dot-grid {
+  background-image: radial-gradient(color-mix(in oklch, var(--foreground) 10%, transparent) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Khung xương đang tải: dải sáng chạy ngang (tắt khi người dùng chọn giảm chuyển động). */
+@utility skeleton {
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+  background-image: linear-gradient(90deg, transparent 0%, color-mix(in oklch, var(--background) 70%, transparent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* Thẻ bấm được: nổi nhẹ khi rê chuột. */
+@utility lift {
+  transition-property: transform, box-shadow, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+/* Sáu dải màu cho ảnh đại diện chữ cái (PersonAvatar chọn theo tên). Đủ đậm để chữ trắng đọc được. */
+@utility avatar-tone-1 {
+  background-image: linear-gradient(135deg, oklch(0.6 0.17 250), oklch(0.48 0.2 268));
+}
+@utility avatar-tone-2 {
+  background-image: linear-gradient(135deg, oklch(0.6 0.11 195), oklch(0.47 0.11 215));
+}
+@utility avatar-tone-3 {
+  background-image: linear-gradient(135deg, oklch(0.6 0.19 300), oklch(0.47 0.2 285));
+}
+@utility avatar-tone-4 {
+  background-image: linear-gradient(135deg, oklch(0.62 0.19 12), oklch(0.5 0.2 355));
+}
+@utility avatar-tone-5 {
+  background-image: linear-gradient(135deg, oklch(0.63 0.15 58), oklch(0.53 0.16 38));
+}
+@utility avatar-tone-6 {
+  background-image: linear-gradient(135deg, oklch(0.6 0.14 155), oklch(0.48 0.12 172));
+}
+
+/* Thanh cuộn mảnh cho vùng cuộn bên trong (danh sách hội thoại, tấm nội dung). */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 18%, transparent) transparent;
 }
 
 @layer base {
