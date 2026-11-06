@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { ArrowRight, ChevronDown, CircleAlert, CircleCheck, FileUp, Lock } from "lucide-react";
+import { ArrowRight, ChevronDown, CircleAlert, CircleCheck, Copy, FileUp, GitCompareArrows, Lock, Minus, PencilLine, Plus, type LucideIcon } from "lucide-react";
+import { IconTile, type Tone } from "@/components/common/icon-tile";
 import { PageHeader } from "@/components/common/page-header";
-import { ErrorState, LoadingRows } from "@/components/common/states";
+import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -30,26 +31,39 @@ import { cn } from "@/lib/utils";
 import { importStatus } from "../../history-tab";
 import { decide, initialDecisions, lockedMissingKeys, plannedCounts, setAll, toSelections, type Decision, type Decisions } from "./selection";
 
-type Section = { type: string; title: string; hint: string; tone: { bar: string; text: string } };
+type Section = { type: string; title: string; hint: string; icon: LucideIcon; tile: Tone; tone: { bar: string; text: string } };
 
 const sections: Section[] = [
   {
     type: "possibleDuplicate",
     title: "Có thể trùng — cần bạn quyết định",
     hint: "Mã khác nhưng tên gần giống một mục đang có. Thường là cùng một dịch vụ được đặt mã mới: chọn \"Gộp vào mục cũ\" để cập nhật mục cũ.",
+    icon: Copy,
+    tile: "warning",
     tone: { bar: "bg-warning", text: "text-warning" },
   },
   {
     type: "changed",
     title: "Thay đổi",
     hint: "Cùng mã, nội dung khác. Kiểm tra kỹ giá trước khi áp dụng.",
+    icon: PencilLine,
+    tile: "primary",
     tone: { bar: "bg-primary", text: "text-primary" },
   },
-  { type: "added", title: "Thêm mới", hint: "Mã chưa có trong dữ liệu hiện tại.", tone: { bar: "bg-success", text: "text-success" } },
+  {
+    type: "added",
+    title: "Thêm mới",
+    hint: "Mã chưa có trong dữ liệu hiện tại.",
+    icon: Plus,
+    tile: "success",
+    tone: { bar: "bg-success", text: "text-success" },
+  },
   {
     type: "missing",
     title: "Không còn trong file mới",
     hint: "Đang có nhưng file mới không có. Mặc định GIỮ LẠI; chỉ chọn những mục bạn chắc chắn muốn xóa.",
+    icon: Minus,
+    tile: "destructive",
     tone: { bar: "bg-destructive", text: "text-destructive" },
   },
 ];
@@ -66,7 +80,7 @@ export function ImportReview({ importId }: { importId: string }) {
   if (!data) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="h-20 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+        <div className="skeleton h-20 rounded-2xl" />
         <LoadingRows rows={6} columns={3} label="Đang tải bản so sánh" />
       </div>
     );
@@ -137,6 +151,8 @@ function Review({ data, isOwner, canEdit, onChanged }: { data: KnowledgeImport; 
     <div className="flex flex-col gap-6">
       <PageHeader
         back={{ href: "/knowledge?tab=history", label: "Lịch sử nhập" }}
+        icon={GitCompareArrows}
+        tone="ai"
         title="Duyệt nhập dữ liệu"
         meta={
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -156,21 +172,21 @@ function Review({ data, isOwner, canEdit, onChanged }: { data: KnowledgeImport; 
         }
       />
 
-      <nav aria-label="Tóm tắt thay đổi" className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card sm:grid-cols-5">
+      <nav aria-label="Tóm tắt thay đổi" className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {summaryCells.map((c) => {
           const jump = c.type && c.value > 0;
           const content = (
             <>
               <span className="text-xs font-medium text-muted-foreground">{c.label}</span>
-              <span className={cn("tabular text-2xl font-semibold tracking-tight", c.value ? c.tone : "text-muted-foreground/60")}>{c.value}</span>
+              <span className={cn("tabular text-2xl font-bold tracking-tight", c.value ? c.tone : "text-muted-foreground/60")}>{c.value}</span>
             </>
           );
-          const className = "-mt-px -ml-px flex flex-col gap-1 border-t border-l px-4 py-3";
+          const className = "surface flex flex-col gap-1 px-4 py-3";
           return jump ? (
             <a
               key={c.label}
               href={`#section-${c.type}`}
-              className={cn(className, "transition-colors hover:bg-accent/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none focus-visible:ring-inset")}
+              className={cn(className, "lift focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none")}
             >
               {content}
             </a>
@@ -210,21 +226,18 @@ function Review({ data, isOwner, canEdit, onChanged }: { data: KnowledgeImport; 
         </Alert>
       )}
 
-      {items.length === 0 && (
-        <div className="rounded-md border border-dashed px-6 py-10 text-center text-sm text-muted-foreground">
-          File không có gì khác so với dữ liệu hiện tại.
-        </div>
-      )}
+      {items.length === 0 && <EmptyState icon={CircleCheck} title="Không có gì thay đổi" description="File không có gì khác so với dữ liệu hiện tại." />}
 
       {sections.map((section) => {
         const sectionItems = items.filter((i) => i.type === section.type);
         if (sectionItems.length === 0) return null;
         const picked = sectionItems.filter((i) => (decisions[i.key] ?? "skip") !== "skip").length;
         return (
-          <section key={section.type} id={`section-${section.type}`} className="scroll-mt-20 overflow-hidden rounded-xl border bg-card">
-            <div className="relative flex flex-col gap-3 border-b bg-muted/40 px-4 py-3 pl-5 sm:flex-row sm:items-start sm:justify-between">
+          <section key={section.type} id={`section-${section.type}`} className="scroll-mt-20 overflow-hidden rounded-2xl border bg-card shadow-card">
+            <div className="relative flex flex-col gap-3 border-b bg-muted/30 px-4 py-3.5 pl-5 sm:flex-row sm:items-start sm:justify-between">
               <span className={cn("absolute inset-y-0 left-0 w-1", section.tone.bar)} aria-hidden />
-              <div className="flex min-w-0 flex-col gap-0.5">
+              <IconTile icon={section.icon} tone={section.tile} size="sm" className="hidden sm:flex" />
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <h2 className="flex flex-wrap items-baseline gap-x-2 font-semibold">
                   {section.title}
                   <span className={cn("tabular text-sm", section.tone.text)}>{sectionItems.length} mục</span>
@@ -260,8 +273,9 @@ function Review({ data, isOwner, canEdit, onChanged }: { data: KnowledgeImport; 
       })}
 
       {canEdit && items.length > 0 && (
-        <div className="sticky bottom-0 z-10 -mx-4 border-t bg-background/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:-mx-8 md:px-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-10 md:bottom-4">
+          <div className="flex flex-col gap-3 rounded-2xl border bg-card/95 px-4 py-3 shadow-card-hover backdrop-blur supports-backdrop-filter:bg-card/85 sm:flex-row sm:items-center">
+            <IconTile icon={GitCompareArrows} size="sm" className="hidden sm:flex" />
             <p className="tabular flex flex-wrap gap-x-4 gap-y-1 text-sm">
               <span className="text-muted-foreground">Sẽ áp dụng:</span>
               <PlanCount label="thêm" value={counts.added} tone="text-success" />
@@ -403,7 +417,7 @@ function Choice({ id, value, title, children }: { id: string; value: Decision; t
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5 text-sm transition-colors hover:bg-accent/50 has-data-checked:border-primary has-data-checked:bg-accent has-disabled:cursor-default"
+      className="flex cursor-pointer items-start gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition-colors hover:bg-accent/50 has-data-checked:border-primary/50 has-data-checked:bg-accent has-data-checked:shadow-card has-disabled:cursor-default"
     >
       <RadioGroupItem value={value} id={id} className="mt-0.5" />
       <span className="flex flex-col gap-0.5">
@@ -421,9 +435,9 @@ function Changes({ item }: { item: KnowledgeDiffItem }) {
   const oldLabel = item.type === "possibleDuplicate" ? "Mục cũ" : "Hiện tại";
 
   return (
-    <div className="mt-3 overflow-x-auto rounded-xl border bg-card sm:ml-7">
+    <div className="mt-3 overflow-x-auto rounded-xl border bg-card shadow-card sm:ml-7">
       <table className="w-full text-sm">
-        <thead className="bg-muted/60 text-xs text-muted-foreground">
+        <thead className="bg-muted/50 text-xs text-muted-foreground">
           <tr className="text-left">
             <th className="w-40 px-3 py-2 font-medium">Trường</th>
             {showOld && <th className="px-3 py-2 font-medium">{oldLabel}</th>}

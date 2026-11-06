@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Check, CircleAlert, Copy, Lock, ShieldCheck } from "lucide-react";
-import { FileDrop } from "@/components/common/file-drop";
+import { motion } from "motion/react";
+import { Check, CircleAlert, Copy, FileSpreadsheet, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import { IconTile } from "@/components/common/icon-tile";
 import { SectionHeader } from "@/components/common/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,10 @@ import { call } from "@/lib/api/call";
 import { api, type KnowledgeImport } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { uploadFile } from "@/lib/api/upload";
+import { fadeUp, stagger } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { DownloadButtons } from "./download-buttons";
+import { DropZone } from "./drop-zone";
 
 const steps = [
   { title: "Tải file mẫu", text: "Hoặc bấm Xuất Excel để lấy dữ liệu đang có." },
@@ -42,26 +45,41 @@ export function ImportTab({ canEdit }: { canEdit: boolean }) {
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-5">
-        <ol className="grid overflow-hidden rounded-xl border bg-card sm:grid-cols-2 lg:grid-cols-4">
+        <motion.ol
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          aria-label="Các bước nhập dữ liệu"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {steps.map((step, i) => (
-            <li key={step.title} className="-mt-px -ml-px flex gap-3 border-t border-l px-4 py-3">
-              <span className="tabular flex size-6 shrink-0 items-center justify-center rounded-sm bg-primary text-xs font-semibold text-primary-foreground">
+            <motion.li key={step.title} variants={fadeUp} className="surface relative flex gap-3 p-4">
+              <span
+                className="tabular flex size-8 shrink-0 items-center justify-center rounded-full bg-active-gradient text-sm font-bold text-white shadow-glow"
+                aria-hidden
+              >
                 {i + 1}
               </span>
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium">{step.title}</span>
-                <span className="text-xs text-muted-foreground">{step.text}</span>
+                <span className="text-sm font-semibold">
+                  <span className="sr-only">Bước {i + 1}: </span>
+                  {step.title}
+                </span>
+                <span className="text-xs text-pretty text-muted-foreground">{step.text}</span>
               </div>
-            </li>
+              {i < steps.length - 1 && (
+                <span aria-hidden className="absolute top-1/2 -right-2.5 z-10 hidden h-px w-2 bg-primary/30 lg:block" />
+              )}
+            </motion.li>
           ))}
-        </ol>
+        </motion.ol>
 
         <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
           <div className="flex flex-col gap-3">
             {canEdit ? (
-              <FileDrop
+              <DropZone
                 accept=".xlsx,.json"
                 formats="Excel (.xlsx) hoặc JSON theo mẫu"
                 busy={uploading}
@@ -69,21 +87,24 @@ export function ImportTab({ canEdit }: { canEdit: boolean }) {
                 onFile={(file) => void onFile(file)}
               />
             ) : (
-              <div className="flex items-center gap-3 rounded-md border border-dashed px-4 py-8 text-sm text-muted-foreground">
-                <Lock className="size-4 shrink-0" aria-hidden />
+              <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed bg-card px-5 py-10 text-sm text-muted-foreground">
+                <IconTile icon={Lock} tone="muted" size="md" />
                 Chỉ chủ doanh nghiệp được nhập dữ liệu. Bạn vẫn tải được file mẫu và xuất dữ liệu.
               </div>
             )}
             {problem && <ImportErrors problem={problem} />}
           </div>
 
-          <aside className="flex flex-col gap-3 border-t pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-5">
-            <h3 className="text-sm font-semibold">Lấy file để điền</h3>
-            <p className="text-sm text-muted-foreground">
+          <aside className="surface flex flex-col gap-3 p-5">
+            <div className="flex items-center gap-3">
+              <IconTile icon={FileSpreadsheet} tone="success" size="md" />
+              <h3 className="text-sm font-semibold">Lấy file để điền</h3>
+            </div>
+            <p className="text-sm text-pretty text-muted-foreground">
               File mẫu có sẵn các sheet Dịch vụ, Gói liệu trình, Sản phẩm, Câu hỏi thường gặp, Chính sách. Muốn sửa dữ liệu đang có: xuất Excel, sửa, rồi
               nhập lại.
             </p>
-            <div className="flex flex-col gap-2 [&>a]:justify-start">
+            <div className="mt-auto flex flex-col gap-2 [&>a]:justify-start">
               <DownloadButtons />
             </div>
           </aside>
@@ -142,8 +163,12 @@ function AiPrompt() {
   }
 
   return (
-    <section className="flex flex-col gap-4 border-t pt-8">
+    <section className="surface relative flex flex-col gap-4 overflow-hidden p-5 md:p-6">
+      <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full bg-ai/10 blur-3xl" />
       <SectionHeader
+        icon={Sparkles}
+        tone="ai"
+        className="relative"
         title="Nhờ AI chuyển tài liệu có sẵn sang mẫu"
         description={
           <>
@@ -170,7 +195,7 @@ function AiPrompt() {
         readOnly
         value={data?.prompt ?? "Đang tải..."}
         rows={10}
-        className="max-h-80 bg-muted/30 font-mono text-xs leading-relaxed"
+        className="scrollbar-thin relative max-h-80 rounded-xl bg-muted/40 font-mono text-xs leading-relaxed"
         aria-label="Câu lệnh mẫu cho AI"
       />
     </section>
