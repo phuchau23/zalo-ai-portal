@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { CircleAlert, Hourglass, LoaderCircle, Plus } from "lucide-react";
+import { motion } from "motion/react";
+import { CircleAlert, CircleCheck, Clock3, Hourglass, LoaderCircle, Plus } from "lucide-react";
 import { Field, describedBy } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +22,9 @@ import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { formatDateTimeTz, fromLocalInput, toLocalInput } from "@/lib/appointments";
 import type { BadgeVariant } from "@/lib/customers";
 import { emptyToNull } from "@/lib/crm";
+import { fadeUp, stagger } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
+import { cn } from "@/lib/utils";
 import { ContactPicker, type ContactChoice } from "./contact-picker";
 
 const AUTO = "__auto__";
@@ -67,23 +72,36 @@ export function WaitlistSection({
   }
 
   const rows = (data ?? []).filter((e) => showAll || e.status === "waiting" || e.status === "offered").sort((a, b) => a.preferredFrom.localeCompare(b.preferredFrom));
-  const hiddenCount = (data ?? []).length - (data ?? []).filter((e) => e.status === "waiting" || e.status === "offered").length;
+  const openCount = (data ?? []).filter((e) => e.status === "waiting" || e.status === "offered").length;
+  const hiddenCount = (data ?? []).length - openCount;
   const branchStaff = staff.filter((s) => s.branchId === branchId && s.bookable && s.status === "active");
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">Khách muốn giờ đang kín. Có chỗ trống thì mời khách và đặt lịch, rồi đánh dấu &quot;Đã đặt&quot;.</p>
-        <Button onClick={() => setAdding(true)} className="h-11 sm:h-9" disabled={!branchId}>
+      <div className="surface flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <IconTile icon={Hourglass} tone="warning" size="md" />
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-semibold">
+              Khách đang chờ giờ trống
+              {openCount > 0 && (
+                <span className="tabular ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-warning px-1.5 text-[11px] font-semibold text-white align-middle">
+                  {openCount}
+                </span>
+              )}
+            </p>
+            <p className="text-sm text-pretty text-muted-foreground">Khách muốn giờ đang kín. Có chỗ trống thì mời khách và đặt lịch, rồi đánh dấu &quot;Đã đặt&quot;.</p>
+            <Label htmlFor="wl-all" className="flex min-h-11 w-fit cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-0 sm:pt-1">
+              <Checkbox id="wl-all" checked={showAll} onCheckedChange={(v) => setShowAll(v === true)} />
+              Hiện cả đã đặt / đã hủy {hiddenCount > 0 && <span className="tabular text-muted-foreground">({hiddenCount})</span>}
+            </Label>
+          </div>
+        </div>
+        <Button onClick={() => setAdding(true)} className="h-11 shrink-0 sm:h-9" disabled={!branchId}>
           <Plus aria-hidden />
           Thêm vào hàng chờ
         </Button>
       </div>
-
-      <Label htmlFor="wl-all" className="flex min-h-11 w-fit cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-0">
-        <Checkbox id="wl-all" checked={showAll} onCheckedChange={(v) => setShowAll(v === true)} />
-        Hiện cả đã đặt / đã hủy {hiddenCount > 0 && <span className="tabular text-muted-foreground">({hiddenCount})</span>}
-      </Label>
 
       {actionProblem && (
         <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
@@ -99,30 +117,48 @@ export function WaitlistSection({
       ) : rows.length === 0 ? (
         <EmptyState icon={Hourglass} title="Hàng chờ trống" description="Khi khách muốn giờ đã kín, thêm vào đây để không quên mời khách khi có chỗ." />
       ) : (
-        <ul className="flex flex-col divide-y rounded-xl border bg-card">
+        <motion.ul variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-2">
           {rows.map((e) => {
             const status = waitlistStatusLabels[e.status] ?? { label: e.status, variant: "outline" as const };
             const open = e.status === "waiting" || e.status === "offered";
             const busy = busyId === e.id;
+            const staffName = e.staffMemberId ? (staff.find((s) => s.id === e.staffMemberId)?.displayName ?? "nhân viên đã nghỉ") : null;
             return (
-              <li key={e.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="flex flex-wrap items-center gap-2 font-medium">
-                    {e.contactName}
-                    <Badge variant={status.variant}>{status.label}</Badge>
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {e.serviceName}
-                    {e.staffMemberId && ` · ${staff.find((s) => s.id === e.staffMemberId)?.displayName ?? "nhân viên đã nghỉ"}`}
-                  </span>
-                  <span className="text-sm text-muted-foreground tabular">
-                    Muốn từ {formatDateTimeTz(e.preferredFrom, timeZone)} đến {formatDateTimeTz(e.preferredTo, timeZone)}
-                    {e.offeredSlotAt && <span className="text-info"> · đã mời giờ {formatDateTimeTz(e.offeredSlotAt, timeZone)}</span>}
-                  </span>
+              <motion.li
+                key={e.id}
+                variants={fadeUp}
+                className={cn("surface flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center", !open && "opacity-75")}
+              >
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <PersonAvatar name={e.contactName} size="md" />
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="flex flex-wrap items-center gap-2 font-semibold">
+                      {e.contactName}
+                      <Badge variant={status.variant}>{status.label}</Badge>
+                    </span>
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground/85">{e.serviceName}</span>
+                      {staffName && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span aria-hidden>·</span>
+                          <PersonAvatar name={staffName} size="xs" />
+                          {staffName}
+                        </span>
+                      )}
+                    </span>
+                    <span className="inline-flex w-fit flex-wrap items-center gap-1.5 rounded-lg bg-muted/60 px-2 py-1 text-xs text-muted-foreground tabular">
+                      <Clock3 className="size-3.5 shrink-0" aria-hidden />
+                      Muốn từ {formatDateTimeTz(e.preferredFrom, timeZone)} đến {formatDateTimeTz(e.preferredTo, timeZone)}
+                    </span>
+                    {e.offeredSlotAt && (
+                      <span className="text-xs font-medium text-info tabular">Đã mời giờ {formatDateTimeTz(e.offeredSlotAt, timeZone)}</span>
+                    )}
+                  </div>
                 </div>
                 {open && (
                   <div className="flex flex-wrap gap-2 sm:justify-end">
                     <Button variant="outline" size="sm" className="h-11 sm:h-8" disabled={busy} onClick={() => void setStatus(e, "booked")}>
+                      <CircleCheck aria-hidden />
                       Đã đặt
                     </Button>
                     <Button variant="ghost" size="sm" className="h-11 text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-8" disabled={busy} onClick={() => void setStatus(e, "cancelled")}>
@@ -130,10 +166,10 @@ export function WaitlistSection({
                     </Button>
                   </div>
                 )}
-              </li>
+              </motion.li>
             );
           })}
-        </ul>
+        </motion.ul>
       )}
 
       {adding && (

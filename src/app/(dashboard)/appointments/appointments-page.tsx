@@ -2,7 +2,25 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, CircleAlert, Plus } from "lucide-react";
+import {
+  Bot,
+  Building2,
+  CalendarCheck2,
+  CalendarDays,
+  CalendarRange,
+  ChevronLeft,
+  ChevronRight,
+  CircleAlert,
+  Hourglass,
+  ListFilter,
+  Plus,
+  Sparkles,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
+import { AnimatedNumber } from "@/components/common/animated-number";
+import { FilterPills } from "@/components/common/filter-pills";
+import { IconTile, type Tone } from "@/components/common/icon-tile";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -214,11 +232,19 @@ export function AppointmentsPage() {
         <EmptyState icon={CalendarDays} title="Chưa có chi nhánh" description="Thêm chi nhánh và giờ mở cửa ở Cài đặt, rồi thêm nhân viên nhận lịch, trước khi đặt lịch." />
       ) : (
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="gap-0">
-          <div className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
-            <TabsList variant="line" className="group-data-horizontal/tabs:h-10">
-              <TabsTrigger value="calendar">Lịch</TabsTrigger>
-              <TabsTrigger value="waitlist">Hàng chờ</TabsTrigger>
-            </TabsList>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-full overflow-x-auto [scrollbar-width:none]">
+              <TabsList variant="pill">
+                <TabsTrigger value="calendar">
+                  <CalendarDays aria-hidden />
+                  Lịch
+                </TabsTrigger>
+                <TabsTrigger value="waitlist">
+                  <Hourglass aria-hidden />
+                  Hàng chờ
+                </TabsTrigger>
+              </TabsList>
+            </div>
             {branchList.length > 1 && (
               <Select
                 value={branchId}
@@ -227,7 +253,8 @@ export function AppointmentsPage() {
                   setStaffFilter(ALL);
                 }}
               >
-                <SelectTrigger aria-label="Chi nhánh" className="h-11 w-full sm:h-9 sm:w-56">
+                <SelectTrigger aria-label="Chi nhánh" className="h-11 w-full bg-card shadow-card sm:h-9 sm:w-56">
+                  <Building2 className="text-muted-foreground" aria-hidden />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -241,82 +268,101 @@ export function AppointmentsPage() {
             )}
           </div>
 
-          <TabsContent value="calendar" className="flex flex-col gap-4 pt-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
-              <div className="flex items-center gap-1.5">
-                <Button variant="outline" className="h-11 sm:h-9" onClick={() => setDate(today)}>
-                  Hôm nay
-                </Button>
-                <Button variant="outline" size="icon" className="size-11 sm:size-9" aria-label={view === "day" ? "Ngày trước" : "Tuần trước"} onClick={() => shift(-1)}>
-                  <ChevronLeft />
-                </Button>
-                <Button variant="outline" size="icon" className="size-11 sm:size-9" aria-label={view === "day" ? "Ngày sau" : "Tuần sau"} onClick={() => shift(1)}>
-                  <ChevronRight />
-                </Button>
-                <Input
-                  type="date"
-                  aria-label="Chọn ngày"
-                  value={date}
-                  onChange={(e) => isDateKey(e.target.value) && setDate(e.target.value)}
-                  className="h-11 w-40 sm:h-9"
-                />
-              </div>
-              <p className="text-sm font-medium lg:order-last lg:ml-auto">
-                {view === "day" ? formatDayLong(date) : `${formatDayShort(days[0])} – ${formatDayShort(days[6])}`}
-              </p>
-              <div role="group" aria-label="Kiểu xem" className="flex rounded-md border p-0.5">
-                {viewLabels.map((v) => (
-                  <Button
-                    key={v.value}
-                    variant={view === v.value ? "default" : "ghost"}
-                    size="sm"
-                    className="h-10 flex-1 sm:h-8"
-                    aria-pressed={view === v.value}
-                    onClick={() => setView(v.value)}
-                  >
-                    {v.label}
+          <TabsContent value="calendar" className="flex flex-col gap-4 pt-5">
+            {/* Thanh công cụ: điều hướng ngày + tiêu đề khoảng đang xem + kiểu xem; hàng dưới là bộ lọc. */}
+            <div className="surface flex flex-col gap-3 rounded-2xl p-3 sm:p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="flex items-center gap-1.5">
+                  <Button variant="outline" className="h-11 sm:h-9" onClick={() => setDate(today)} aria-pressed={date === today}>
+                    Hôm nay
                   </Button>
-                ))}
+                  <div className="flex items-center rounded-lg border bg-background shadow-xs">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-11 rounded-r-none sm:size-9"
+                      aria-label={view === "day" ? "Ngày trước" : "Tuần trước"}
+                      onClick={() => shift(-1)}
+                    >
+                      <ChevronLeft />
+                    </Button>
+                    <span className="h-5 w-px bg-border" aria-hidden />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-11 rounded-l-none sm:size-9"
+                      aria-label={view === "day" ? "Ngày sau" : "Tuần sau"}
+                      onClick={() => shift(1)}
+                    >
+                      <ChevronRight />
+                    </Button>
+                  </div>
+                  <Input
+                    type="date"
+                    aria-label="Chọn ngày"
+                    value={date}
+                    onChange={(e) => isDateKey(e.target.value) && setDate(e.target.value)}
+                    className="h-11 w-40 sm:h-9"
+                  />
+                </div>
+                <div className="flex min-w-0 items-center gap-2.5 lg:mx-auto">
+                  <IconTile icon={view === "day" ? CalendarDays : CalendarRange} size="sm" />
+                  <div className="flex min-w-0 flex-col leading-tight">
+                    <p className="truncate text-base font-semibold tracking-tight">
+                      {view === "day" ? formatDayLong(date) : `${formatDayShort(days[0])} – ${formatDayShort(days[6])}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {date === today && view === "day" ? "Hôm nay" : view === "day" ? "Lịch theo ngày" : "Cả tuần, thứ Hai → Chủ nhật"}
+                    </p>
+                  </div>
+                </div>
+                <FilterPills label="Kiểu xem" variant="soft" value={view} options={viewLabels} onChange={setView} className="lg:w-64" />
               </div>
-              {branchStaff.length > 0 && (
-                <Select value={staffFilter} onValueChange={setStaffFilter}>
-                  <SelectTrigger aria-label="Lọc theo nhân viên" className="h-11 w-full sm:h-9 sm:w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ALL}>Mọi nhân viên</SelectItem>
-                    {branchStaff.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.displayName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {view === "list" && (
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger aria-label="Lọc theo trạng thái" className="h-11 w-full sm:h-9 sm:w-44">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ALL}>Mọi trạng thái</SelectItem>
-                    {appointmentStatuses.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {statusLabel(s).label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <Label htmlFor="apt-cancelled" className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-0">
-                <Checkbox id="apt-cancelled" checked={includeCancelled} onCheckedChange={(v) => setIncludeCancelled(v === true)} />
-                Hiện lịch đã hủy
-              </Label>
+              <div className="flex flex-col gap-3 border-t pt-3 sm:flex-row sm:flex-wrap sm:items-center">
+                {branchStaff.length > 0 && (
+                  <Select value={staffFilter} onValueChange={setStaffFilter}>
+                    <SelectTrigger aria-label="Lọc theo nhân viên" className="h-11 w-full sm:h-9 sm:w-52">
+                      <UserRound className="text-muted-foreground" aria-hidden />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={ALL}>Mọi nhân viên</SelectItem>
+                      {branchStaff.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.displayName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {view === "list" && (
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger aria-label="Lọc theo trạng thái" className="h-11 w-full sm:h-9 sm:w-48">
+                      <ListFilter className="text-muted-foreground" aria-hidden />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={ALL}>Mọi trạng thái</SelectItem>
+                      {appointmentStatuses.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {statusLabel(s).label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Label htmlFor="apt-cancelled" className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-0 sm:ml-auto">
+                  <Checkbox id="apt-cancelled" checked={includeCancelled} onCheckedChange={(v) => setIncludeCancelled(v === true)} />
+                  Hiện lịch đã hủy
+                </Label>
+              </div>
             </div>
 
+            {appointments.data && <SummaryStats appointments={view === "day" ? dayRows : rows} scope={view === "day" ? "ngày" : "tuần"} />}
+
             {bookableStaff.length === 0 && staffFilter === ALL && (
-              <Alert>
-                <CircleAlert aria-hidden />
+              <Alert className="rounded-2xl border-warning/25 bg-warning/[0.06]">
+                <CircleAlert className="text-warning" aria-hidden />
                 <AlertDescription>Chi nhánh này chưa có nhân viên nhận lịch. Thêm ở trang Nhân viên và bật &quot;Nhận lịch hẹn&quot;.</AlertDescription>
               </Alert>
             )}
@@ -367,7 +413,7 @@ export function AppointmentsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="waitlist" className="pt-4">
+          <TabsContent value="waitlist" className="pt-5">
             <WaitlistSection branchId={branchId} timeZone={timeZone} services={services.data ?? []} staff={staffList} />
           </TabsContent>
         </Tabs>
@@ -401,5 +447,35 @@ export function AppointmentsPage() {
         />
       )}
     </div>
+  );
+}
+
+/** Bốn con số nhanh của khoảng đang xem (ngày hoặc tuần): lịch còn hiệu lực, khách đang ở tiệm, đã xong, bot đặt. */
+function SummaryStats({ appointments, scope }: { appointments: Appointment[]; scope: string }) {
+  const live = appointments.filter((a) => a.status !== "cancelled" && a.status !== "no_show");
+  const stats: { label: string; hint: string; value: number; icon: LucideIcon; tone: Tone }[] = [
+    { label: "Lịch hẹn", hint: `Trong ${scope}, trừ hủy / không đến`, value: live.length, icon: CalendarDays, tone: "primary" },
+    { label: "Đang ở tiệm", hint: "Đã đến hoặc đang làm", value: live.filter((a) => a.status === "arrived" || a.status === "in_progress").length, icon: UserRound, tone: "warning" },
+    { label: "Hoàn thành", hint: "Đã làm xong", value: live.filter((a) => a.status === "done").length, icon: CalendarCheck2, tone: "success" },
+    { label: "Bot đặt", hint: "Khách tự chốt qua chat", value: live.filter((a) => a.source === "bot").length, icon: Bot, tone: "ai" },
+  ];
+  return (
+    <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {stats.map((s) => (
+        <div key={s.label} className="surface flex items-center gap-3 rounded-2xl p-3.5">
+          <IconTile icon={s.icon} tone={s.tone} size="md" />
+          <div className="flex min-w-0 flex-col">
+            <dt className="flex items-center gap-1 truncate text-xs font-medium text-muted-foreground">
+              {s.label}
+              {s.tone === "ai" && <Sparkles className="size-3 text-ai" aria-hidden />}
+            </dt>
+            <dd className="text-2xl leading-tight font-bold tracking-tight">
+              <AnimatedNumber value={s.value} />
+            </dd>
+            <dd className="hidden truncate text-[11px] text-muted-foreground sm:block">{s.hint}</dd>
+          </div>
+        </div>
+      ))}
+    </dl>
   );
 }
