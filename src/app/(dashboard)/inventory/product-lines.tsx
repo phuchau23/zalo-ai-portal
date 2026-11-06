@@ -1,7 +1,8 @@
 "use client";
 
-import { CircleAlert, Plus, Trash2 } from "lucide-react";
+import { CircleAlert, Package, Plus, Trash2 } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,14 +58,15 @@ export function ProductLinesEditor({
         </p>
       )}
       {lines.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Chưa có sản phẩm nào. Chọn bên dưới để thêm.</p>
+        <p className="rounded-xl border border-dashed px-4 py-5 text-center text-sm text-muted-foreground">Chưa có sản phẩm nào. Chọn bên dưới để thêm.</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-xl border bg-card">
+        <ul className="flex flex-col divide-y overflow-hidden rounded-xl border bg-card">
           {lines.map((l, i) => {
             const product = products.find((p) => p.id === l.catalogItemId);
             const extra = hint?.(l.catalogItemId);
             return (
               <li key={l.key} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-end">
+                <IconTile icon={Package} size="sm" className="hidden sm:mb-0.5 sm:flex" />
                 <div className="flex min-w-0 flex-1 flex-col pb-0.5">
                   <span className="truncate text-sm font-medium">{product?.name ?? "(sản phẩm)"}</span>
                   <span className="text-xs text-muted-foreground">
@@ -128,7 +130,7 @@ export function ProductLinesEditor({
           }}
           disabled={disabled || remaining.length === 0}
         >
-          <SelectTrigger id={`${idPrefix}-add`} className="h-11 w-full sm:h-9 sm:max-w-md">
+          <SelectTrigger id={`${idPrefix}-add`} className="h-11 w-full border-dashed bg-background sm:h-9 sm:max-w-md *:data-[slot=select-value]:flex-1">
             <Plus className="text-muted-foreground" aria-hidden />
             <SelectValue placeholder={products.length === 0 ? "Chưa có sản phẩm theo dõi kho" : remaining.length === 0 ? "Đã thêm hết" : "Chọn sản phẩm"} />
           </SelectTrigger>

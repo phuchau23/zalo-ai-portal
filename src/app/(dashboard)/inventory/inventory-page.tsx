@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { ArrowLeftRight, Boxes, ClipboardCheck, History, Lock, PackagePlus, Scissors, type LucideIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeftRight, Boxes, ClipboardCheck, History, Lock, PackagePlus, Scissors, Store, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -48,11 +48,18 @@ export function InventoryPage({ initialTab }: { initialTab: InventoryTab }) {
   const [tab, setTab] = useState<InventoryTab>(initialTab);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [version, setVersion] = useState(0);
+  const tabsRef = useRef<HTMLDivElement>(null);
 
   const branches = useApiData(() => call(() => api.GET("/branches", { params: { query: { includeInactive: false } } })));
   const catalog = useApiData(() => call(() => api.GET("/catalog", { params: { query: { kind: "product", includeInactive: false } } })));
   const branchList = useMemo(() => branches.data ?? [], [branches.data]);
   const products = useMemo(() => (catalog.data ?? []).filter((p) => p.trackInventory), [catalog.data]);
+  const ready = Boolean(branches.data && catalog.data);
+
+  // Điện thoại: hàng tab cuộn ngang → đưa tab đang chọn vào khung nhìn (cả khi vào thẳng bằng ?tab=).
+  useEffect(() => {
+    tabsRef.current?.querySelector<HTMLElement>("[data-state=active]")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [tab, ready]);
 
   const branchId = useMemo(() => {
     if (selectedBranch && branchList.some((b) => b.id === selectedBranch)) return selectedBranch;
@@ -118,9 +125,9 @@ export function InventoryPage({ initialTab }: { initialTab: InventoryTab }) {
         <EmptyState icon={Boxes} title="Chưa có chi nhánh" description="Thêm chi nhánh ở Cài đặt trước khi quản lý kho." />
       ) : (
         <Tabs value={tab} onValueChange={changeTab} className="gap-0">
-          <div className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="overflow-x-auto">
-              <TabsList variant="line" className="group-data-horizontal/tabs:h-10">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div ref={tabsRef} className="-mx-4 overflow-x-auto px-4 py-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
+              <TabsList variant="pill" aria-label="Mục kho hàng">
                 {inventoryTabs.map((t) => {
                   const Icon = tabMeta[t].icon;
                   return (
@@ -134,7 +141,8 @@ export function InventoryPage({ initialTab }: { initialTab: InventoryTab }) {
             </div>
             {branchList.length > 1 && tab !== "transfers" && tab !== "consumables" && (
               <Select value={branchId} onValueChange={setSelectedBranch}>
-                <SelectTrigger aria-label="Chi nhánh" className="h-11 w-full sm:h-9 sm:w-56">
+                <SelectTrigger aria-label="Chi nhánh" className="h-11 w-full rounded-xl bg-card shadow-card sm:h-10 lg:w-60 *:data-[slot=select-value]:flex-1">
+                  <Store className="text-muted-foreground" aria-hidden />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -148,22 +156,22 @@ export function InventoryPage({ initialTab }: { initialTab: InventoryTab }) {
             )}
           </div>
 
-          <TabsContent value="stock" className="pt-4">
+          <TabsContent value="stock" className="pt-5">
             {tab === "stock" && <StockSection ctx={ctx} />}
           </TabsContent>
-          <TabsContent value="movements" className="pt-4">
+          <TabsContent value="movements" className="pt-5">
             {tab === "movements" && <MovementsSection ctx={ctx} />}
           </TabsContent>
-          <TabsContent value="purchases" className="pt-4">
+          <TabsContent value="purchases" className="pt-5">
             {tab === "purchases" && <PurchasesSection ctx={ctx} />}
           </TabsContent>
-          <TabsContent value="transfers" className="pt-4">
+          <TabsContent value="transfers" className="pt-5">
             {tab === "transfers" && <TransfersSection ctx={ctx} />}
           </TabsContent>
-          <TabsContent value="counts" className="pt-4">
+          <TabsContent value="counts" className="pt-5">
             {tab === "counts" && <CountsSection ctx={ctx} />}
           </TabsContent>
-          <TabsContent value="consumables" className="pt-4">
+          <TabsContent value="consumables" className="pt-5">
             {tab === "consumables" && <ConsumablesSection ctx={ctx} />}
           </TabsContent>
         </Tabs>

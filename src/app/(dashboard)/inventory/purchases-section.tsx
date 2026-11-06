@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ChevronDown, ChevronRight, CircleAlert, LoaderCircle, PackagePlus, Plus } from "lucide-react";
+import { motion } from "motion/react";
+import { ChevronDown, CircleAlert, LoaderCircle, PackageCheck, PackagePlus, Plus } from "lucide-react";
 import { Field } from "@/components/common/field";
+import { IconTile } from "@/components/common/icon-tile";
+import { SectionHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +22,7 @@ import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { emptyToNull } from "@/lib/crm";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { purchaseStatusOf, purchaseTotal } from "@/lib/inventory";
+import { fadeUp, stagger } from "@/lib/motion";
 import { formatQty } from "@/lib/sales";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
@@ -55,14 +59,20 @@ export function PurchasesSection({ ctx }: { ctx: InventoryContext }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {canEdit && (
-        <div className="flex justify-end">
-          <Button className="h-11 sm:h-9" onClick={() => setCreating(true)}>
-            <Plus aria-hidden />
-            Tạo phiếu nhập
-          </Button>
-        </div>
-      )}
+      <SectionHeader
+        icon={PackagePlus}
+        title="Phiếu nhập hàng"
+        description={data && rows.length > 0 ? `${rows.length} phiếu gần nhất của chi nhánh. Bấm một phiếu để xem từng dòng.` : "Hàng về thì tạo phiếu nhập để cộng tồn và tính giá vốn."}
+        actions={
+          canEdit &&
+          rows.length > 0 && (
+            <Button className="h-11 sm:h-9" onClick={() => setCreating(true)}>
+              <Plus aria-hidden />
+              Tạo phiếu nhập
+            </Button>
+          )
+        }
+      />
 
       {actionProblem && (
         <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
@@ -85,23 +95,28 @@ export function PurchasesSection({ ctx }: { ctx: InventoryContext }) {
           )}
         </EmptyState>
       ) : (
-        <ul className="flex flex-col divide-y rounded-xl border bg-card">
+        <motion.ul variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-3">
           {rows.map((po) => {
             const expanded = open === po.id;
             const st = purchaseStatusOf(po.status);
             const busy = busyId === po.id;
+            const tone = po.status === "received" ? "success" : po.status === "draft" ? "warning" : "muted";
             return (
-              <li key={po.id} className="flex flex-col">
-                <div className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center">
+              <motion.li
+                key={po.id}
+                variants={fadeUp}
+                className={cn("flex flex-col overflow-hidden rounded-2xl border bg-card shadow-card transition-shadow", expanded && "shadow-card-hover", po.status === "cancelled" && "opacity-70")}
+              >
+                <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:px-4">
                   <button
                     type="button"
                     onClick={() => setOpen(expanded ? null : po.id)}
                     aria-expanded={expanded}
-                    className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:min-h-0"
+                    className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:min-h-0"
                   >
-                    {expanded ? <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden /> : <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
-                    <span className="flex min-w-0 flex-col">
-                      <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                    <IconTile icon={PackagePlus} tone={tone} size="md" />
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                         <span className="font-mono">PN-{String(po.number).padStart(4, "0")}</span>
                         <Badge variant={st.variant}>{st.label}</Badge>
                       </span>
@@ -109,46 +124,50 @@ export function PurchasesSection({ ctx }: { ctx: InventoryContext }) {
                         {po.supplierName ?? "Không ghi NCC"} · {po.lines.length} dòng · {formatDateTime(po.receivedAt ?? po.createdAt)}
                       </span>
                     </span>
+                    <span className="tabular hidden text-base font-bold sm:block">{formatMoney(po.total)}</span>
+                    <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none", expanded && "rotate-180")} aria-hidden />
                   </button>
-                  <span className="tabular font-medium sm:w-32 sm:text-right">{formatMoney(po.total)}</span>
-                  {canEdit && po.status === "draft" && (
-                    <div className="flex gap-2">
-                      <Button size="sm" className="h-11 sm:h-8" disabled={busy} onClick={() => void act(po.id, () => call(() => api.POST("/inventory/purchase-orders/{orderId}/receive", { params: { path: { orderId: po.id } } })))}>
-                        {busy && <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden />}
-                        Nhận hàng
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-11 text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-8"
-                        disabled={busy}
-                        onClick={() => void act(po.id, () => call(() => api.POST("/inventory/purchase-orders/{orderId}/cancel", { params: { path: { orderId: po.id } } })))}
-                      >
-                        Hủy
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between gap-2 sm:justify-end">
+                    <span className="tabular text-base font-bold sm:hidden">{formatMoney(po.total)}</span>
+                    {canEdit && po.status === "draft" && (
+                      <div className="flex gap-2">
+                        <Button size="sm" className="h-11 sm:h-8" disabled={busy} onClick={() => void act(po.id, () => call(() => api.POST("/inventory/purchase-orders/{orderId}/receive", { params: { path: { orderId: po.id } } })))}>
+                          {busy ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <PackageCheck aria-hidden />}
+                          Nhận hàng
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-11 text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-8"
+                          disabled={busy}
+                          onClick={() => void act(po.id, () => call(() => api.POST("/inventory/purchase-orders/{orderId}/cancel", { params: { path: { orderId: po.id } } })))}
+                        >
+                          Hủy
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 {expanded && (
-                  <div className="flex flex-col gap-2 border-t bg-muted/30 px-3 py-3 text-sm">
-                    <ul className="flex flex-col divide-y rounded-md border bg-background">
+                  <div className="flex flex-col gap-2 border-t bg-muted/30 px-3 py-3 text-sm sm:px-4">
+                    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border bg-background">
                       {po.lines.map((l) => (
-                        <li key={l.catalogItemId} className="flex items-center gap-3 px-3 py-2">
-                          <span className="min-w-0 flex-1 truncate">{l.name}</span>
+                        <li key={l.catalogItemId} className="flex items-center gap-3 px-3 py-2.5">
+                          <span className="min-w-0 flex-1 truncate font-medium">{l.name}</span>
                           <span className="tabular text-muted-foreground">
                             {formatQty(l.quantity)} × {formatMoney(l.unitCost)}
                           </span>
-                          <span className="tabular w-28 text-right font-medium">{formatMoney(l.quantity * l.unitCost)}</span>
+                          <span className="tabular w-28 text-right font-semibold">{formatMoney(l.quantity * l.unitCost)}</span>
                         </li>
                       ))}
                     </ul>
                     {po.note && <p className="text-muted-foreground">{po.note}</p>}
                   </div>
                 )}
-              </li>
+              </motion.li>
             );
           })}
-        </ul>
+        </motion.ul>
       )}
 
       {creating && (
@@ -218,9 +237,12 @@ function PurchaseDialog({
   return (
     <Dialog open onOpenChange={(o) => !o && !saving && onClose()}>
       <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Tạo phiếu nhập</DialogTitle>
-          <DialogDescription>Giá vốn bình quân của sản phẩm được tính lại khi nhận hàng.</DialogDescription>
+        <DialogHeader className="flex-row items-center gap-3 text-left">
+          <IconTile icon={PackagePlus} variant="solid" size="md" />
+          <div className="flex min-w-0 flex-col gap-1">
+            <DialogTitle>Tạo phiếu nhập</DialogTitle>
+            <DialogDescription>Giá vốn bình quân của sản phẩm được tính lại khi nhận hàng.</DialogDescription>
+          </div>
         </DialogHeader>
         <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-5">
           {problem && !Object.keys(errors).length && (
@@ -272,7 +294,7 @@ function PurchaseDialog({
             <Textarea id="po-note" rows={2} maxLength={500} value={note} disabled={saving} onChange={(e) => setNote(e.target.value)} placeholder="Số hóa đơn NCC, điều kiện thanh toán..." />
           </Field>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between">
             <Label htmlFor="po-receive" className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-9">
               <Checkbox id="po-receive" checked={receiveNow} disabled={saving} onCheckedChange={(v) => setReceiveNow(v === true)} />
               <span className="flex flex-col">
@@ -280,8 +302,8 @@ function PurchaseDialog({
                 <span className="text-xs text-muted-foreground">Bỏ chọn để lưu nháp, nhận sau khi hàng về.</span>
               </span>
             </Label>
-            <p className="text-sm">
-              Tổng: <span className="tabular font-semibold">{formatMoney(total)}</span>
+            <p className="flex items-baseline gap-2 text-sm text-muted-foreground">
+              Tổng phiếu <span className="tabular text-xl font-bold text-foreground">{formatMoney(total)}</span>
             </p>
           </div>
 
@@ -317,7 +339,7 @@ function SupplierForm({ onAdded, onCancel }: { onAdded: (s: Supplier) => void; o
   }
 
   return (
-    <div className={cn("flex flex-col gap-3 rounded-md border p-3")}>
+    <div className="flex flex-col gap-3 rounded-2xl border bg-muted/30 p-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <Field id="sup-name" label="Tên nhà cung cấp" error={errors.name}>
           <Input id="sup-name" value={name} maxLength={200} required disabled={saving} onChange={(e) => setName(e.target.value)} aria-invalid={Boolean(errors.name)} className="h-11 sm:h-9" />
