@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { HeartHandshake } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { CarePage } from "./care-page";
-import { PhoneDueSection } from "./phone-due-section";
 
 export const metadata: Metadata = { title: "Cần chăm sóc — Trợ lý Zalo AI" };
 
@@ -27,7 +26,6 @@ export default function Page() {
           </ul>
         }
       />
-      <PhoneDueSection />
       <CarePage />
     </div>
   );

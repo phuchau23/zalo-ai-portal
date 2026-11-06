@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CircleAlert, CircleCheck, Phone } from "lucide-react";
+import { CircleAlert, CircleCheck, Phone, PhoneCall } from "lucide-react";
 import { SectionHeader } from "@/components/common/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -37,6 +37,7 @@ export function PhoneDueSection() {
   return (
     <section aria-labelledby="phone-due" className="flex flex-col gap-3">
       <SectionHeader
+        icon={PhoneCall}
         title={
           <span id="phone-due" className="flex items-center gap-2">
             Tới hẹn – chưa nhắn OA được <Badge variant="warning">{data.length}</Badge>
@@ -50,9 +51,9 @@ export function PhoneDueSection() {
           {problemMessage(problem)}
         </p>
       )}
-      <ul className="flex flex-col divide-y rounded-xl border bg-card">
+      <ul className="flex flex-col divide-y divide-border/70 overflow-hidden rounded-2xl border border-warning/25 bg-card shadow-card">
         {data.map((d) => (
-          <li key={d.noteId} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+          <li key={d.noteId} className="flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-warning/[0.03] sm:flex-row sm:items-center sm:gap-4">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <span className="flex flex-wrap items-center gap-2 font-medium">
                 {d.name}
@@ -69,7 +70,7 @@ export function PhoneDueSection() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {d.phone && (
-                <a href={`tel:${d.phone}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "tabular h-11 sm:h-8")}>
+                <a href={`tel:${d.phone}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "tabular h-11 rounded-full sm:h-8")}>
                   <Phone aria-hidden />
                   {d.phone}
                 </a>
