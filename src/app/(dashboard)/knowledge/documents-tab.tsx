@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CircleAlert, FileSpreadsheet, FileStack, FileText, LoaderCircle, Trash2 } from "lucide-react";
-import { FileDrop } from "@/components/common/file-drop";
+import { CircleAlert, FileSpreadsheet, FileStack, FileText, FileType2, LoaderCircle, Trash2 } from "lucide-react";
+import { IconTile, type Tone } from "@/components/common/icon-tile";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -24,6 +24,7 @@ import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { uploadFile } from "@/lib/api/upload";
 import { formatBytes, formatDateTime } from "@/lib/format";
 import { useApiData, usePolling } from "@/lib/use-api-data";
+import { DropZone } from "./drop-zone";
 import { MedicalReviewToggle } from "./medical-review";
 
 const statusLabels: Record<string, { label: string; variant: "info" | "success" | "secondary" | "destructive" }> = {
@@ -33,12 +34,25 @@ const statusLabels: Record<string, { label: string; variant: "info" | "success" 
   failed: { label: "Lỗi", variant: "destructive" },
 };
 
+/** Ô biểu tượng theo loại file: PDF đỏ, Word xanh, Excel xanh lá, văn bản xám — kèm đuôi file chữ in hoa. */
 function FileIcon({ name }: { name: string }) {
-  const ext = name.split(".").pop()?.toLowerCase();
-  const Icon = ext === "xlsx" ? FileSpreadsheet : FileText;
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  const style: { icon: typeof FileText; tone: Tone } =
+    ext === "xlsx"
+      ? { icon: FileSpreadsheet, tone: "success" }
+      : ext === "pdf"
+        ? { icon: FileType2, tone: "destructive" }
+        : ext === "docx"
+          ? { icon: FileText, tone: "primary" }
+          : { icon: FileText, tone: "muted" };
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-accent-foreground">
-      <Icon className="size-4" aria-hidden />
+    <span className="relative shrink-0">
+      <IconTile icon={style.icon} tone={style.tone} size="md" />
+      {ext && (
+        <span className="absolute -right-1.5 -bottom-1 rounded-md border bg-card px-1 text-[9px] leading-4 font-bold text-muted-foreground uppercase shadow-sm" aria-hidden>
+          {ext}
+        </span>
+      )}
     </span>
   );
 }
@@ -81,7 +95,7 @@ export function DocumentsTab({ canEdit }: { canEdit: boolean }) {
       </p>
 
       {canEdit && (
-        <FileDrop
+        <DropZone
           accept=".pdf,.docx,.xlsx,.txt,.md"
           formats="PDF, Word, Excel, TXT, MD"
           hint="tối đa 20 MB"
@@ -109,7 +123,7 @@ export function DocumentsTab({ canEdit }: { canEdit: boolean }) {
       )}
 
       {data && data.length > 0 && (
-        <div className="overflow-hidden rounded-md border">
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -153,7 +167,7 @@ export function DocumentsTab({ canEdit }: { canEdit: boolean }) {
                           {working && <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden />}
                           {status.label}
                         </Badge>
-                        {d.status === "ready" && <span className="tabular text-xs text-muted-foreground">{d.chunkCount} đoạn</span>}
+                        {d.status === "ready" && <span className="tabular text-xs text-muted-foreground">{d.chunkCount.toLocaleString("vi-VN")} đoạn</span>}
                       </div>
                     </TableCell>
                     <TableCell className="hidden text-right text-muted-foreground md:table-cell">{formatBytes(d.sizeBytes)}</TableCell>

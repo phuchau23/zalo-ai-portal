@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CircleAlert, CircleCheck, ExternalLink, LoaderCircle, Send, Unplug } from "lucide-react";
+import { BellRing, CircleAlert, ExternalLink, LoaderCircle, RefreshCw, Send, Settings2, Unplug, UsersRound } from "lucide-react";
+import { CopyButton } from "@/components/common/copy-button";
+import { IconTile } from "@/components/common/icon-tile";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +14,13 @@ import { cn } from "@/lib/utils";
 
 /** Mỗi 3 giây kiểm tra nhóm đã gõ mã chưa (Worker nhận lệnh rồi lưu chat id). */
 const pollMs = 3000;
+
+/** Ba bước kết nối, hiện trước khi bấm để người dùng biết sẽ làm gì. */
+const steps = [
+  { icon: Send, title: "Lấy mã kết nối", text: "Bấm nút bên dưới." },
+  { icon: UsersRound, title: "Thêm bot vào nhóm", text: "Nhóm Telegram của nhân viên." },
+  { icon: BellRing, title: "Gõ mã vào nhóm", text: "Xong là nhận thông báo." },
+];
 
 /**
  * Kết nối nhóm Telegram nhận thông báo, không cần biết "chat id": lấy mã → thêm bot vào nhóm → gõ lệnh có mã.
@@ -79,95 +88,152 @@ export function TelegramConnect({
 
   if (!ready) {
     return (
-      <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Nhóm Telegram nhận thông báo</span>
-        <p className="text-sm text-muted-foreground">Hệ thống chưa bật Telegram — liên hệ quản trị viên.</p>
+      <div className="flex items-start gap-3 rounded-2xl border border-dashed p-4">
+        <IconTile icon={Send} tone="muted" size="md" />
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm font-semibold">Nhóm Telegram nhận thông báo</span>
+          <p className="text-sm text-muted-foreground">Hệ thống chưa bật Telegram — liên hệ quản trị viên.</p>
+        </div>
       </div>
     );
   }
 
   const command = link ? (link.botUsername ? `/ketnoi@${link.botUsername} ${link.code}` : `/ketnoi ${link.code}`) : "";
   const minutesLeft = link ? Math.max(0, Math.ceil((new Date(link.expiresAt).getTime() - now) / 60_000)) : 0;
+  const connected = Boolean(chatId) && !link;
 
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium">Nhóm Telegram nhận thông báo</span>
+      <div
+        className={cn(
+          "relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-4 sm:p-5",
+          connected ? "border-success/30 bg-success/[0.04]" : "bg-card shadow-card",
+        )}
+      >
+        {/* Lưới chấm trang trí góc phải. */}
 
-      {chatId && !link ? (
-        <div className="flex flex-col gap-3 rounded-md border border-success/30 bg-success/5 p-3 sm:flex-row sm:items-center">
-          <CircleCheck className="size-5 shrink-0 text-success" aria-hidden />
-          <p role="status" className="flex-1 text-sm">
-            {justConnected ? "Kết nối thành công! Nhóm vừa nhận tin chào từ bot." : "Đã kết nối một nhóm Telegram."}
-          </p>
-          {canEdit && (
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" className="h-11 sm:h-8" onClick={() => void createCode()} disabled={busy}>
-                Đổi nhóm khác
-              </Button>
-              <Button variant="ghost" size="sm" className="h-11 sm:h-8" onClick={() => void disconnect()} disabled={busy}>
-                <Unplug aria-hidden />
-                Ngắt kết nối
-              </Button>
-            </div>
-          )}
-        </div>
-      ) : !link ? (
-        <div className="flex flex-col items-start gap-2">
-          <p className="text-sm text-muted-foreground">Chưa kết nối. Nhân viên sẽ nhận tin báo trên Telegram khi khách cần người, khách chờ lâu hoặc ca khẩn cấp.</p>
-          {canEdit && (
-            <Button onClick={() => void createCode()} disabled={busy} className="h-11 sm:h-9">
-              {busy ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Send aria-hidden />}
-              Kết nối Telegram
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-4">
-          {expired ? (
-            <p className="text-sm">Mã đã hết hạn.</p>
-          ) : (
-            <>
-              <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm">
-                {link.addToGroupUrl && (
-                  <li>
-                    <span>Cách nhanh: bấm nút dưới, chọn nhóm nhân viên, Telegram tự thêm bot và gửi mã.</span>
-                    <a
-                      href={link.addToGroupUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={cn(buttonVariants({ size: "sm" }), "mt-2 flex h-11 w-fit sm:h-8")}
-                    >
-                      <ExternalLink aria-hidden />
-                      Mở Telegram, chọn nhóm
-                    </a>
-                  </li>
-                )}
-                <li>
-                  {link.addToGroupUrl ? "Hoặc làm tay: " : ""}thêm bot {link.botUsername ? <strong>@{link.botUsername}</strong> : "của hệ thống"} vào nhóm, rồi gõ vào nhóm:
-                  <code className="mt-2 block w-fit rounded-md border bg-background px-3 py-2 font-mono text-base tracking-wider select-all">{command}</code>
-                </li>
-              </ol>
-              <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
-                <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden />
-                Đang chờ nhóm gõ mã… (mã còn hiệu lực {minutesLeft} phút)
-              </p>
-            </>
-          )}
-          <div className="flex flex-wrap gap-2">
-            {expired && (
-              <Button size="sm" className="h-11 sm:h-8" onClick={() => void createCode()} disabled={busy}>
-                Lấy mã mới
-              </Button>
+        <div className="relative flex items-start gap-3">
+          <IconTile icon={Send} tone={connected ? "success" : "primary"} variant="solid" size="md" />
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="text-sm font-semibold">Nhóm Telegram nhận thông báo</span>
+            {connected ? (
+              <span role="status" className="flex items-start gap-2 text-sm text-pretty text-success">
+                <span className="relative mt-1.5 flex size-2 shrink-0" aria-hidden>
+                  <span className="absolute inset-0 animate-ping-soft rounded-full bg-success motion-reduce:hidden" />
+                  <span className="relative size-2 rounded-full bg-success" />
+                </span>
+                {justConnected ? "Kết nối thành công! Nhóm vừa nhận tin chào từ bot." : "Đang kết nối — nhóm nhận thông báo khi khách cần người."}
+              </span>
+            ) : link ? (
+              <span className="text-sm text-muted-foreground">Làm theo hai bước bên dưới trong Telegram.</span>
+            ) : (
+              <span className="text-sm text-pretty text-muted-foreground">
+                Chưa kết nối. Nhân viên sẽ nhận tin báo trên Telegram khi khách cần người, khách chờ lâu hoặc ca khẩn cấp.
+              </span>
             )}
-            <Button size="sm" variant="ghost" className="h-11 sm:h-8" onClick={() => setLink(null)}>
-              Hủy
-            </Button>
           </div>
         </div>
-      )}
+
+        {connected && canEdit && (
+          <div className="relative flex flex-wrap gap-2 sm:pl-[52px]">
+            <Button variant="outline" size="sm" className="h-11 bg-card sm:h-8" onClick={() => void createCode()} disabled={busy}>
+              <RefreshCw aria-hidden />
+              Đổi nhóm khác
+            </Button>
+            <Button variant="ghost" size="sm" className="h-11 sm:h-8" onClick={() => void disconnect()} disabled={busy}>
+              <Unplug aria-hidden />
+              Ngắt kết nối
+            </Button>
+          </div>
+        )}
+
+        {!chatId && !link && (
+          <>
+            <ol className="relative grid gap-2">
+              {steps.map((step, i) => (
+                <li key={step.title} className="flex items-center gap-3 rounded-xl border bg-background/80 p-3 backdrop-blur">
+                  <span className="tabular flex size-7 shrink-0 items-center justify-center rounded-full bg-active-gradient text-xs font-bold text-white" aria-hidden>
+                    {i + 1}
+                  </span>
+                  <span className="flex min-w-0 flex-col leading-tight">
+                    <span className="text-[13px] font-semibold">{step.title}</span>
+                    <span className="text-xs text-muted-foreground">{step.text}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            {canEdit && (
+              <Button onClick={() => void createCode()} disabled={busy} className="relative h-11 w-fit sm:h-9">
+                {busy ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Send aria-hidden />}
+                Kết nối Telegram
+              </Button>
+            )}
+          </>
+        )}
+
+        {link && (
+          <div className="relative flex flex-col gap-4">
+            {expired ? (
+              <p className="flex items-center gap-2 rounded-xl bg-warning/10 px-3 py-2.5 text-sm font-medium text-warning">
+                <CircleAlert className="size-4 shrink-0" aria-hidden />
+                Mã đã hết hạn. Lấy mã mới để thử lại.
+              </p>
+            ) : (
+              <>
+                <ol className="flex flex-col gap-3">
+                  {link.addToGroupUrl && (
+                    <li className="flex gap-3">
+                      <StepNumber n={1} />
+                      <div className="flex flex-col gap-2 text-sm">
+                        <span>Cách nhanh: bấm nút dưới, chọn nhóm nhân viên, Telegram tự thêm bot và gửi mã.</span>
+                        <a
+                          href={link.addToGroupUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(buttonVariants({ size: "sm" }), "flex h-11 w-fit sm:h-8")}
+                        >
+                          <ExternalLink aria-hidden />
+                          Mở Telegram, chọn nhóm
+                        </a>
+                      </div>
+                    </li>
+                  )}
+                  <li className="flex gap-3">
+                    <StepNumber n={link.addToGroupUrl ? 2 : 1} />
+                    <div className="flex min-w-0 flex-col gap-2 text-sm">
+                      <span>
+                        {link.addToGroupUrl ? "Hoặc làm tay: " : ""}thêm bot {link.botUsername ? <strong>@{link.botUsername}</strong> : "của hệ thống"} vào nhóm, rồi gõ vào nhóm:
+                      </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <code className="rounded-xl border bg-background px-3.5 py-2 font-mono text-base font-semibold tracking-wider break-all select-all">{command}</code>
+                        <CopyButton text={command} label="Chép lệnh" />
+                      </div>
+                    </div>
+                  </li>
+                </ol>
+                <p role="status" className="flex items-center gap-2 rounded-xl bg-primary/5 px-3 py-2.5 text-sm text-primary">
+                  <LoaderCircle className="size-4 shrink-0 animate-spin motion-reduce:animate-none" aria-hidden />
+                  Đang chờ nhóm gõ mã… <span className="text-muted-foreground">(mã còn hiệu lực {minutesLeft} phút)</span>
+                </p>
+              </>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {expired && (
+                <Button size="sm" className="h-11 sm:h-8" onClick={() => void createCode()} disabled={busy}>
+                  <RefreshCw aria-hidden />
+                  Lấy mã mới
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" className="h-11 sm:h-8" onClick={() => setLink(null)}>
+                Hủy
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {problem && (
-        <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
+        <p role="alert" className="flex items-center gap-1.5 rounded-xl bg-destructive/5 px-3 py-2 text-sm text-destructive">
           <CircleAlert className="size-4 shrink-0" aria-hidden />
           {problemMessage(problem)}
         </p>
@@ -175,10 +241,11 @@ export function TelegramConnect({
 
       {canEdit && (
         <details className="group text-sm">
-          <summary className="w-fit cursor-pointer rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
+          <summary className="inline-flex min-h-11 w-fit cursor-pointer items-center gap-1.5 rounded-md text-muted-foreground hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:min-h-8">
+            <Settings2 className="size-3.5" aria-hidden />
             Nhập chat id thủ công
           </summary>
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-2 flex flex-col gap-2 rounded-xl border bg-muted/30 p-3">
             <Label htmlFor="telegramChatId">Chat id nhóm</Label>
             <Input
               id="telegramChatId"
@@ -187,12 +254,20 @@ export function TelegramConnect({
               maxLength={50}
               aria-invalid={Boolean(error)}
               onChange={(e) => onManualChange(e.target.value)}
-              className="sm:max-w-xs"
+              className="bg-card font-mono sm:max-w-xs"
             />
             {error ? <p className="text-sm text-destructive">{error}</p> : <p className="text-muted-foreground">Bấm &quot;Lưu cài đặt&quot; bên dưới sau khi nhập.</p>}
           </div>
         </details>
       )}
     </div>
+  );
+}
+
+function StepNumber({ n }: { n: number }) {
+  return (
+    <span className="tabular flex size-7 shrink-0 items-center justify-center rounded-full bg-active-gradient text-xs font-bold text-white shadow-glow" aria-hidden>
+      {n}
+    </span>
   );
 }

@@ -37,6 +37,42 @@ describe("problemMessage", () => {
   it("uses BE title for unknown codes", () => {
     expect(problemMessage(toProblem({ code: "new_code", title: "Câu từ BE" }, 409))).toBe("Câu từ BE");
   });
+
+  it("translates CRM codes", () => {
+    expect(problemMessage(toProblem({ code: "duplicate_code", title: "Duplicate" }, 409))).toBe("Mã này đã được dùng.");
+    expect(problemMessage(toProblem({ code: "default_branch" }, 409))).toBe("Hãy đặt chi nhánh khác làm mặc định trước.");
+    expect(problemMessage(toProblem({ code: "branch_inactive" }, 409))).toBe("Chi nhánh đang ngừng hoạt động.");
+    expect(problemMessage(toProblem({ code: "duplicate_closure" }, 409))).toBe("Ngày này đã có trong danh sách nghỉ.");
+    expect(problemMessage(toProblem({ code: "user_already_linked" }, 409))).toBe("Tài khoản này đã gắn với nhân viên khác.");
+    expect(problemMessage(toProblem({ code: "code_kind_mismatch" }, 400))).toBe("Mã này đang dùng cho loại mục khác trong Kho kiến thức.");
+  });
+
+  it("translates appointment codes", () => {
+    expect(problemMessage(toProblem({ code: "slot_unavailable", title: "Slot" }, 409))).toBe("Khung giờ này đã kín hoặc ngoài giờ làm việc.");
+    expect(problemMessage(toProblem({ code: "too_soon" }, 409))).toBe("Cần đặt trước ít nhất theo cài đặt (mặc định 60 phút).");
+    expect(problemMessage(toProblem({ code: "too_far" }, 409))).toBe("Chỉ đặt trước tối đa số ngày đã cài đặt.");
+    expect(problemMessage(toProblem({ code: "appointment_state" }, 409))).toBe("Trạng thái lịch không cho phép thao tác này.");
+    expect(problemMessage(toProblem({ code: "cancel_too_late" }, 409))).toBe("Đã quá hạn đổi/hủy theo chính sách.");
+  });
+
+  it("translates sales codes", () => {
+    expect(problemMessage(toProblem({ code: "invoice_state", title: "State" }, 409))).toBe("Hóa đơn ở trạng thái không cho phép thao tác này.");
+    expect(problemMessage(toProblem({ code: "overpayment" }, 409))).toBe("Số tiền vượt phần còn phải thu.");
+    expect(problemMessage(toProblem({ code: "wallet_insufficient" }, 409))).toBe("Số dư thẻ trả trước không đủ.");
+    expect(problemMessage(toProblem({ code: "voucher_invalid" }, 409))).toBe("Mã giảm giá không hợp lệ hoặc hết hạn.");
+    expect(problemMessage(toProblem({ code: "voucher_min_total" }, 409))).toBe("Chưa đạt giá trị tối thiểu của mã giảm giá.");
+    expect(problemMessage(toProblem({ code: "package_unavailable" }, 409))).toBe("Gói không thuộc khách này hoặc không còn hiệu lực.");
+    expect(problemMessage(toProblem({ code: "package_exhausted" }, 409))).toBe("Gói đã hết buổi.");
+    expect(problemMessage(toProblem({ code: "package_used" }, 409))).toBe("Gói đã dùng, không hủy hóa đơn được — hãy hoàn tiền một phần.");
+    expect(problemMessage(toProblem({ code: "package_state" }, 409))).toBe("Trạng thái gói không cho phép thao tác này.");
+    expect(problemMessage(toProblem({ code: "no_bank_account" }, 404))).toBe("Chưa cài tài khoản ngân hàng nhận chuyển khoản.");
+    expect(problemMessage(toProblem({ code: "shift_open" }, 409))).toBe("Chi nhánh đang có ca chưa chốt.");
+    expect(problemMessage(toProblem({ code: "shift_closed" }, 409))).toBe("Ca đã chốt.");
+  });
+
+  it("translates inventory codes", () => {
+    expect(problemMessage(toProblem({ code: "purchase_state" }, 409))).toBe("Phiếu nhập đã nhận hoặc đã hủy.");
+  });
 });
 
 describe("fileErrors", () => {

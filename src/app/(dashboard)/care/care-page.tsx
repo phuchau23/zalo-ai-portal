@@ -2,24 +2,29 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { HeartHandshake } from "lucide-react";
+import { motion } from "motion/react";
+import { Flame, HeartHandshake, Hourglass, UserRound, Users } from "lucide-react";
+import { FilterLayout, FilterSection } from "@/components/common/filter-layout";
+import { FilterPills, type FilterOption } from "@/components/common/filter-pills";
 import { EmptyState, ErrorState } from "@/components/common/states";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
+import { fadeUp, stagger } from "@/lib/motion";
 import { useApiData, useNow } from "@/lib/use-api-data";
+import { PhoneDueSection } from "./phone-due-section";
 import { SuggestionCard } from "./suggestion-card";
 
 type Filter = "all" | "mine" | "hot" | "expiring";
 type Status = "open" | "autosent" | "done" | "skipped" | "expired";
 
-const filters: { value: Filter; label: string }[] = [
-  { value: "all", label: "Tất cả" },
-  { value: "mine", label: "Của tôi" },
-  { value: "hot", label: "Nóng" },
-  { value: "expiring", label: "Sắp hết hạn nhắn" },
+const filters: FilterOption<Filter>[] = [
+  { value: "all", label: "Tất cả", icon: Users, tone: "primary" },
+  { value: "mine", label: "Của tôi", icon: UserRound, tone: "primary" },
+  { value: "hot", label: "Nóng", icon: Flame, tone: "warning" },
+  { value: "expiring", label: "Sắp hết hạn nhắn", icon: Hourglass, tone: "destructive" },
 ];
 
 const statuses: { value: Status; label: string }[] = [
@@ -60,43 +65,56 @@ export function CarePage() {
   }, [refresh, me.currentTenant?.id]);
 
   const items = data ?? [];
+  const filtered = filter !== "all" || status !== "open";
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div role="group" aria-label="Lọc gợi ý" className="-mx-1 flex flex-1 gap-1.5 overflow-x-auto px-1 pb-1">
-          {filters.map((f) => (
-            <Button
-              key={f.value}
-              size="sm"
-              variant="outline"
-              aria-pressed={filter === f.value}
-              onClick={() => setFilter(f.value)}
-              className="h-11 shrink-0 sm:h-8 aria-pressed:border-primary aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-            >
-              {f.label}
-            </Button>
-          ))}
-        </div>
-        <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
-          <SelectTrigger className="h-11 w-full sm:h-8 sm:w-44" aria-label="Trạng thái gợi ý">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {statuses.map((s) => (
-              <SelectItem key={s.value} value={s.value}>
-                {s.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <FilterLayout
+      onReset={
+        filtered
+          ? () => {
+              setFilter("all");
+              setStatus("open");
+            }
+          : undefined
+      }
+      filters={
+        <>
+          <FilterSection label="Trạng thái" htmlFor="care-status">
+            <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
+              <SelectTrigger id="care-status" className="h-11 w-full rounded-xl sm:h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FilterSection>
+          <FilterSection label="Khách">
+            <FilterPills label="Lọc gợi ý" variant="list" value={filter} onChange={setFilter} options={filters} />
+          </FilterSection>
+        </>
+      }
+    >
+      <PhoneDueSection />
 
       {problem && !data && <ErrorState problem={problem} onRetry={refresh} />}
       {loading && !data && (
         <div role="status" aria-label="Đang tải gợi ý" className="flex flex-col gap-3">
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="h-44 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />
+            <div key={i} className="surface flex flex-col gap-4 rounded-2xl p-5">
+              <div className="flex items-center gap-3">
+                <div className="skeleton size-10 rounded-full" />
+                <div className="flex flex-1 flex-col gap-2">
+                  <div className="skeleton h-3.5 w-48" />
+                  <div className="skeleton h-3 w-32 opacity-70" />
+                </div>
+              </div>
+              <div className="skeleton h-16 rounded-xl" />
+            </div>
           ))}
         </div>
       )}
@@ -117,11 +135,13 @@ export function CarePage() {
           )}
         </EmptyState>
       )}
-      <div className="flex flex-col gap-3">
+      <motion.div key={`${filter}-${status}`} variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-4">
         {items.map((s) => (
-          <SuggestionCard key={`${s.id}-${s.updatedAt}`} suggestion={s} members={members} isOwner={isOwner} now={now} onChanged={refresh} />
+          <motion.div key={`${s.id}-${s.updatedAt}`} variants={fadeUp}>
+            <SuggestionCard suggestion={s} members={members} isOwner={isOwner} now={now} onChanged={refresh} />
+          </motion.div>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </FilterLayout>
   );
 }

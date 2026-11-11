@@ -2,8 +2,28 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CircleAlert, Download, Lock, LockOpen, Save, Trash2 } from "lucide-react";
-import { PageHeader } from "@/components/common/page-header";
+import { motion } from "motion/react";
+import {
+  BarChart3,
+  Bot,
+  Building2,
+  CalendarClock,
+  Crown,
+  DatabaseZap,
+  Download,
+  Lock,
+  LockOpen,
+  MessagesSquare,
+  Package,
+  Save,
+  Trash2,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
+import { AnimatedNumber } from "@/components/common/animated-number";
+import { IconTile } from "@/components/common/icon-tile";
+import { PageHeader, SectionHeader } from "@/components/common/page-header";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { ErrorState } from "@/components/common/states";
 import {
   AlertDialog,
@@ -22,12 +42,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { call } from "@/lib/api/call";
 import { api, type AdminTenantDetail, type Plan } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
-import { isoToVnDate, monthLabel, quotaLabel, tenantStatusLabel, vnDateToIso } from "@/lib/admin";
+import { expiryState, formatVnDate, isoToVnDate, monthLabel, quotaLabel, tenantStatusLabel, vnDateToIso } from "@/lib/admin";
 import { niceMax } from "@/lib/dashboard";
 import { formatDateTime } from "@/lib/format";
+import { easeOut } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { formatUsd, formatVnd } from "../../chat-test/labels";
+import { ActionError, MotionItem, MotionList, SavedNote } from "../../settings/settings-ui";
+import { StatTile } from "../admin-tenants";
 import { Field } from "../field";
 
 export function TenantDetail({ tenantId }: { tenantId: string }) {
@@ -43,53 +66,97 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
     );
   }
 
-  if (!data) {
-    return <div role="status" aria-label="Đang tải doanh nghiệp" className="h-96 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />;
-  }
+  if (!data) return <DetailSkeleton />;
 
   const t = data.tenant;
+  const active = t.status === "active";
+  const expiry = expiryState(t.expiresAt);
+  const owners = data.members.filter((m) => m.role === "owner").length;
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        back={{ href: "/admin", label: "Quản trị hệ thống" }}
-        title={t.name}
-        meta={
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-muted-foreground">
-            <Badge variant={t.status === "active" ? "success" : "destructive"}>{tenantStatusLabel(t.status, t.suspendedReason)}</Badge>
-            <Badge variant="secondary">{t.planName}</Badge>
+      <PageHeader back={{ href: "/admin", label: "Quản trị hệ thống" }} title="Chi tiết doanh nghiệp" icon={Building2} />
+
+      {/* Thẻ đầu trang: ảnh chữ cái, tên, trạng thái, gói. */}
+      <motion.section
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: easeOut }}
+        className="surface relative flex flex-col gap-5 overflow-hidden p-5 sm:flex-row sm:items-center sm:p-6"
+      >
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/10 via-accent/40 to-transparent" />
+        <PersonAvatar
+          name={t.name}
+          size="xl"
+          className="relative"
+          badge={<span className={cn("block size-4 rounded-full ring-2 ring-card", active ? "bg-success" : "bg-destructive")} />}
+        />
+        <div className="relative flex min-w-0 flex-1 flex-col gap-1.5">
+          <h2 className="text-xl font-bold tracking-tight text-balance sm:text-2xl">{t.name}</h2>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant={active ? "success" : "destructive"}>{tenantStatusLabel(t.status, t.suspendedReason)}</Badge>
+            <Badge variant="secondary" className="gap-1">
+              <Package aria-hidden />
+              {t.planName}
+            </Badge>
             <span>{t.industryName}</span>
+            <span aria-hidden>·</span>
             <span>Tạo {formatDateTime(t.createdAt)}</span>
           </div>
-        }
-      />
+        </div>
+      </motion.section>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile icon={MessagesSquare} tone="success" label="Hội thoại tháng này" hint={t.quota === null ? "Không giới hạn" : `Hạn mức ${t.quota}`}>
+          <AnimatedNumber value={t.conversationsThisMonth} />
+        </StatTile>
+        <StatTile icon={Bot} tone="ai" label="Chi phí AI 12 tháng" hint={`≈ ${formatVnd(data.monthlyCosts.reduce((s, m) => s + m.costUsd, 0))}`}>
+          <span className="tabular">{formatUsd(data.monthlyCosts.reduce((s, m) => s + m.costUsd, 0))}</span>
+        </StatTile>
+        <StatTile icon={Users} label="Tài khoản" hint={`${owners} chủ doanh nghiệp`}>
+          <AnimatedNumber value={data.members.length} />
+        </StatTile>
+        <StatTile
+          icon={CalendarClock}
+          tone={expiry.kind === "expired" ? "destructive" : expiry.kind === "soon" ? "warning" : "muted"}
+          label="Hạn thuê"
+          hint={expiry.kind === "soon" ? `Còn ${expiry.daysLeft} ngày` : expiry.kind === "expired" ? `Quá hạn ${expiry.daysOver} ngày` : t.expiresAt ? "Còn hạn" : "Không thời hạn"}
+        >
+          <span className="text-lg sm:text-xl">{t.expiresAt ? formatVnDate(t.expiresAt) : "—"}</span>
+        </StatTile>
+      </div>
+
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_21rem]">
         <div className="flex min-w-0 flex-col gap-6">
           <SubscriptionForm detail={data} plans={plans ?? []} onSaved={reload} />
           <CostChart detail={data} />
-          <section aria-labelledby="members" className="flex flex-col gap-2 rounded-md border p-4">
-            <h2 id="members" className="text-sm font-medium">
-              Tài khoản ({data.members.length})
-            </h2>
-            <ul className="flex flex-col divide-y text-sm">
+          <section aria-labelledby="members" className="surface flex flex-col gap-4 p-5">
+            <SectionHeader icon={Users} title={<span id="members">Tài khoản ({data.members.length})</span>} />
+            <MotionList label="Tài khoản của doanh nghiệp" className="gap-2">
               {data.members.map((m) => (
-                <li key={m.userId} className="flex flex-wrap items-center gap-2 py-2">
-                  <span className="font-medium">{m.name}</span>
-                  <span className="break-all text-muted-foreground">{m.email}</span>
-                  <Badge variant="secondary" className="ml-auto">
+                <MotionItem key={m.userId} className="flex flex-wrap items-center gap-3 p-3 shadow-none">
+                  <PersonAvatar name={m.name} size="sm" />
+                  <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                    <span className="text-sm font-medium">{m.name}</span>
+                    <span className="text-xs break-all text-muted-foreground">{m.email}</span>
+                  </span>
+                  <Badge variant={m.role === "owner" ? "warning" : "secondary"} className="gap-1">
+                    {m.role === "owner" && <Crown aria-hidden />}
                     {m.role === "owner" ? "Chủ doanh nghiệp" : "Nhân viên"}
                   </Badge>
-                </li>
+                </MotionItem>
               ))}
-            </ul>
+            </MotionList>
           </section>
         </div>
 
-        <aside className="flex flex-col gap-6 rounded-md border bg-card p-4">
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-6">
           <StatusSection detail={data} onChanged={reload} />
-          <section className="flex flex-col gap-2 border-t pt-4">
-            <h2 className="text-sm font-medium">Dữ liệu doanh nghiệp</h2>
-            <p className="text-xs text-muted-foreground">
+          <section className="surface flex flex-col gap-3 p-5">
+            <div className="flex items-center gap-3">
+              <IconTile icon={DatabaseZap} size="sm" />
+              <h2 className="text-sm font-semibold">Dữ liệu doanh nghiệp</h2>
+            </div>
+            <p className="text-xs text-pretty text-muted-foreground">
               File zip gồm khách hàng + tin nhắn + nhật ký chăm sóc, kho kiến thức (đúng mẫu để nhập lại) và tài liệu gốc. Gửi cho doanh nghiệp khi họ ngừng thuê.
               Lần tải được ghi lại.
             </p>
@@ -115,6 +182,7 @@ function SubscriptionForm({ detail, plans, onSaved }: { detail: AdminTenantDetai
   const [problem, setProblem] = useState<ApiProblem | null>(null);
   const errors = problem?.fieldErrors ?? {};
   const planQuota = plans.find((p) => p.code === plan)?.conversationsPerMonth;
+  const usage = t.quota ? Math.min(1, t.conversationsThisMonth / t.quota) : null;
 
   const edit = <T,>(set: (v: T) => void) => (v: T) => {
     set(v);
@@ -138,12 +206,24 @@ function SubscriptionForm({ detail, plans, onSaved }: { detail: AdminTenantDetai
   }
 
   return (
-    <form noValidate onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4 rounded-md border p-4">
-      <div className="flex flex-col gap-0.5">
-        <h2 className="text-sm font-medium">Gói và hạn thuê</h2>
-        <p className="text-sm text-muted-foreground">
-          Hội thoại tháng này: <span className="tabular font-medium text-foreground">{quotaLabel(t.conversationsThisMonth, t.quota)}</span>
-        </p>
+    <form noValidate onSubmit={(e) => void onSubmit(e)} className="surface flex flex-col gap-5 p-5">
+      <SectionHeader icon={Package} title="Gói và hạn thuê" description="Đổi gói, gia hạn hoặc đặt hạn mức hội thoại riêng." />
+      <div className="flex flex-col gap-2 rounded-xl bg-muted/50 p-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+          <span className="text-muted-foreground">Hội thoại tháng này</span>
+          <span className="tabular font-semibold">{quotaLabel(t.conversationsThisMonth, t.quota)}</span>
+        </div>
+        {usage !== null && (
+          <span className="block h-2 w-full overflow-hidden rounded-full bg-background" aria-hidden>
+            <motion.span
+              className={cn("block h-full origin-left rounded-full", usage >= 1 ? "bg-destructive" : usage >= 0.8 ? "bg-warning" : "bg-active-gradient")}
+              style={{ width: `${Math.max(usage * 100, 2)}%` }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.8, ease: easeOut }}
+            />
+          </span>
+        )}
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field id="s-plan" label="Gói" error={errors.plan}>
@@ -168,62 +248,65 @@ function SubscriptionForm({ detail, plans, onSaved }: { detail: AdminTenantDetai
         </Field>
       </div>
       {t.status === "suspended" && t.suspendedReason === "expired" && (
-        <p className="text-sm text-muted-foreground">Doanh nghiệp đang tự khóa vì quá hạn. Gia hạn qua hôm nay rồi lưu là tự mở lại.</p>
-      )}
-      {problem && Object.keys(problem.fieldErrors).length === 0 && (
-        <p role="alert" className="flex items-center gap-1.5 text-sm text-destructive">
-          <CircleAlert className="size-4 shrink-0" aria-hidden />
-          {problemMessage(problem)}
+        <p className="flex items-start gap-2 rounded-xl bg-warning/10 px-3 py-2.5 text-sm text-warning">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+          Doanh nghiệp đang tự khóa vì quá hạn. Gia hạn qua hôm nay rồi lưu là tự mở lại.
         </p>
       )}
+      {problem && Object.keys(problem.fieldErrors).length === 0 && <ActionError problem={problem} />}
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={saving} className="h-11 sm:h-9">
           <Save aria-hidden />
           {saving ? "Đang lưu..." : "Lưu"}
         </Button>
-        {saved && (
-          <p role="status" className="text-sm text-success">
-            Đã lưu.
-          </p>
-        )}
+        <SavedNote show={saved}>Đã lưu.</SavedNote>
       </div>
     </form>
   );
 }
 
-/** Một chuỗi số (chi phí AI theo tháng) → cột đơn sắc; di chuột/focus xem số; có bảng số liệu. */
+/** Một chuỗi số (chi phí AI theo tháng) → cột dải màu mọc lên; di chuột/focus xem số; có bảng số liệu. */
 function CostChart({ detail }: { detail: AdminTenantDetail }) {
   const months = detail.monthlyCosts;
   const max = Math.max(...months.map((m) => m.costUsd), 0);
   const top = max === 0 ? 1 : max;
   const total = months.reduce((sum, m) => sum + m.costUsd, 0);
   return (
-    <figure className="flex flex-col gap-3 rounded-md border p-4">
-      <figcaption className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-sm font-medium">Chi phí AI 12 tháng</span>
-        <span className="text-xs text-muted-foreground">
+    <figure className="surface flex flex-col gap-4 p-5">
+      <figcaption className="flex flex-wrap items-center justify-between gap-2">
+        <span className="flex items-center gap-3">
+          <IconTile icon={BarChart3} tone="ai" size="sm" />
+          <span className="text-base font-semibold tracking-tight">Chi phí AI 12 tháng</span>
+        </span>
+        <span className="rounded-full bg-ai-soft px-3 py-1 text-xs font-medium text-ai">
           Tổng {formatUsd(total)} ≈ {formatVnd(total)}
         </span>
       </figcaption>
-      <ol className="flex h-36 items-end gap-0.5 border-b" aria-label="Chi phí AI theo tháng">
-        {months.map((m) => (
+      <ol className="flex h-40 items-end gap-1 border-b border-dashed" aria-label="Chi phí AI theo tháng">
+        {months.map((m, i) => (
           <li
             key={m.month}
             tabIndex={0}
             aria-label={`Tháng ${monthLabel(m.month)}: ${formatUsd(m.costUsd)}, ${m.calls} lần gọi AI`}
-            className="group relative flex h-full min-w-0 flex-1 items-end rounded-sm outline-none hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="group relative flex h-full min-w-0 flex-1 items-end rounded-md outline-none hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50"
           >
-            <div className="w-full rounded-t-[4px] bg-chart-1" style={{ height: `${(m.costUsd / top) * 100}%` }} />
+            <motion.div
+              className="w-full origin-bottom rounded-t-md bg-primary opacity-85 transition-opacity group-hover:opacity-100"
+              style={{ height: `${(m.costUsd / top) * 100}%` }}
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ duration: 0.6, delay: i * 0.03, ease: easeOut }}
+            />
             <div
               role="tooltip"
-              className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-sm group-hover:block group-focus-visible:block"
+              className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-lg border bg-popover px-2.5 py-1.5 text-xs whitespace-nowrap text-popover-foreground shadow-card-hover group-hover:block group-focus-visible:block"
             >
-              <span className="text-muted-foreground">Tháng {monthLabel(m.month)}</span> <span className="tabular font-medium">{formatUsd(m.costUsd)}</span>
+              <span className="text-muted-foreground">Tháng {monthLabel(m.month)}</span> <span className="tabular font-semibold">{formatUsd(m.costUsd)}</span>
             </div>
           </li>
         ))}
       </ol>
-      <div className="flex gap-0.5 text-xs text-muted-foreground" aria-hidden>
+      <div className="-mt-2 flex gap-1 text-xs text-muted-foreground" aria-hidden>
         {months.map((m, i) => (
           <span key={m.month} className="min-w-0 flex-1 text-center whitespace-nowrap">
             {(months.length - 1 - i) % 3 === 0 ? monthLabel(m.month) : ""}
@@ -273,9 +356,21 @@ function StatusSection({ detail, onChanged }: { detail: AdminTenantDetail; onCha
   }
 
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-sm font-medium">Trạng thái</h2>
-      <p className="text-xs text-muted-foreground">
+    <section className="surface flex flex-col gap-3 p-5">
+      <div className="flex items-center gap-3">
+        <IconTile icon={active ? LockOpen : Lock} tone={active ? "success" : "destructive"} size="sm" />
+        <div className="flex flex-col">
+          <h2 className="text-sm font-semibold">Trạng thái</h2>
+          <span className={cn("flex items-center gap-1.5 text-xs font-medium", active ? "text-success" : "text-destructive")}>
+            <span className="relative flex size-2" aria-hidden>
+              {active && <span className="absolute inset-0 animate-ping-soft rounded-full bg-success motion-reduce:hidden" />}
+              <span className={cn("relative size-2 rounded-full", active ? "bg-success" : "bg-destructive")} />
+            </span>
+            {tenantStatusLabel(t.status, t.suspendedReason)}
+          </span>
+        </div>
+      </div>
+      <p className="text-xs text-pretty text-muted-foreground">
         {active
           ? "Khóa: người của doanh nghiệp không vào được web, bot ngừng trả lời khách, ngừng chăm sóc chủ động. Dữ liệu vẫn giữ nguyên."
           : "Mở khóa để doanh nghiệp dùng lại ngay."}
@@ -284,11 +379,7 @@ function StatusSection({ detail, onChanged }: { detail: AdminTenantDetail; onCha
         {active ? <Lock aria-hidden /> : <LockOpen aria-hidden />}
         {busy ? "Đang lưu..." : active ? "Khóa doanh nghiệp" : "Mở khóa"}
       </Button>
-      {problem && (
-        <p role="alert" className="text-sm text-destructive">
-          {problemMessage(problem)}
-        </p>
-      )}
+      <ActionError problem={problem} />
     </section>
   );
 }
@@ -314,22 +405,25 @@ function PurgeSection({ detail }: { detail: AdminTenantDetail }) {
   }
 
   return (
-    <section className="flex flex-col gap-2 border-t pt-4">
-      <h2 className="text-sm font-medium text-destructive">Xóa doanh nghiệp</h2>
-      <p className="text-xs text-muted-foreground">
+    <section className="flex flex-col gap-3 rounded-2xl border border-destructive/25 bg-destructive/[0.03] p-5">
+      <div className="flex items-center gap-3">
+        <IconTile icon={TriangleAlert} tone="destructive" size="sm" />
+        <h2 className="text-sm font-semibold text-destructive">Vùng nguy hiểm: xóa doanh nghiệp</h2>
+      </div>
+      <p className="text-xs text-pretty text-muted-foreground">
         {locked
           ? "Xóa vĩnh viễn mọi dữ liệu: khách, tin nhắn, kho kiến thức, kết nối Zalo, tài khoản chỉ thuộc doanh nghiệp này. Không khôi phục được — tải dữ liệu trước."
           : "Khóa doanh nghiệp trước, rồi mới xóa được."}
       </p>
       <Button
-        variant="ghost"
+        variant="destructive"
         disabled={!locked}
         onClick={() => {
           setTyped("");
           setProblem(null);
           setOpen(true);
         }}
-        className="h-11 justify-start text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-9"
+        className="h-11 justify-start sm:h-9"
       >
         <Trash2 aria-hidden />
         Xóa toàn bộ dữ liệu
@@ -365,5 +459,29 @@ function PurgeSection({ detail }: { detail: AdminTenantDetail }) {
         </AlertDialogContent>
       </AlertDialog>
     </section>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div role="status" aria-label="Đang tải doanh nghiệp" className="flex flex-col gap-6">
+      <div className="skeleton h-8 w-48 rounded-full" />
+      <div className="surface flex items-center gap-5 p-6">
+        <div className="skeleton size-16 rounded-full" />
+        <div className="flex flex-1 flex-col gap-2">
+          <div className="skeleton h-5 w-1/3" />
+          <div className="skeleton h-3 w-1/2 opacity-70" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="skeleton h-28 rounded-2xl" />
+        ))}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem]">
+        <div className="skeleton h-72 rounded-2xl" />
+        <div className="skeleton h-72 rounded-2xl" />
+      </div>
+    </div>
   );
 }

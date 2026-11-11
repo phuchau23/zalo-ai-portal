@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
+import { Bot, CircleAlert, CircleCheck, LoaderCircle, PencilLine, ShieldCheck } from "lucide-react";
+import { FormGroup as Group, stickySaveBar } from "@/components/common/form-layout";
 import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -16,6 +18,7 @@ import { call } from "@/lib/api/call";
 import { api, type Schemas } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
 import { cn } from "@/lib/utils";
+import { FormSkeleton } from "./settings-ui";
 import { TelegramConnect } from "./telegram-connect";
 
 type Values = Schemas["UpdateHandoffSettingsRequest"];
@@ -32,14 +35,27 @@ const days = [
 ];
 
 const careModes = [
-  { value: "auto", label: "Bot tự nhắn (khuyên dùng)", description: "Bot tự hỏi thăm khách như một nhân viên; chỉ báo bạn khi cần người." },
-  { value: "suggest", label: "Chỉ gợi ý", description: "AI soạn sẵn tin, nhân viên đọc, sửa rồi tự gửi ở trang Cần chăm sóc." },
+  { value: "auto", label: "Bot tự nhắn (khuyên dùng)", description: "Bot tự hỏi thăm khách như một nhân viên; chỉ báo bạn khi cần người.", icon: Bot },
+  { value: "suggest", label: "Chỉ gợi ý", description: "AI soạn sẵn tin, nhân viên đọc, sửa rồi tự gửi ở trang Cần chăm sóc.", icon: PencilLine },
 ];
 
 const variablesHint = "Biến dùng được: {xung_ho}, {ten_doanh_nghiep}, {ten_nhan_vien}, {thoi_gian_phan_hoi}, {gio_mo_cua_tiep_theo}.";
 
-/** Câu chuyển tiếp bot ↔ nhân viên, giờ làm việc, nhắc khi khách chờ lâu, Telegram (docs/FEATURE-SPECS.md mục 1). */
-export function HandoffForm() {
+export type HandoffSection = "hours" | "messages" | "notify" | "care";
+
+const saveLabels: Record<HandoffSection, string> = {
+  hours: "Lưu cài đặt chuyển nhân viên",
+  messages: "Lưu cài đặt chuyển nhân viên",
+  notify: "Lưu cài đặt thông báo",
+  care: "Lưu cài đặt chăm sóc",
+};
+
+/**
+ * Câu chuyển tiếp bot ↔ nhân viên, giờ làm việc, nhắc khi khách chờ lâu, Telegram, chăm sóc chủ động (docs/FEATURE-SPECS.md mục 1).
+ * `sections` chọn nhóm hiện trên trang (Thiết lập trợ lý → Chuyển nhân viên / Chăm sóc chủ động; Cài đặt → Thông báo).
+ * Cùng một API cho mọi nhóm: lưu luôn gửi đủ mọi trường (nhóm không hiện giữ nguyên giá trị đang có).
+ */
+export function HandoffForm({ sections = ["hours", "messages", "notify", "care"] }: { sections?: HandoffSection[] }) {
   const { me } = useSession();
   const canEdit = me.currentTenant?.role === "owner";
   const [values, setValues] = useState<Values | null>(null);
@@ -71,7 +87,7 @@ export function HandoffForm() {
   }, []);
 
   if (loadProblem) return <ErrorState problem={loadProblem} />;
-  if (!values) return <div role="status" aria-label="Đang tải" className="h-40 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />;
+  if (!values) return <FormSkeleton rows={Math.max(2, sections.length)} />;
 
   const update = (patch: Partial<Values>) => {
     setValues({ ...values, ...patch });
@@ -106,6 +122,7 @@ export function HandoffForm() {
         </Alert>
       )}
 
+      {sections.includes("hours") && (
       <Group title="Giờ làm việc" description="Ngoài giờ, bot vẫn trả lời nhưng câu chuyển nhân viên sẽ hẹn khách vào giờ mở cửa tiếp theo.">
         <div className="grid gap-5 sm:grid-cols-2">
           <Field id="openTime" label="Mở cửa" error={error("openTime")}>
@@ -124,7 +141,7 @@ export function HandoffForm() {
                 <Label
                   key={d.bit}
                   htmlFor={`day-${d.bit}`}
-                  className="flex min-h-11 min-w-14 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 font-normal has-data-checked:border-primary has-data-checked:bg-accent"
+                  className="flex min-h-11 min-w-16 cursor-pointer items-center justify-center gap-2 rounded-full border bg-card px-3.5 font-medium text-muted-foreground transition-colors hover:border-primary/30 has-data-checked:border-primary/40 has-data-checked:bg-primary/10 has-data-checked:text-primary"
                 >
                   <Checkbox
                     id={`day-${d.bit}`}
@@ -142,7 +159,9 @@ export function HandoffForm() {
           <Input id="responseTime" value={values.responseTime} maxLength={50} disabled={!canEdit} onChange={(e) => update({ responseTime: e.target.value })} />
         </Field>
       </Group>
+      )}
 
+      {sections.includes("messages") && (
       <Group title="Câu chuyển tiếp" description="Hệ thống tự gửi để khách biết đang nói chuyện với bot hay người, và phải chờ bao lâu.">
         <MessageField id="handoffMessage" label="Khi bot chuyển nhân viên (trong giờ)" value={values.handoffMessage} disabled={!canEdit} error={error("handoffMessage")} onChange={(v) => update({ handoffMessage: v })} />
         <MessageField id="afterHoursMessage" label="Khi bot chuyển nhân viên (ngoài giờ)" value={values.afterHoursMessage} disabled={!canEdit} error={error("afterHoursMessage")} onChange={(v) => update({ afterHoursMessage: v })} />
@@ -156,7 +175,9 @@ export function HandoffForm() {
         )}
         <Toggle id="staffSignatureEnabled" label='Thêm chữ ký "— Tên, CSKH" cuối tin nhân viên' checked={values.staffSignatureEnabled} disabled={!canEdit} onChange={(v) => update({ staffSignatureEnabled: v })} />
       </Group>
+      )}
 
+      {sections.includes("notify") && (
       <Group title="Thông báo nhân viên" description="Khi bot chuyển người hoặc khách chờ lâu, hệ thống báo cho nhóm nhân viên trên Telegram (chỉ báo loại sự việc và link, không gửi nội dung tin của khách).">
         <Field id="reminderMinutes" label="Nhắc lại khi khách chờ quá" error={error("reminderMinutes")}>
           <Select value={String(values.reminderMinutes)} onValueChange={(v) => update({ reminderMinutes: Number(v) })} disabled={!canEdit}>
@@ -181,7 +202,9 @@ export function HandoffForm() {
           onManualChange={(v) => update({ telegramChatId: v })}
         />
       </Group>
+      )}
 
+      {sections.includes("care") && (
       <Group
         title="Chăm sóc khách chủ động (AI)"
         description="Khách im lặng quá số giờ dưới đây, hoặc tới giờ hẹn chăm sóc trong nhật ký khách: AI đọc lại cuộc trò chuyện rồi tự nhắn hỏi thăm, hoặc báo nhân viên khi cần người. Mỗi lần phân tích là một lần gọi AI có tính phí."
@@ -197,23 +220,36 @@ export function HandoffForm() {
                 disabled={!canEdit}
                 className="gap-2"
               >
-                {careModes.map((mode) => (
-                  <Label
-                    key={mode.value}
-                    htmlFor={`care-mode-${mode.value}`}
-                    className={cn(
-                      "flex min-h-11 cursor-pointer items-start gap-3 rounded-md border p-3 font-normal transition-colors hover:bg-muted/50",
-                      ((values.careAutoSend ?? true) ? "auto" : "suggest") === mode.value && "border-primary bg-accent/50",
-                      !canEdit && "cursor-not-allowed opacity-70",
-                    )}
-                  >
-                    <RadioGroupItem id={`care-mode-${mode.value}`} value={mode.value} className="mt-0.5" />
-                    <span className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium">{mode.label}</span>
-                      <span className="text-sm text-muted-foreground">{mode.description}</span>
-                    </span>
-                  </Label>
-                ))}
+                {careModes.map((mode) => {
+                  const selected = ((values.careAutoSend ?? true) ? "auto" : "suggest") === mode.value;
+                  const Icon = mode.icon;
+                  return (
+                    <Label
+                      key={mode.value}
+                      htmlFor={`care-mode-${mode.value}`}
+                      className={cn(
+                        "flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border bg-card p-3.5 font-normal transition-[border-color,background-color,box-shadow] hover:border-ai/30",
+                        selected && "border-ai/40 bg-ai-soft/60 shadow-card",
+                        !canEdit && "cursor-not-allowed opacity-70",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors",
+                          selected ? "bg-ai text-white shadow-glow-ai" : "bg-muted text-muted-foreground",
+                        )}
+                        aria-hidden
+                      >
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="flex flex-1 flex-col gap-0.5">
+                        <span className="text-sm font-semibold">{mode.label}</span>
+                        <span className="text-sm text-pretty text-muted-foreground">{mode.description}</span>
+                      </span>
+                      <RadioGroupItem id={`care-mode-${mode.value}`} value={mode.value} className="mt-0.5" />
+                    </Label>
+                  );
+                })}
               </RadioGroup>
             </fieldset>
             <Field id="careColdHours" label="Chăm sóc khi khách im lặng quá" error={error("careColdHours")}>
@@ -240,15 +276,19 @@ export function HandoffForm() {
                 </Field>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">
-              Luôn áp dụng: mỗi lần khách im lặng bot chỉ nhắn 1 tin, cách tin trước ít nhất 24 giờ; khách nhắn &quot;hủy&quot; hoặc &quot;dừng&quot; thì bot không chủ động nhắn khách đó nữa. Tin ưu đãi, chuyện phàn nàn, sức khỏe luôn chuyển cho nhân viên.
+            <p className="flex items-start gap-2.5 rounded-xl border border-ai/15 bg-ai-soft/40 p-3 text-sm text-pretty text-muted-foreground">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-ai" aria-hidden />
+              <span>
+              Luôn áp dụng: mỗi lần khách im lặng bot chỉ nhắn 1 tin, cách tin chủ động trước ít nhất 24 giờ (giờ hẹn chăm sóc nhân viên đặt trong nhật ký khách thì gửi đúng giờ hẹn); khách nhắn &quot;hủy&quot; hoặc &quot;dừng&quot; thì bot không chủ động nhắn khách đó nữa. Tin ưu đãi, chuyện phàn nàn, sức khỏe luôn chuyển cho nhân viên.
+              </span>
             </p>
           </>
         )}
       </Group>
+      )}
 
       {canEdit && (
-        <div className="sticky bottom-0 -mx-4 flex items-center justify-end gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-background/80 md:-mx-8 md:px-8">
+        <div className={stickySaveBar}>
           <p role="status" className="mr-auto text-sm text-muted-foreground">
             {saved ? (
               <span className="inline-flex items-center gap-1.5 text-success">
@@ -261,23 +301,11 @@ export function HandoffForm() {
           </p>
           <Button type="submit" disabled={saving || !dirty}>
             {saving && <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden />}
-            {saving ? "Đang lưu..." : "Lưu cài đặt chuyển tiếp"}
+            {saving ? "Đang lưu..." : saveLabels[sections[0] ?? "hours"]}
           </Button>
         </div>
       )}
     </form>
-  );
-}
-
-function Group({ title, description, children }: { title: string; description: string; children: ReactNode }) {
-  return (
-    <section className="grid gap-4 border-b py-6 md:grid-cols-[16rem_1fr] md:gap-8">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-      <div className="flex max-w-xl flex-col gap-5">{children}</div>
-    </section>
   );
 }
 
@@ -320,11 +348,19 @@ function MessageField({
   );
 }
 
+/** Một dòng bật/tắt: chữ bên trái, công tắc bên phải; cả dòng bấm được. */
 function Toggle({ id, label, checked, disabled, onChange }: { id: string; label: string; checked: boolean; disabled: boolean; onChange: (value: boolean) => void }) {
   return (
-    <Label htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-3 font-normal">
-      <Checkbox id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onChange(v === true)} />
-      {label}
+    <Label
+      htmlFor={id}
+      className={cn(
+        "flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl border bg-card px-3.5 py-2.5 font-normal transition-colors hover:border-primary/25",
+        checked && "border-primary/25 bg-primary/[0.03]",
+        disabled && "cursor-not-allowed opacity-70",
+      )}
+    >
+      <span className="text-sm">{label}</span>
+      <Switch id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onChange(v === true)} />
     </Label>
   );
 }

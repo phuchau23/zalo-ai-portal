@@ -2,7 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bot, CircleAlert, Clock, Flame, LoaderCircle, MessageSquareText, SendHorizontal, Snowflake, Thermometer, Undo2, UserRound, X } from "lucide-react";
+import {
+  Bot,
+  CircleAlert,
+  Clock,
+  Flame,
+  Lightbulb,
+  LoaderCircle,
+  MessageSquareText,
+  SendHorizontal,
+  Snowflake,
+  Target,
+  Thermometer,
+  Undo2,
+  UserRound,
+  X,
+} from "lucide-react";
+import { PersonAvatar } from "@/components/common/person-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -82,104 +98,141 @@ export function SuggestionCard({
     await resolve("done");
   }
 
+  const hot = s.temperature === "hot";
+  const accent = hot ? "bg-destructive" : s.temperature === "warm" ? "bg-warning" : "bg-info";
+
   return (
     <article
       aria-labelledby={`care-${s.id}`}
-      className={cn("flex flex-col gap-3 rounded-lg border bg-card p-4", open && s.temperature === "hot" && "border-l-4 border-l-destructive", !open && "opacity-90")}
+      className={cn("lift relative flex flex-col overflow-hidden rounded-2xl border bg-card shadow-card", open && hot && "border-destructive/30", !open && "opacity-90")}
     >
-      <header className="flex flex-wrap items-start gap-x-3 gap-y-2">
-        <span
-          className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-full",
-            s.temperature === "hot" ? "bg-destructive/10 text-destructive" : s.temperature === "warm" ? "bg-warning/10 text-warning" : "bg-info/10 text-info",
+      {/* Vạch màu bên trái theo độ nóng của khách. */}
+      <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", open ? accent : "bg-border")} />
+
+      <div className="flex flex-col gap-4 p-4 pl-5 sm:p-5 sm:pl-6">
+        <header className="flex flex-wrap items-start gap-x-3 gap-y-2">
+          {showContact ? (
+            <PersonAvatar
+              name={s.contactName}
+              size="md"
+              badge={
+                <span className={cn("flex size-[18px] items-center justify-center rounded-full text-white ring-2 ring-card", accent)}>
+                  <TempIcon className="size-2.5" />
+                </span>
+              }
+            />
+          ) : (
+            <span
+              className={cn(
+                "flex size-10 shrink-0 items-center justify-center rounded-xl",
+                hot ? "bg-destructive/10 text-destructive" : s.temperature === "warm" ? "bg-warning/10 text-warning" : "bg-info/10 text-info",
+              )}
+              aria-hidden
+            >
+              <TempIcon className="size-5" />
+            </span>
           )}
-          aria-hidden
-        >
-          <TempIcon className="size-4" />
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 id={`care-${s.id}`} className="flex flex-wrap items-center gap-2 font-medium">
-            {showContact ? (
-              <Link href={`/customers/${s.contactId}`} className="rounded-sm hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
-                {s.contactName}
-              </Link>
-            ) : (
-              triggerLabel(s.trigger)
-            )}
-            <Badge variant={temp.variant}>{temp.label}</Badge>
-            {showContact && <Badge variant="outline">{triggerLabel(s.trigger)}</Badge>}
-            {s.isTest && <Badge variant="outline">Chat thử</Badge>}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {s.lastCustomerMessageAt ? `Khách im lặng ${elapsed(s.lastCustomerMessageAt, now)}` : "Chưa có tin của khách"}
-            {" · "}gợi ý lúc {new Date(s.updatedAt).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h3 id={`care-${s.id}`} className="flex flex-wrap items-center gap-2 font-semibold">
+              {showContact ? (
+                <Link
+                  href={`/customers/${s.contactId}`}
+                  className="rounded-sm transition-colors hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                  {s.contactName}
+                </Link>
+              ) : (
+                triggerLabel(s.trigger)
+              )}
+              <Badge variant={temp.variant}>
+                <TempIcon aria-hidden />
+                {temp.label}
+              </Badge>
+              {showContact && <Badge variant="outline">{triggerLabel(s.trigger)}</Badge>}
+              {s.isTest && <span className="rounded-md bg-muted px-1.5 py-px text-[10px] font-semibold text-muted-foreground uppercase">Chat thử</span>}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {s.lastCustomerMessageAt ? `Khách im lặng ${elapsed(s.lastCustomerMessageAt, now)}` : "Chưa có tin của khách"}
+              {" · "}gợi ý lúc {new Date(s.updatedAt).toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+            </p>
+          </div>
+          {!open && (
+            <Badge variant={s.status === "done" || s.status === "autosent" ? "success" : "secondary"}>
+              {s.status === "done" ? (outcomeLabel(s.outcome) ?? "Đã xử lý") : (careStatusLabels[s.status] ?? s.status)}
+            </Badge>
+          )}
+        </header>
+
+        {open && s.scheduledSendAt && (
+          <p role="status" className="flex items-start gap-2.5 rounded-xl border border-ai/20 bg-ai-soft px-3.5 py-2.5 text-sm">
+            <Bot className="mt-0.5 size-4 shrink-0 text-ai" aria-hidden />
+            <span>
+              Bot sẽ tự nhắn khách lúc <strong>{formatVnTime(s.scheduledSendAt)}</strong>. Muốn tự nhắn thay thì bấm &quot;Nhắn ngay&quot;; không muốn gửi thì &quot;Bỏ qua&quot;.
+            </span>
           </p>
-        </div>
-        {!open && (
-          <Badge variant={s.status === "done" || s.status === "autosent" ? "success" : "secondary"}>
-            {s.status === "done" ? (outcomeLabel(s.outcome) ?? "Đã xử lý") : (careStatusLabels[s.status] ?? s.status)}
-          </Badge>
         )}
-      </header>
-
-      {open && s.scheduledSendAt && (
-        <p role="status" className="flex items-start gap-2 rounded-md border border-primary/25 bg-primary/5 px-3 py-2 text-sm">
-          <Bot className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-          <span>
-            Bot sẽ tự nhắn khách lúc <strong>{formatVnTime(s.scheduledSendAt)}</strong>. Muốn tự nhắn thay thì bấm &quot;Nhắn ngay&quot;; không muốn gửi thì &quot;Bỏ qua&quot;.
-          </span>
-        </p>
-      )}
-      {open && s.escalationReason && (
-        <p role="status" className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-sm">
-          <UserRound className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
-          <span>
-            <strong>Cần nhân viên liên hệ:</strong> {escalationLabel(s.escalationReason)}
-          </span>
-        </p>
-      )}
-      {s.status === "autosent" && (
-        <p className="flex items-start gap-2 text-sm text-success">
-          <Bot className="mt-0.5 size-4 shrink-0" aria-hidden />
-          Bot đã tự nhắn khách lúc {formatVnTime(s.updatedAt)}. Khách trả lời thì bot nói chuyện tiếp; cần người thì sẽ báo bạn.
-        </p>
-      )}
-
-      <dl className="grid gap-2 text-sm sm:grid-cols-[6.5rem_1fr]">
-        <dt className="text-muted-foreground">Lý do</dt>
-        <dd className="text-pretty">{s.reason}</dd>
-        {s.suggestedAction && (
-          <>
-            <dt className="text-muted-foreground">Nên làm</dt>
-            <dd className="text-pretty">{s.suggestedAction}</dd>
-          </>
+        {open && s.escalationReason && (
+          <p role="status" className="flex items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/[0.07] px-3.5 py-2.5 text-sm">
+            <UserRound className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+            <span>
+              <strong>Cần nhân viên liên hệ:</strong> {escalationLabel(s.escalationReason)}
+            </span>
+          </p>
         )}
-        {s.draft && !composing && (
-          <>
-            <dt className="text-muted-foreground">{s.status === "autosent" ? "Tin bot đã gửi" : s.scheduledSendAt ? "Tin bot sẽ gửi" : "Tin nháp"}</dt>
-            <dd>
-              <blockquote className="rounded-md border-l-2 border-primary/40 bg-muted/50 px-3 py-2 text-pretty whitespace-pre-wrap">{s.draft}</blockquote>
-            </dd>
-          </>
+        {s.status === "autosent" && (
+          <p className="flex items-start gap-2.5 rounded-xl bg-success/[0.07] px-3.5 py-2.5 text-sm text-success">
+            <Bot className="mt-0.5 size-4 shrink-0" aria-hidden />
+            Bot đã tự nhắn khách lúc {formatVnTime(s.updatedAt)}. Khách trả lời thì bot nói chuyện tiếp; cần người thì sẽ báo bạn.
+          </p>
         )}
-      </dl>
 
-      {open && (
-        <p
-          className={cn(
-            "flex items-start gap-1.5 text-sm",
-            win.tone === "closed" ? "text-destructive" : win.tone === "soon" ? "text-warning" : "text-muted-foreground",
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1 rounded-xl bg-muted/50 px-3.5 py-2.5">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <Lightbulb className="size-3.5" aria-hidden />
+              Lý do
+            </span>
+            <p className="text-sm text-pretty">{s.reason}</p>
+          </div>
+          {s.suggestedAction && (
+            <div className="flex flex-col gap-1 rounded-xl bg-primary/[0.05] px-3.5 py-2.5">
+              <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-primary uppercase">
+                <Target className="size-3.5" aria-hidden />
+                Nên làm
+              </span>
+              <p className="text-sm text-pretty">{s.suggestedAction}</p>
+            </div>
           )}
-        >
-          <Clock className="mt-0.5 size-4 shrink-0" aria-hidden />
-          {win.text}
-        </p>
-      )}
+        </div>
+
+        {s.draft && !composing && (
+          <figure className="flex flex-col items-end gap-1">
+            <figcaption className="flex items-center gap-1 px-1 text-[11px] font-semibold text-ai">
+              <Bot className="size-3" aria-hidden />
+              {s.status === "autosent" ? "Tin bot đã gửi" : s.scheduledSendAt ? "Tin bot sẽ gửi" : "Tin nháp AI viết sẵn"}
+            </figcaption>
+            <blockquote className="max-w-[92%] rounded-2xl rounded-br-md border border-ai/15 bg-ai-soft px-3.5 py-2.5 text-sm leading-relaxed text-pretty whitespace-pre-wrap sm:max-w-[80%]">
+              {s.draft}
+            </blockquote>
+          </figure>
+        )}
+
+        {open && (
+          <p
+            className={cn(
+              "flex w-fit items-start gap-1.5 rounded-full px-3 py-1 text-xs font-medium",
+              win.tone === "closed" ? "bg-destructive/10 text-destructive" : win.tone === "soon" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground",
+            )}
+          >
+            <Clock className="mt-px size-3.5 shrink-0" aria-hidden />
+            {win.text}
+          </p>
+        )}
 
       {composing && (
         <div className="flex flex-col gap-2">
           <Label htmlFor={textId}>Tin gửi khách (sửa trước khi gửi)</Label>
-          <Textarea id={textId} value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={maxLength} autoFocus />
+          <Textarea id={textId} value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={maxLength} autoFocus className="rounded-xl" />
           <p className="text-xs text-muted-foreground">
             Gửi xong, hội thoại chuyển sang nhân viên (bot tạm dừng). Vào Hộp thư bấm &quot;Trả lại cho bot&quot; nếu muốn bot trả lời tiếp.
           </p>
@@ -202,8 +255,9 @@ export function SuggestionCard({
         </p>
       )}
       {sent && <p role="status" className="text-sm text-success">Đã gửi tin cho khách.</p>}
+      </div>
 
-      <footer className="flex flex-col gap-2 border-t pt-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <footer className="flex flex-col gap-2 border-t bg-muted/30 px-4 py-3 pl-5 sm:flex-row sm:flex-wrap sm:items-center sm:px-5 sm:pl-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground sm:mr-auto">
           <span className="shrink-0">Giao cho:</span>
           {isOwner && members && open ? (

@@ -37,6 +37,48 @@ export function useApiData<T>(fetcher: () => Promise<ApiResult<T>>) {
   return { ...state, reload };
 }
 
+/**
+ * Như `useApiData` nhưng TỰ TẢI LẠI khi `key` đổi (khoảng ngày, chi nhánh, kỳ...). Trong lúc tải số mới vẫn giữ số cũ
+ * (`stale` = true) để biểu đồ không nháy trắng. `loading` chỉ true khi chưa có dữ liệu nào.
+ * Không gọi setState đồng bộ trong effect: trạng thái "đang tải" suy ra từ việc `key` đã trả lời hay chưa.
+ */
+export function useApiQuery<T>(fetcher: () => Promise<ApiResult<T>>, key: string) {
+  const [state, setState] = useState<State<T> & { key?: string }>({ loading: true });
+  const [version, setVersion] = useState(0);
+  const fetcherRef = useRef(fetcher);
+  const requestKey = `${key}#${version}`;
+
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const result = await fetcherRef.current();
+      if (cancelled) return;
+      setState((previous) =>
+        result.ok
+          ? { data: result.data, loading: false, key: requestKey }
+          : { data: previous.data, problem: result.problem, loading: false, key: requestKey },
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [requestKey]);
+
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const answered = state.key === requestKey;
+  return {
+    data: state.data,
+    problem: answered ? state.problem : undefined,
+    loading: !answered && state.data === undefined,
+    stale: !answered && state.data !== undefined,
+    reload,
+  };
+}
+
 /** Gọi `reload` mỗi `ms` khi `active` = true (ví dụ còn tài liệu đang xử lý). */
 export function usePolling(active: boolean, reload: () => void, ms = 3000) {
   useEffect(() => {

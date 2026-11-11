@@ -24,6 +24,34 @@ const messages: Record<string, string> = {
   rate_limited: "Bạn thử quá nhiều lần, vui lòng đợi một phút rồi thử lại.",
   network_error: "Không kết nối được máy chủ. Kiểm tra mạng hoặc thử lại sau.",
   internal_error: "Có lỗi xảy ra, vui lòng thử lại.",
+  // CRM (chi nhánh, danh mục bán, nhân viên)
+  duplicate_code: "Mã này đã được dùng.",
+  default_branch: "Hãy đặt chi nhánh khác làm mặc định trước.",
+  branch_inactive: "Chi nhánh đang ngừng hoạt động.",
+  duplicate_closure: "Ngày này đã có trong danh sách nghỉ.",
+  user_already_linked: "Tài khoản này đã gắn với nhân viên khác.",
+  code_kind_mismatch: "Mã này đang dùng cho loại mục khác trong Kho kiến thức.",
+  // Lịch hẹn
+  slot_unavailable: "Khung giờ này đã kín hoặc ngoài giờ làm việc.",
+  too_soon: "Cần đặt trước ít nhất theo cài đặt (mặc định 60 phút).",
+  too_far: "Chỉ đặt trước tối đa số ngày đã cài đặt.",
+  appointment_state: "Trạng thái lịch không cho phép thao tác này.",
+  cancel_too_late: "Đã quá hạn đổi/hủy theo chính sách.",
+  // Bán hàng (hóa đơn, gói liệu trình, thẻ trả trước, voucher, ca thu ngân)
+  invoice_state: "Hóa đơn ở trạng thái không cho phép thao tác này.",
+  overpayment: "Số tiền vượt phần còn phải thu.",
+  wallet_insufficient: "Số dư thẻ trả trước không đủ.",
+  voucher_invalid: "Mã giảm giá không hợp lệ hoặc hết hạn.",
+  voucher_min_total: "Chưa đạt giá trị tối thiểu của mã giảm giá.",
+  package_unavailable: "Gói không thuộc khách này hoặc không còn hiệu lực.",
+  package_exhausted: "Gói đã hết buổi.",
+  package_used: "Gói đã dùng, không hủy hóa đơn được — hãy hoàn tiền một phần.",
+  package_state: "Trạng thái gói không cho phép thao tác này.",
+  no_bank_account: "Chưa cài tài khoản ngân hàng nhận chuyển khoản.",
+  shift_open: "Chi nhánh đang có ca chưa chốt.",
+  shift_closed: "Ca đã chốt.",
+  // Kho hàng
+  purchase_state: "Phiếu nhập đã nhận hoặc đã hủy.",
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

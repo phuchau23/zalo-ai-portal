@@ -1,3 +1,8 @@
+/* Hallmark · genre: modern-minimal · macrostructure: Workbench · design-system: design.md · designed-as-app
+ * brand: Remi · route: custom (tuned) · vibe: "chàm nhuộm tay, sổ tiệm, gọn và ấm"
+ * paper: oklch(97.4% 0.004 265) · accent: oklch(45% 0.135 268) chàm · display: Bricolage Grotesque · body: Be Vietnam Pro
+ * axes: light / grotesk-sans / cool
+ */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -7,9 +12,18 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-shell: var(--shell);
+  --color-shell-foreground: var(--shell-foreground);
+  --color-shell-muted: var(--shell-muted);
+  --color-shell-accent: var(--shell-accent);
+  --color-shell-border: var(--shell-border);
+  --color-shell-deep: var(--shell-deep);
+  --color-primary-deep: var(--primary-deep);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display);
+  --font-display: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -30,6 +44,9 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
+  --color-ai-soft: var(--ai-soft);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -42,101 +59,287 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-lime: var(--lime);
+  --color-zalo: var(--zalo);
+  --color-zalo-foreground: var(--zalo-foreground);
+  --color-zalo-soft: var(--zalo-soft);
+  --color-lime-foreground: var(--lime-foreground);
+  --color-tint-peach: var(--tint-peach);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-sage: var(--tint-sage);
+  --color-tint-butter: var(--tint-butter);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 1.75);
+  --radius-4xl: calc(var(--radius) * 2);
 }
 
 /*
- * Bộ màu: xanh dương (primary) trên nền trắng, chữ/viền theo thang xám lạnh (slate).
- * success/warning/info dùng cho trạng thái dữ liệu (đã áp dụng, đang chờ, thêm mới...).
- * Mọi màu chữ trên nền trắng đạt tương phản >= 4.5:1.
+ * Bóng (design.md § Hình khối): viền mảnh tách lớp, bóng gần như không có. Chỉ lớp nổi (menu, hộp thoại, thanh dưới điện thoại)
+ * mới có bóng thấy được. `glow`/`glow-ai` giữ tên cho code cũ nhưng không còn phát sáng (quầng sáng là dấu hiệu "giao diện AI").
  */
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.21 0.034 264.7);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.034 264.7);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.034 264.7);
-  --primary: oklch(0.53 0.2 260);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0.014 254.6);
-  --secondary-foreground: oklch(0.42 0.17 264);
-  --muted: oklch(0.968 0.007 247.9);
-  --muted-foreground: oklch(0.52 0.04 257.4);
-  --accent: oklch(0.962 0.018 252);
-  --accent-foreground: oklch(0.44 0.18 263);
-  --destructive: oklch(0.55 0.22 27.3);
-  --success: oklch(0.52 0.13 152);
-  --warning: oklch(0.55 0.15 50);
-  --info: oklch(0.53 0.2 260);
-  --border: oklch(0.925 0.012 255.5);
-  --input: oklch(0.87 0.02 252.9);
-  --ring: oklch(0.62 0.18 259.8);
-  --chart-1: oklch(0.53 0.2 260);
-  --chart-2: oklch(0.7 0.14 245);
-  --chart-3: oklch(0.42 0.17 264);
-  --chart-4: oklch(0.82 0.08 240);
-  --chart-5: oklch(0.32 0.1 265);
-  --radius: 0.375rem;
-  --sidebar: oklch(0.985 0.003 247.9);
-  --sidebar-foreground: oklch(0.37 0.04 257);
-  --sidebar-primary: oklch(0.53 0.2 260);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0.025 252);
-  --sidebar-accent-foreground: oklch(0.42 0.17 264);
-  --sidebar-border: oklch(0.925 0.012 255.5);
-  --sidebar-ring: oklch(0.62 0.18 259.8);
+@theme {
+  --shadow-card: 0 1px 0 0 oklch(0.22 0.018 268 / 0.03);
+  --shadow-card-hover: 0 1px 0 0 oklch(0.22 0.018 268 / 0.04), 0 6px 16px -10px oklch(0.22 0.018 268 / 0.18);
+  --shadow-float: 0 -1px 0 0 oklch(0.22 0.018 268 / 0.05), 0 -6px 18px -14px oklch(0.22 0.018 268 / 0.2);
+  --shadow-panel: 0 0 0 1px oklch(0.22 0.018 268 / 0.06);
+  --shadow-glow: 0 1px 0 0 oklch(0.22 0.018 268 / 0.08);
+  --shadow-glow-ai: 0 1px 0 0 oklch(0.22 0.018 268 / 0.08);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-float-slow: none;
+  --animate-ping-soft: ping-soft 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes ping-soft {
+    75%,
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
 }
 
+/*
+ * Bảng màu Remi Bento (design.md § Màu, đợt 2 — 2026-11-06).
+ * - Nền trắng sứ / xám sương mát (`--canvas`, hue 250), thẻ và thanh bên trắng, chữ mực than xanh đen (`--foreground`). `--primary` = mực: nút chính, mục đang chọn.
+ * - **Chanh (`--lime`)** là chữ ký thương hiệu: logo, ô số liệu chính, vùng biểu đồ, chấm mục đang mở, điểm cần nhìn trước.
+ *   Luôn đi với chữ mực (`--lime-foreground`) — không dùng chanh làm màu chữ (thiếu tương phản trên nền sáng).
+ * - Bốn màu pastel `--tint-*` để tô khối (color blocking) các ô số liệu theo nhóm; chữ trên đó vẫn là mực.
+ * - `--ai` (chàm): những gì trợ lý làm (nhãn "Bot chốt", việc bot nhắn). `--ring` xanh để vòng focus luôn thấy rõ.
+ * Mọi cặp chữ/nền đạt tương phản ≥ 4.5:1.
+ */
+:root {
+  --background: oklch(0.998 0.0015 250);
+  --canvas: oklch(0.97 0.004 250);
+  --shell: oklch(0.998 0.0015 250);
+  --shell-deep: oklch(0.998 0.0015 250);
+  --shell-foreground: oklch(0.3 0.014 262);
+  --shell-muted: oklch(0.5 0.014 258);
+  --shell-accent: oklch(0.955 0.005 250);
+  --shell-border: oklch(0.92 0.006 250);
+  --foreground: oklch(0.2 0.016 262);
+  --card: oklch(0.998 0.0015 250);
+  --card-foreground: oklch(0.2 0.016 262);
+  --popover: oklch(0.998 0.0015 250);
+  --popover-foreground: oklch(0.2 0.016 262);
+  --primary: oklch(0.2 0.016 262);
+  --primary-deep: oklch(0.14 0.014 262);
+  --primary-foreground: oklch(0.99 0.002 250);
+  --secondary: oklch(0.95 0.006 250);
+  --secondary-foreground: oklch(0.25 0.016 262);
+  --muted: oklch(0.955 0.005 250);
+  --muted-foreground: oklch(0.48 0.016 258);
+  --accent: oklch(0.95 0.006 250);
+  --accent-foreground: oklch(0.2 0.016 262);
+  --destructive: oklch(0.54 0.2 27);
+  --success: oklch(0.5 0.12 155);
+  --warning: oklch(0.57 0.15 55);
+  --info: oklch(0.47 0.14 262);
+  --ai: oklch(0.47 0.14 265);
+  --ai-foreground: oklch(0.99 0.002 250);
+  --ai-soft: oklch(0.94 0.03 265);
+  --lime: oklch(0.915 0.195 122);
+  --lime-foreground: oklch(0.24 0.05 125);
+  /* Xanh Zalo (#0068FF): CHỈ cho những gì liên quan Zalo (nút Kết nối Zalo OA, ô biểu tượng OA, nhãn kênh Zalo). */
+  --zalo: oklch(0.567 0.239 260.5);
+  --zalo-foreground: oklch(0.99 0.002 250);
+  --zalo-soft: oklch(0.95 0.035 258);
+  --tint-peach: oklch(0.92 0.06 45);
+  --tint-sky: oklch(0.92 0.055 232);
+  --tint-sage: oklch(0.925 0.055 162);
+  --tint-butter: oklch(0.95 0.085 98);
+  --border: oklch(0.915 0.006 250);
+  --input: oklch(0.87 0.008 250);
+  --ring: oklch(0.47 0.14 262);
+  --chart-1: oklch(0.22 0.016 262);
+  --chart-2: oklch(0.86 0.19 122);
+  --chart-3: oklch(0.66 0.1 235);
+  --chart-4: oklch(0.72 0.13 55);
+  --chart-5: oklch(0.62 0.08 155);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.998 0.0015 250);
+  --sidebar-foreground: oklch(0.3 0.014 262);
+  --sidebar-primary: oklch(0.2 0.016 262);
+  --sidebar-primary-foreground: oklch(0.99 0.002 250);
+  --sidebar-accent: oklch(0.955 0.005 250);
+  --sidebar-accent-foreground: oklch(0.2 0.016 262);
+  --sidebar-border: oklch(0.92 0.006 250);
+  --sidebar-ring: oklch(0.47 0.14 262);
+}
+
+/* Tối: cùng neo chàm; nền 16–20%, chữ 93%; lớp cao hơn sáng hơn. */
 .dark {
-  --background: oklch(0.17 0.025 265);
-  --foreground: oklch(0.97 0.006 248);
-  --card: oklch(0.21 0.03 265);
-  --card-foreground: oklch(0.97 0.006 248);
-  --popover: oklch(0.21 0.03 265);
-  --popover-foreground: oklch(0.97 0.006 248);
-  --primary: oklch(0.66 0.17 255);
-  --primary-foreground: oklch(0.17 0.025 265);
-  --secondary: oklch(0.27 0.05 262);
-  --secondary-foreground: oklch(0.88 0.06 250);
-  --muted: oklch(0.25 0.03 262);
-  --muted-foreground: oklch(0.72 0.03 255);
-  --accent: oklch(0.27 0.05 262);
-  --accent-foreground: oklch(0.88 0.06 250);
-  --destructive: oklch(0.7 0.19 22.2);
-  --success: oklch(0.74 0.15 152);
-  --warning: oklch(0.78 0.14 70);
-  --info: oklch(0.72 0.14 250);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 18%);
-  --ring: oklch(0.66 0.17 255);
-  --chart-1: oklch(0.66 0.17 255);
-  --chart-2: oklch(0.78 0.11 240);
-  --chart-3: oklch(0.55 0.18 262);
-  --chart-4: oklch(0.86 0.06 240);
-  --chart-5: oklch(0.45 0.12 265);
-  --sidebar: oklch(0.19 0.028 265);
-  --sidebar-foreground: oklch(0.85 0.02 255);
-  --sidebar-primary: oklch(0.66 0.17 255);
-  --sidebar-primary-foreground: oklch(0.17 0.025 265);
-  --sidebar-accent: oklch(0.27 0.05 262);
-  --sidebar-accent-foreground: oklch(0.92 0.04 250);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.66 0.17 255);
+  --background: oklch(0.205 0.012 268);
+  --canvas: oklch(0.17 0.01 268);
+  --shell: oklch(0.155 0.01 268);
+  --shell-deep: oklch(0.155 0.01 268);
+  --shell-foreground: oklch(0.86 0.01 265);
+  --shell-muted: oklch(0.68 0.012 265);
+  --shell-accent: oklch(1 0 0 / 0.06);
+  --shell-border: oklch(1 0 0 / 0.08);
+  --foreground: oklch(0.93 0.006 265);
+  --card: oklch(0.205 0.012 268);
+  --card-foreground: oklch(0.93 0.006 265);
+  --popover: oklch(0.23 0.012 268);
+  --popover-foreground: oklch(0.93 0.006 265);
+  --primary: oklch(0.72 0.11 268);
+  --primary-deep: oklch(0.62 0.11 268);
+  --primary-foreground: oklch(0.17 0.01 268);
+  --secondary: oklch(0.26 0.014 268);
+  --secondary-foreground: oklch(0.9 0.02 265);
+  --muted: oklch(0.25 0.012 268);
+  --muted-foreground: oklch(0.7 0.012 265);
+  --accent: oklch(0.26 0.014 268);
+  --accent-foreground: oklch(0.93 0.006 265);
+  --destructive: oklch(0.7 0.17 25);
+  --success: oklch(0.74 0.13 152);
+  --warning: oklch(0.79 0.13 70);
+  --info: oklch(0.72 0.11 268);
+  --ai: oklch(0.72 0.11 268);
+  --ai-foreground: oklch(0.17 0.01 268);
+  --ai-soft: oklch(0.27 0.03 268);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.72 0.11 268);
+  --chart-1: oklch(0.72 0.11 268);
+  --chart-2: oklch(0.8 0.07 245);
+  --chart-3: oklch(0.74 0.1 180);
+  --chart-4: oklch(0.82 0.12 75);
+  --chart-5: oklch(0.55 0.06 268);
+  --sidebar: oklch(0.155 0.01 268);
+  --sidebar-foreground: oklch(0.86 0.01 265);
+  --sidebar-primary: oklch(0.93 0.006 265);
+  --sidebar-primary-foreground: oklch(0.17 0.01 268);
+  --sidebar-accent: oklch(0.26 0.014 268);
+  --sidebar-accent-foreground: oklch(0.93 0.006 265);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.72 0.11 268);
+  --lime: oklch(0.88 0.19 122);
+  --lime-foreground: oklch(0.22 0.05 125);
+  --zalo: oklch(0.66 0.19 258);
+  --zalo-foreground: oklch(0.17 0.01 262);
+  --zalo-soft: oklch(0.3 0.06 258);
+  --tint-peach: oklch(0.32 0.04 55);
+  --tint-sky: oklch(0.32 0.04 235);
+  --tint-sage: oklch(0.32 0.04 155);
+  --tint-butter: oklch(0.34 0.05 95);
+}
+
+/* Thẻ trên nền vùng làm việc: bo 18px (bento), viền mảnh, gần như không bóng. */
+@utility surface {
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-card);
+}
+
+/*
+ * Ba tiện ích dưới giữ TÊN cũ (đang dùng ở nhiều trang) nhưng không còn là dải màu (design.md § Cấm):
+ * - `bg-brand-gradient`: nền chàm phẳng (logo, ô nổi bật của thương hiệu).
+ * - `bg-active-gradient`: nền mực phẳng (nút chính, tab/viên đang chọn).
+ * - `text-brand-gradient`: chữ màu chàm (không có chữ dải màu).
+ */
+@utility bg-brand-gradient {
+  background-color: var(--primary);
+}
+
+@utility bg-active-gradient {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+@utility text-brand-gradient {
+  color: var(--primary);
+}
+
+@utility bg-shell-gradient {
+  background-color: var(--shell);
+}
+
+/* Lưới chấm trang trí đã bỏ (design.md § Cấm) — giữ tên để code cũ không vỡ. */
+@utility bg-dot-grid {
+  background-image: none;
+}
+
+/* Khung xương đang tải: dải sáng chạy ngang (tắt khi người dùng chọn giảm chuyển động). */
+@utility skeleton {
+  border-radius: var(--radius-md);
+  background-color: var(--muted);
+  background-image: linear-gradient(90deg, transparent 0%, color-mix(in oklch, var(--background) 70%, transparent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* Thẻ bấm được: viền đậm lên một bậc khi rê chuột (không nhảy lên — chuyển động vô cớ). */
+@utility lift {
+  transition-property: border-color, box-shadow;
+  transition-duration: 160ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  &:hover {
+    border-color: color-mix(in oklch, var(--foreground) 18%, var(--border));
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+/* Sáu màu phẳng, trầm cho ảnh chữ cái (PersonAvatar chọn theo tên). Chữ trắng đọc được (L ≈ 47–52%). */
+@utility avatar-tone-1 {
+  background-color: oklch(0.47 0.11 268);
+}
+@utility avatar-tone-2 {
+  background-color: oklch(0.5 0.08 200);
+}
+@utility avatar-tone-3 {
+  background-color: oklch(0.48 0.09 330);
+}
+@utility avatar-tone-4 {
+  background-color: oklch(0.52 0.12 35);
+}
+@utility avatar-tone-5 {
+  background-color: oklch(0.5 0.09 85);
+}
+@utility avatar-tone-6 {
+  background-color: oklch(0.49 0.08 150);
+}
+
+/* Thanh cuộn mảnh cho vùng cuộn bên trong (danh sách hội thoại, tấm nội dung). */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 18%, transparent) transparent;
+}
+
+/* Chữ tiêu đề / số lớn (Bricolage Grotesque). */
+@utility font-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  letter-spacing: -0.02em;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+    overflow-x: clip;
+  }
   body {
     @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
   }
   /* Số trong bảng/thống kê thẳng cột. */
   td,
@@ -144,7 +347,27 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
-  html {
-    @apply font-sans;
+  /* Tiêu đề trang và tiêu đề khối dùng chữ Bricolage (design.md § Chữ). Không nghiêng. */
+  h1,
+  h2 {
+    font-family: var(--font-display), var(--font-sans), sans-serif;
+    letter-spacing: -0.02em;
+    font-style: normal;
   }
+  h3 {
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background-color: color-mix(in oklch, var(--lime) 55%, transparent);
+  }
+}
+
+/* Số lớn (ô số liệu, doanh thu): Bricolage hẹp lại (trục wdth) + đậm — điểm nhấn chữ của Remi Bento. */
+@utility num-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-variation-settings: "wdth" 80;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.95;
 }

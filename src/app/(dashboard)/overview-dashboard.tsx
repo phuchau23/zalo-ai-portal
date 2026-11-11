@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bot, CircleHelp, Coins, MessageCircleQuestion, MessagesSquare, UserPlus, type LucideIcon } from "lucide-react";
+import { motion } from "motion/react";
+import { Activity, BarChart3, Bot, CircleHelp, Coins, MessageCircleQuestion, MessagesSquare, UserPlus, type LucideIcon } from "lucide-react";
+import { AnimatedNumber } from "@/components/common/animated-number";
+import { IconTile, type Tone } from "@/components/common/icon-tile";
 import { SectionHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState } from "@/components/common/states";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +15,7 @@ import { call } from "@/lib/api/call";
 import { api, type Dashboard } from "@/lib/api/client";
 import { botRate, dayLabel, dayLongLabel, niceMax, unansweredReasonLabel } from "@/lib/dashboard";
 import { formatDateTime } from "@/lib/format";
+import { easeOut } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { formatUsd, formatVnd } from "./chat-test/labels";
@@ -34,13 +38,15 @@ export function OverviewDashboard() {
   }
 
   return (
-    <section aria-labelledby="activity" className="flex flex-col gap-4">
+    <section id="bot-activity" aria-labelledby="activity" className="flex scroll-mt-6 flex-col gap-4">
       <SectionHeader
+        icon={Activity}
+        tone="ai"
         title={<span id="activity">Hoạt động của bot</span>}
-        description="Số liệu khách thật trên Zalo, không tính khung Chat thử."
+        description="Khách thật nhắn qua Zalo (không tính khung Chat thử): bot trả lời bao nhiêu, câu nào chưa trả lời được."
         actions={
           <Tabs value={String(days)} onValueChange={changePeriod}>
-            <TabsList aria-label="Khoảng thời gian">
+            <TabsList variant="pill" aria-label="Khoảng thời gian">
               {periods.map((p) => (
                 <TabsTrigger key={p.value} value={String(p.value)} className="min-h-11 px-4 sm:min-h-8">
                   {p.label}
@@ -54,7 +60,14 @@ export function OverviewDashboard() {
       {problem && !data ? (
         <ErrorState problem={problem} onRetry={reload} />
       ) : !data ? (
-        <div role="status" aria-label="Đang tải số liệu" className="h-72 animate-pulse rounded-md bg-muted motion-reduce:animate-none" />
+        <div role="status" aria-label="Đang tải số liệu" className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} className="skeleton h-28 rounded-2xl" />
+            ))}
+          </div>
+          <div className="skeleton h-64 rounded-2xl" />
+        </div>
       ) : (
         <div className={cn("flex flex-col gap-4 transition-opacity", loading && "opacity-60")}>
           <KpiRow data={data} />
@@ -69,28 +82,50 @@ export function OverviewDashboard() {
 function KpiRow({ data }: { data: Dashboard }) {
   const rate = botRate(data.botHandled, data.conversations);
   return (
-    <div className="grid grid-cols-2 overflow-hidden rounded-md border lg:grid-cols-4">
-      <Kpi icon={MessagesSquare} label="Hội thoại" value={data.conversations.toLocaleString("vi-VN")} hint={`${data.days} ngày qua`} />
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <Kpi icon={MessagesSquare} tone="primary" label="Hội thoại" value={data.conversations} hint={`${data.days} ngày qua`} />
       <Kpi
         icon={Bot}
+        tone="ai"
         label="Bot tự xử lý"
-        value={rate === null ? "—" : `${rate}%`}
+        value={rate}
+        format={percentText}
         hint={rate === null ? "Chưa có hội thoại" : `${data.botHandled}/${data.conversations} hội thoại không cần nhân viên`}
       />
-      <Kpi icon={UserPlus} label="Khách mới" value={data.newContacts.toLocaleString("vi-VN")} hint={`${data.newLeads} khách tiềm năng`} />
-      <Kpi icon={Coins} label="Chi phí AI tháng này" value={formatUsd(data.aiCostUsdMonth)} hint={`≈ ${formatVnd(data.aiCostUsdMonth)}`} />
+      <Kpi icon={UserPlus} tone="success" label="Khách mới" value={data.newContacts} hint={`${data.newLeads} khách tiềm năng`} />
+      <Kpi icon={Coins} tone="warning" label="Chi phí AI tháng này" text={formatUsd(data.aiCostUsdMonth)} hint={`≈ ${formatVnd(data.aiCostUsdMonth)}`} />
     </div>
   );
 }
 
-function Kpi({ icon: Icon, label, value, hint }: { icon: LucideIcon; label: string; value: string; hint: string }) {
+const plainNumber = (n: number) => n.toLocaleString("vi-VN");
+const percentText = (n: number) => `${n}%`;
+
+/** Ô số liệu: ô biểu tượng màu, số chạy (hoặc chữ sẵn như tiền USD), dòng giải thích. `value` null → "—". */
+function Kpi({
+  icon,
+  tone,
+  label,
+  value,
+  text,
+  format = plainNumber,
+  hint,
+}: {
+  icon: LucideIcon;
+  tone: Tone;
+  label: string;
+  value?: number | null;
+  text?: string;
+  format?: (n: number) => string;
+  hint: string;
+}) {
   return (
-    <div className="-mb-px -ml-px flex flex-col gap-1.5 border-b border-l p-4">
-      <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        <Icon className="size-3.5" aria-hidden />
+    <div className="flex flex-col gap-2.5 rounded-2xl border bg-card p-4 shadow-card">
+      <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+        <IconTile icon={icon} tone={tone} size="sm" />
         {label}
       </p>
-      <p className="tabular text-2xl font-semibold tracking-tight">{value}</p>
+      <p className="text-2xl font-bold tracking-tight">{text ?? (value === null || value === undefined ? "—" : <AnimatedNumber value={value} format={format} />)}</p>
       <p className="text-xs text-muted-foreground">{hint}</p>
     </div>
   );
@@ -103,8 +138,11 @@ function DailyChart({ data }: { data: Dashboard }) {
   const ticks = Number.isInteger(max / 2) ? [max, max / 2, 0] : [max, 0];
 
   return (
-    <figure className="flex flex-col gap-3 rounded-md border p-4">
-      <figcaption className="text-sm font-medium">Hội thoại mỗi ngày</figcaption>
+    <figure className="surface flex flex-col gap-4 rounded-2xl p-5">
+      <figcaption className="flex items-center gap-2.5 text-sm font-semibold">
+        <IconTile icon={BarChart3} size="sm" />
+        Hội thoại mỗi ngày
+      </figcaption>
       {data.truncated && <p className="text-xs text-muted-foreground">Quá nhiều tin nhắn, biểu đồ có thể chưa đủ số liệu.</p>}
       <div className="flex gap-2">
         <div className="tabular flex h-44 w-7 shrink-0 flex-col justify-between text-right text-xs text-muted-foreground" aria-hidden>
@@ -121,14 +159,20 @@ function DailyChart({ data }: { data: Dashboard }) {
             ))}
           </div>
           <ol className="relative flex h-44 items-end gap-0.5" aria-label="Số hội thoại theo ngày">
-            {data.daily.map((d) => (
+            {data.daily.map((d, i) => (
               <li
                 key={d.date}
                 tabIndex={0}
                 aria-label={`${dayLongLabel(d.date)}: ${d.conversations} hội thoại`}
                 className="group relative flex h-full min-w-0 flex-1 items-end rounded-sm outline-none hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50"
               >
-                <div className="w-full rounded-t-[4px] bg-chart-1" style={{ height: `${(d.conversations / max) * 100}%` }} />
+                <motion.div
+                  className="w-full origin-bottom rounded-t-md bg-primary opacity-85 transition-opacity group-hover:opacity-100"
+                  style={{ height: `${(d.conversations / max) * 100}%` }}
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ duration: 0.5, ease: easeOut, delay: Math.min(i * 0.02, 0.5) }}
+                />
                 <div
                   role="tooltip"
                   className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground shadow-sm group-hover:block group-focus-visible:block"
@@ -173,28 +217,31 @@ function DailyChart({ data }: { data: Dashboard }) {
 
 function Unanswered({ data }: { data: Dashboard }) {
   return (
-    <section aria-labelledby="unanswered" className="flex flex-col gap-3 rounded-md border p-4">
+    <section aria-labelledby="unanswered" className="surface flex flex-col gap-4 rounded-2xl p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-0.5">
-          <h3 id="unanswered" className="flex items-center gap-1.5 text-sm font-medium">
-            <MessageCircleQuestion className="size-4 text-muted-foreground" aria-hidden />
+        <div className="flex flex-col gap-1">
+          <h3 id="unanswered" className="flex items-center gap-2.5 text-sm font-semibold">
+            <IconTile icon={MessageCircleQuestion} tone="warning" size="sm" />
             Câu bot chưa trả lời được
           </h3>
           <p className="text-sm text-muted-foreground">
             Bot đã chuyển nhân viên vì thiếu dữ liệu hoặc không chắc. Bổ sung vào kho kiến thức để lần sau bot tự trả lời. Số điện thoại, email đã được che.
           </p>
         </div>
-        <Link href="/knowledge" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-11 shrink-0 sm:h-8")}>
+        <Link href="/knowledge" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-11 shrink-0 rounded-full sm:h-8")}>
           Mở kho kiến thức
         </Link>
       </div>
       {data.unanswered.length === 0 ? (
-        <EmptyState icon={CircleHelp} title="Không có câu nào" description={`Trong ${data.days} ngày qua bot trả lời được mọi câu hỏi của khách.`} className="py-8" />
+        <EmptyState icon={CircleHelp} title="Không có câu nào" description={`Trong ${data.days} ngày qua bot trả lời được mọi câu hỏi của khách.`} compact />
       ) : (
-        <ul className="flex flex-col divide-y">
+        <ul className="flex flex-col gap-2">
           {data.unanswered.map((q) => (
-            <li key={`${q.conversationId}-${q.at}`} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <li
+              key={`${q.conversationId}-${q.at}`}
+              className="flex flex-col gap-2 rounded-xl border border-border/70 bg-muted/20 px-3.5 py-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:gap-4"
+            >
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <p className="text-sm break-words">{q.question ?? <span className="text-muted-foreground">(không tìm thấy tin của khách)</span>}</p>
                 <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <Badge variant={q.reason === "low_confidence" ? "warning" : "secondary"}>{unansweredReasonLabel(q.reason)}</Badge>

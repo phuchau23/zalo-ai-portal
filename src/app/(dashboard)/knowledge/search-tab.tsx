@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { CircleAlert, LoaderCircle, Search, SearchX } from "lucide-react";
+import { motion } from "motion/react";
+import { Bot, CircleAlert, LoaderCircle, Search, SearchX, Trophy } from "lucide-react";
+import { IconTile } from "@/components/common/icon-tile";
 import { EmptyState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { call } from "@/lib/api/call";
 import { api, type KnowledgeSearchResult } from "@/lib/api/client";
 import { problemMessage, type ApiProblem } from "@/lib/api/problem";
+import { easeOut, fadeUp, stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 const examples = ["giá massage đông y 60 phút", "chi nhánh Thủ Đức ở đâu", "đang cho con bú massage được không", "mấy giờ đóng cửa"];
@@ -20,6 +23,8 @@ export function SearchTab() {
   const [results, setResults] = useState<KnowledgeSearchResult[] | null>(null);
   const [problem, setProblem] = useState<ApiProblem | null>(null);
   const [searching, setSearching] = useState(false);
+  /** Tăng mỗi lần tìm xong để danh sách kết quả hiện lại từ đầu (hiệu ứng lần lượt). */
+  const [round, setRound] = useState(0);
 
   async function search(text: string) {
     if (!text.trim()) return;
@@ -30,6 +35,7 @@ export function SearchTab() {
     setSearching(false);
     if (result.ok) {
       setResults(result.data);
+      setRound((r) => r + 1);
     } else {
       setProblem(result.problem);
     }
@@ -42,33 +48,45 @@ export function SearchTab() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-3">
-        <p className="max-w-3xl text-sm text-muted-foreground">
-          Gõ câu hỏi như khách sẽ hỏi để xem bot tìm thấy đoạn dữ liệu nào. Nếu kết quả đầu tiên không đúng, hãy bổ sung hoặc sửa dữ liệu.
-        </p>
-        <form onSubmit={onSubmit} role="search" className="flex flex-col gap-2 sm:flex-row">
+      <div className="surface relative flex flex-col gap-4 overflow-hidden p-5 md:p-6">
+        <div className="relative flex items-start gap-3">
+          <IconTile icon={Search} variant="solid" size="md" />
+          <div className="flex flex-col gap-0.5">
+            <h2 className="font-semibold tracking-tight">Bot sẽ tìm thấy gì?</h2>
+            <p className="max-w-3xl text-sm text-pretty text-muted-foreground">
+              Gõ câu hỏi như khách sẽ hỏi để xem bot tìm thấy đoạn dữ liệu nào. Nếu kết quả đầu tiên không đúng, hãy bổ sung hoặc sửa dữ liệu.
+            </p>
+          </div>
+        </div>
+        <form onSubmit={onSubmit} role="search" className="relative flex flex-col gap-2 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ví dụ: giá massage 60 phút"
               maxLength={500}
               aria-label="Câu hỏi thử"
-              className="h-10 pl-9"
+              className="h-11 rounded-xl pl-10 text-[15px]"
             />
           </div>
-          <Button type="submit" size="lg" disabled={searching || !query.trim()}>
-            {searching && <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden />}
+          <Button type="submit" size="lg" className="h-11 rounded-xl px-5" disabled={searching || !query.trim()}>
+            {searching ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Bot aria-hidden />}
             {searching ? "Đang tìm..." : "Tìm"}
           </Button>
         </form>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Thử nhanh:</span>
+        <div className="relative flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Thử nhanh:</span>
           {examples.map((e) => (
-            <Button key={e} variant="outline" size="sm" className="font-normal" onClick={() => void search(e)} disabled={searching}>
+            <button
+              key={e}
+              type="button"
+              onClick={() => void search(e)}
+              disabled={searching}
+              className="min-h-8 cursor-pointer rounded-full border bg-background px-3 text-[13px] transition-colors hover:border-primary/40 hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 pointer-coarse:min-h-10"
+            >
               {e}
-            </Button>
+            </button>
           ))}
         </div>
       </div>
@@ -85,41 +103,64 @@ export function SearchTab() {
       )}
 
       {results && results.length > 0 && (
-        <ol className="divide-y rounded-md border" aria-label="Kết quả bot tìm thấy">
+        <motion.ol key={round} variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-3" aria-label="Kết quả bot tìm thấy">
           {results.map((r, i) => {
             const percent = Math.round(r.score * 100);
+            const top = i === 0;
             return (
-              <li key={`${r.knowledgeItemId ?? r.documentId}-${i}`} className={cn("flex gap-4 px-4 py-4", i === 0 && "bg-accent/40")}>
+              <motion.li
+                key={`${r.knowledgeItemId ?? r.documentId}-${i}`}
+                variants={fadeUp}
+                className={cn("surface flex gap-4 p-4", top && "border-primary/35 bg-accent/40 ring-1 ring-primary/15")}
+              >
                 <span
                   className={cn(
-                    "tabular flex size-7 shrink-0 items-center justify-center rounded-md text-sm font-semibold",
-                    i === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                    "tabular flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold",
+                    top
+                      ? "bg-active-gradient text-white shadow-glow"
+                      : "bg-muted text-muted-foreground",
                   )}
                   aria-label={`Hạng ${i + 1}`}
                 >
-                  {i + 1}
+                  {top ? <Trophy className="size-4" aria-hidden /> : i + 1}
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="font-medium">{r.title ?? "(không có tiêu đề)"}</span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-semibold">{r.title ?? "(không có tiêu đề)"}</span>
+                    {top && <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">Bot dùng trước</span>}
                     <Badge variant="outline">{r.source === "item" ? "Dữ liệu" : "Tài liệu tham khảo"}</Badge>
-                    {r.code && <span className="font-mono text-xs text-muted-foreground">{r.code}</span>}
+                    {r.code && <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">{r.code}</span>}
                   </div>
                   <p className="line-clamp-4 text-sm whitespace-pre-wrap text-muted-foreground">{r.content}</p>
-                </div>
-                <div className="hidden w-28 shrink-0 flex-col items-end gap-1.5 sm:flex">
-                  <span className="tabular text-sm font-semibold">{percent}%</span>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
-                    <div className={cn("h-full", i === 0 ? "bg-primary" : "bg-primary/50")} style={{ width: `${percent}%` }} />
+                  <div className="flex items-center gap-2.5 sm:hidden">
+                    <span className={cn("tabular shrink-0 text-xs font-semibold", top ? "text-primary" : "text-foreground")}>{percent}% khớp</span>
+                    <Relevance percent={percent} top={top} />
                   </div>
+                </div>
+                <div className="hidden w-32 shrink-0 flex-col items-end gap-1.5 sm:flex">
+                  <span className={cn("tabular text-lg font-bold tracking-tight", top ? "text-primary" : "text-foreground")}>{percent}%</span>
+                  <Relevance percent={percent} top={top} />
                   <span className="text-xs text-muted-foreground">độ khớp</span>
                 </div>
-                <span className="tabular shrink-0 text-sm font-semibold sm:hidden">{percent}%</span>
-              </li>
+              </motion.li>
             );
           })}
-        </ol>
+        </motion.ol>
       )}
     </div>
+  );
+}
+
+function Relevance({ percent, top }: { percent: number; top: boolean }) {
+  return (
+    <span className="flex h-1.5 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
+      <motion.span
+        className={cn("h-full origin-left rounded-full", top ? "bg-active-gradient" : "bg-primary/35")}
+        style={{ width: `${Math.min(100, percent)}%` }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 0.7, ease: easeOut }}
+      />
+    </span>
   );
 }
