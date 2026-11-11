@@ -33,7 +33,7 @@ export function ActionCenter({ openInvoices }: { openInvoices: number | undefine
           clear="Không có khách nào chờ"
         />
         <Tile href="/care" icon={HeartHandshake} count={care.data?.open} label="Khách cần chăm sóc" todo="Xem gợi ý và tin nháp" clear="Đã chăm sóc hết" />
-        <Tile href="/sales" icon={ReceiptText} count={openInvoices} label="Hóa đơn còn nợ hôm nay" todo="Thu nốt tiền khách" clear="Không còn hóa đơn nợ" />
+        <Tile href="/sales" icon={ReceiptText} count={openInvoices} label="Hóa đơn chưa thu đủ" todo="Thu nốt tiền khách" clear="Không còn hóa đơn nợ" />
       </ul>
     </section>
   );
@@ -61,28 +61,20 @@ function Tile({
       <Link
         href={href}
         className={cn(
-          "group lift relative flex h-full items-center gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-card focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+          "group lift relative flex h-full items-center gap-4 overflow-hidden rounded-xl border bg-card p-4 shadow-card focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
           pending && "border-warning/30",
         )}
       >
-        {/* Quầng màu nhẹ ở góc khi còn việc. */}
-        {pending && <span aria-hidden className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-warning/15 blur-2xl" />}
         <span className="relative">
           {loading ? (
             <span className="skeleton block size-11 rounded-xl" />
           ) : (
-            <IconTile icon={pending ? icon : CircleCheckBig} tone={pending ? "warning" : "success"} variant={pending ? "solid" : "soft"} size="md" className="size-11" />
-          )}
-          {pending && (
-            <span className="absolute -top-1 -right-1 flex size-3" aria-hidden>
-              <span className="absolute inset-0 animate-ping-soft rounded-full bg-warning motion-reduce:hidden" />
-              <span className="relative size-3 rounded-full bg-warning ring-2 ring-card" />
-            </span>
+            <IconTile icon={pending ? icon : CircleCheckBig} tone={pending ? "warning" : "success"} size="md" className="size-11" />
           )}
         </span>
         <span className="relative flex min-w-0 flex-1 flex-col gap-1">
           <span className="flex items-baseline gap-2">
-            <span className={cn("text-[28px] leading-none font-bold tracking-tight", !pending && "text-muted-foreground")}>
+            <span className={cn("font-display text-[28px] leading-none font-semibold", !pending && "text-muted-foreground")}>
               {loading ? <span className="skeleton inline-block h-7 w-8 align-middle" /> : <AnimatedNumber value={count} />}
             </span>
             <span className="truncate text-sm font-medium">{label}</span>

@@ -39,28 +39,25 @@ export default function OverviewPage() {
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="flex flex-col gap-7">
       <motion.header variants={fadeUp} className="flex flex-col gap-5 pt-1 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-2">
-          <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-card backdrop-blur">
-            <CalendarDays className="size-3.5 text-primary" aria-hidden />
-            {longDateVn(now)}
+        <div className="flex flex-col gap-1.5">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <CalendarDays className="size-4" aria-hidden />
+            {longDateVn(now)} · {me.currentTenant?.name ?? "doanh nghiệp"}
           </p>
-          <h1 className="text-[26px] leading-tight font-bold tracking-tight text-balance sm:text-[34px]">
-            {greeting(vnHour(now))}, <span className="text-brand-gradient">{firstName(me.name)}</span>
+          <h1 className="text-[28px] leading-[1.05] font-semibold text-balance sm:text-[36px]">
+            {greeting(vnHour(now))}, {firstName(me.name)}
           </h1>
-          <p className="text-sm text-muted-foreground sm:text-[15px]">
-            Đây là tình hình của <span className="font-medium text-foreground">{me.currentTenant?.name ?? "doanh nghiệp"}</span> hôm nay.
-          </p>
         </div>
-        <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3 lg:flex">
-          <Link href="/appointments?new=1" className={cn(buttonVariants(), "h-11 rounded-full px-4 sm:h-10")}>
+        <div className="grid grid-cols-2 gap-2 lg:flex">
+          <Link href="/appointments?new=1" className={cn(buttonVariants(), "col-span-2 h-11 px-4 sm:h-10")}>
             <CalendarPlus aria-hidden />
             Đặt lịch hẹn
           </Link>
-          <Link href="/sales?new=1" className={cn(buttonVariants({ variant: "outline" }), "h-11 rounded-full px-4 sm:h-10")}>
+          <Link href="/sales?new=1" className={cn(buttonVariants({ variant: "outline" }), "h-11 px-4 sm:h-10")}>
             <ReceiptText aria-hidden />
             Tạo hóa đơn
           </Link>
-          <Link href="/chat-test" className={cn(buttonVariants({ variant: "outline" }), "h-11 rounded-full px-4 sm:h-10")}>
+          <Link href="/chat-test" className={cn(buttonVariants({ variant: "outline" }), "h-11 px-4 sm:h-10")}>
             <MessageSquareText aria-hidden />
             Chat thử bot
           </Link>

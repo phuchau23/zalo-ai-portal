@@ -86,7 +86,6 @@ export function SetupChecklist() {
 
   return (
     <section aria-labelledby="setup" className="surface relative isolate flex flex-col gap-5 overflow-hidden rounded-2xl p-5 sm:p-6">
-      <div aria-hidden className="pointer-events-none absolute -top-20 -right-16 -z-10 size-56 rounded-full bg-primary/10 blur-3xl" />
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <IconTile icon={Rocket} variant="solid" size="md" />

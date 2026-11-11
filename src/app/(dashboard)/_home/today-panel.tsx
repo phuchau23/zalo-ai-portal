@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { ArrowRight, Bot, CalendarCheck2, CalendarDays, CalendarPlus, ReceiptText, Sun, UserPlus, Wallet, type LucideIcon } from "lucide-react";
 import { AnimatedNumber } from "@/components/common/animated-number";
-import { IconTile, type Tone } from "@/components/common/icon-tile";
+import type { Tone } from "@/components/common/icon-tile";
 import { PersonAvatar } from "@/components/common/person-avatar";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -38,12 +38,12 @@ export function TodayPanel({ today, now }: { today: Today | undefined; now: numb
   );
 
   return (
-    <section aria-labelledby="today" className="surface flex flex-col overflow-hidden rounded-2xl">
-      <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4">
+    <section aria-labelledby="today" className="flex flex-col gap-4">
+      <div className="flex items-end justify-between gap-3">
         <div className="flex items-center gap-3">
-          <IconTile icon={Sun} variant="solid" size="md" />
           <div className="flex flex-col gap-0.5">
-            <h2 id="today" className="text-base font-semibold tracking-tight">
+            <h2 id="today" className="flex items-center gap-2 text-xl font-semibold">
+              <Sun className="size-5" aria-hidden />
               Hôm nay
             </h2>
             <p className="text-sm text-muted-foreground">Số liệu tính từ 0 giờ, mọi chi nhánh.</p>
@@ -56,10 +56,11 @@ export function TodayPanel({ today, now }: { today: Today | undefined; now: numb
       </div>
 
       {today && (
-        <dl className="grid grid-cols-2 gap-2 px-3 pb-3 sm:gap-3 sm:px-5 sm:pb-5 lg:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Kpi
             icon={Wallet}
             tone="success"
+            tint="lime"
             label="Doanh thu"
             value={today.revenue}
             format={compactVnd}
@@ -69,6 +70,7 @@ export function TodayPanel({ today, now }: { today: Today | undefined; now: numb
           <Kpi
             icon={CalendarDays}
             tone="primary"
+            tint="sky"
             label="Lịch hẹn"
             value={today.appointments}
             hint={`Xong ${today.done} · Sắp tới ${today.upcoming}${today.noShows ? ` · Không đến ${today.noShows}` : ""}`}
@@ -76,6 +78,7 @@ export function TodayPanel({ today, now }: { today: Today | undefined; now: numb
           <Kpi
             icon={UserPlus}
             tone="ai"
+            tint="peach"
             label="Khách mới"
             value={today.newCustomers}
             hint={today.botBooked ? `Bot chốt ${today.botBooked} lịch hôm nay` : "Khách nhắn hoặc đặt lịch lần đầu"}
@@ -83,14 +86,15 @@ export function TodayPanel({ today, now }: { today: Today | undefined; now: numb
           <Kpi
             icon={ReceiptText}
             tone={today.openInvoices ? "warning" : "muted"}
+            tint="butter"
             label="Hóa đơn"
             value={today.invoices}
-            hint={today.openInvoices ? `${today.openInvoices} hóa đơn còn nợ` : "Không có hóa đơn còn nợ"}
+            hint={today.openInvoices ? `Tổng ${today.openInvoices} hóa đơn còn nợ (mọi ngày)` : "Không có hóa đơn còn nợ"}
           />
         </dl>
       )}
 
-      <div className="flex flex-col gap-3 border-t px-5 py-4">
+      <div className="surface flex flex-col gap-3 p-5">
         <h3 className="flex items-center gap-1.5 text-sm font-semibold">
           <CalendarCheck2 className="size-4 text-primary" aria-hidden />
           Lịch sắp tới
@@ -153,15 +157,22 @@ export function TodayPanel({ today, now }: { today: Today | undefined; now: numb
 
 const plainNumber = (n: number) => n.toLocaleString("vi-VN");
 
-/** Một ô số liệu hôm nay: ô biểu tượng màu, số chạy từ 0, dòng giải thích. */
+const tints = {
+  lime: "bg-lime text-lime-foreground",
+  sky: "bg-tint-sky",
+  peach: "bg-tint-peach",
+  butter: "bg-tint-butter",
+} as const;
+
+/** Một ô số liệu hôm nay (khối màu bento): nhãn + biểu tượng nhỏ, số lớn chữ hẹp chạy từ 0, dòng giải thích. */
 function Kpi({
-  icon,
-  tone,
+  icon: Icon,
   label,
   value,
   format = plainNumber,
   hint,
   title,
+  tint,
 }: {
   icon: LucideIcon;
   tone: Tone;
@@ -170,17 +181,20 @@ function Kpi({
   format?: (n: number) => string;
   hint: string;
   title?: string;
+  tint: keyof typeof tints;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-border/70 bg-muted/25 p-3 transition-colors hover:bg-muted/50 sm:p-4">
-      <dt className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        <IconTile icon={icon} tone={tone} size="sm" className="size-7 rounded-lg [&_svg]:size-3.5" />
+    <div className={cn("flex min-h-36 flex-col justify-between gap-3 rounded-2xl p-4 sm:p-5", tints[tint])}>
+      <dt className="flex items-center justify-between gap-2 text-[13px] font-medium opacity-80">
         {label}
+        <Icon className="size-4" aria-hidden />
       </dt>
-      <dd className="text-2xl font-bold tracking-tight" title={title}>
-        <AnimatedNumber value={value} format={format} />
-      </dd>
-      <dd className="text-xs leading-snug text-muted-foreground">{hint}</dd>
+      <div className="flex flex-col gap-1.5">
+        <dd className="num-display text-[34px] whitespace-nowrap xl:text-[40px]" title={title}>
+          <AnimatedNumber value={value} format={format} />
+        </dd>
+        <dd className="text-xs leading-snug opacity-75">{hint}</dd>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Bot, CalendarCheck2, Coins, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, CalendarCheck2, Coins } from "lucide-react";
 import { AnimatedNumber } from "@/components/common/animated-number";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
@@ -32,27 +32,19 @@ export function AiValueCard() {
   return (
     <section
       aria-labelledby="ai-value"
-      className="relative isolate flex flex-col gap-5 overflow-hidden rounded-2xl bg-brand-gradient p-5 text-white shadow-glow-ai sm:p-6"
+      className="relative isolate flex flex-col gap-5 overflow-hidden rounded-xl bg-foreground p-5 text-white sm:p-6"
     >
-      {/* Vòng sáng + lưới chấm trang trí, không mang thông tin. */}
-      <div className="pointer-events-none absolute -top-16 -right-16 -z-10 size-52 rounded-full bg-white/15 blur-2xl" aria-hidden />
-      <div className="pointer-events-none absolute -bottom-24 -left-10 -z-10 size-52 rounded-full bg-white/10 blur-2xl" aria-hidden />
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background-image:radial-gradient(rgb(255_255_255/0.35)_1px,transparent_1px)] [background-size:18px_18px] [mask-image:linear-gradient(to_bottom,black,transparent_70%)]"
-        aria-hidden
-      />
 
       <div className="relative flex items-center justify-between gap-3">
         <h2 id="ai-value" className="flex items-center gap-2.5 text-sm font-semibold text-white/90">
           <span className="flex size-8 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 ring-inset">
-            <Sparkles className="size-4" aria-hidden />
+            <Bot className="size-4" aria-hidden />
           </span>
-          Trợ lý AI · 30 ngày qua
+          Trợ lý · 30 ngày qua
         </h2>
         {data && !empty && (
           <span className="flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white/90 ring-1 ring-white/20 ring-inset">
             <span className="relative flex size-1.5" aria-hidden>
-              <span className="absolute inset-0 animate-ping-soft rounded-full bg-white motion-reduce:hidden" />
               <span className="relative size-1.5 rounded-full bg-white" />
             </span>
             Đang trả lời khách
@@ -73,7 +65,7 @@ export function AiValueCard() {
           </p>
           <Link
             href="/channels"
-            className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-lg bg-white px-4 text-sm font-semibold text-primary shadow-sm transition-transform hover:translate-x-0.5 focus-visible:ring-3 focus-visible:ring-white/60 focus-visible:outline-none sm:min-h-9"
+            className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full bg-zalo px-4 text-sm font-semibold text-zalo-foreground transition-colors hover:bg-zalo/90 focus-visible:ring-3 focus-visible:ring-white/60 focus-visible:outline-none sm:min-h-9"
           >
             Kết nối Zalo OA
             <ArrowRight className="size-4" aria-hidden />

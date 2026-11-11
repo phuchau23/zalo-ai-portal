@@ -167,7 +167,7 @@ function DailyChart({ data }: { data: Dashboard }) {
                 className="group relative flex h-full min-w-0 flex-1 items-end rounded-sm outline-none hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50"
               >
                 <motion.div
-                  className="w-full origin-bottom rounded-t-md bg-[linear-gradient(to_top,var(--primary),color-mix(in_oklch,var(--primary)_55%,var(--ai)))] opacity-85 transition-opacity group-hover:opacity-100"
+                  className="w-full origin-bottom rounded-t-md bg-primary opacity-85 transition-opacity group-hover:opacity-100"
                   style={{ height: `${(d.conversations / max) * 100}%` }}
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
