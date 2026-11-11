@@ -129,7 +129,6 @@ export function ChangePasswordForm() {
       </form>
 
       <aside className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border bg-card p-5 shadow-card sm:p-6">
-        <div aria-hidden className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full bg-primary/10 blur-2xl" />
         <div className="relative flex items-center gap-3">
           <IconTile icon={ShieldCheck} tone="success" size="md" />
           <h2 className="text-base font-semibold tracking-tight">Giữ tài khoản an toàn</h2>

@@ -14,10 +14,10 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { AnimatedNumber } from "@/components/common/animated-number";
 import { FilterLayout, FilterSection } from "@/components/common/filter-layout";
 import { FilterPills } from "@/components/common/filter-pills";
-import { IconTile, type Tone } from "@/components/common/icon-tile";
+import type { Tone } from "@/components/common/icon-tile";
+import { MetricTile } from "@/components/common/metric-tile";
 import { PageHeader } from "@/components/common/page-header";
 import { InvoiceStatusBadge, invoiceStatusLook } from "@/components/common/status-pill";
 import { PersonAvatar } from "@/components/common/person-avatar";
@@ -241,10 +241,10 @@ function InvoicesTab({
     >
       {invoices.data && rows.length > 0 && (
         <dl className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
-          <MoneyStat label="Doanh thu" hint="Tổng hóa đơn, trừ đã hủy" value={sum} icon={TrendingUp} tone="primary" />
-          <MoneyStat label="Đã thu" hint="Tiền khách đã trả" value={paid} icon={Wallet} tone="success" />
-          <MoneyStat label="Còn nợ" hint="Chưa thu hết" value={due} icon={CircleDollarSign} tone={due > 0 ? "warning" : "muted"} />
-          <MoneyStat label="Hóa đơn" hint="Trong khoảng ngày" value={rows.length} icon={Receipt} tone="muted" plain />
+          <MetricTile label="Doanh thu" hint="Tổng hóa đơn, trừ đã hủy" value={sum} format={formatMoney} icon={TrendingUp} tone="primary" />
+          <MetricTile label="Đã thu" hint="Tiền khách đã trả" value={paid} format={formatMoney} icon={Wallet} tone="success" />
+          <MetricTile label="Còn nợ" hint="Chưa thu hết" value={due} format={formatMoney} icon={CircleDollarSign} tone={due > 0 ? "warning" : "muted"} highlight />
+          <MetricTile label="Hóa đơn" hint="Trong khoảng ngày" value={rows.length} icon={Receipt} tone="muted" />
         </dl>
       )}
 
@@ -329,21 +329,5 @@ function InvoicesTab({
         </div>
       )}
     </FilterLayout>
-  );
-}
-
-/** Thẻ số liệu nhanh của khoảng ngày đang lọc (doanh thu, đã thu, còn nợ, số hóa đơn): số chạy lên khi đổi bộ lọc. */
-function MoneyStat({ label, hint, value, icon, tone, plain = false }: { label: string; hint: string; value: number; icon: LucideIcon; tone: Tone; plain?: boolean }) {
-  return (
-    <div className="surface flex items-center gap-3 rounded-2xl p-3.5">
-      <IconTile icon={icon} tone={tone} size="md" />
-      <div className="flex min-w-0 flex-col">
-        <dt className="truncate text-xs font-medium text-muted-foreground">{label}</dt>
-        <dd className={cn("truncate text-xl leading-tight font-bold tracking-tight", tone === "warning" && "text-warning")}>
-          <AnimatedNumber value={value} format={plain ? undefined : formatMoney} />
-        </dd>
-        <dd className="hidden truncate text-[11px] text-muted-foreground sm:block">{hint}</dd>
-      </div>
-    </div>
   );
 }

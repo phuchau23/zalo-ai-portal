@@ -102,7 +102,7 @@ export function ChannelsPage({ connected, error }: { connected?: string; error?:
   const connections = data?.connections ?? [];
   const configured = data?.configured ?? true;
   const connectButton = canEdit && configured && (
-    <Button onClick={() => void connect()} disabled={connecting} className="h-11 rounded-xl px-4 sm:h-10">
+    <Button variant="zalo" onClick={() => void connect()} disabled={connecting} className="h-11 px-4 sm:h-10">
       {connecting ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Plug aria-hidden />}
       {connecting ? "Đang chuyển sang Zalo..." : connections.length ? "Kết nối thêm OA" : "Kết nối Zalo OA"}
     </Button>
@@ -142,14 +142,11 @@ export function ChannelsPage({ connected, error }: { connected?: string; error?:
 
       <section aria-labelledby="zalo-title" className="surface relative isolate overflow-hidden rounded-2xl">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 overflow-hidden">
-          <div className="absolute inset-0 bg-dot-grid opacity-70 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
-          <div className="absolute -top-24 -left-10 size-72 rounded-full bg-primary/12 blur-3xl" />
-          <div className="absolute -top-20 right-0 size-64 rounded-full bg-primary/8 blur-3xl" />
         </div>
 
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between md:p-6">
           <div className="flex gap-4">
-            <IconTile icon={MessageCircleMore} variant="solid" size="lg" />
+            <IconTile icon={MessageCircleMore} variant="solid" size="lg" className="bg-zalo text-zalo-foreground" />
             <div className="flex flex-col gap-2">
               <div className="flex flex-col gap-1">
                 <h2 id="zalo-title" className="text-lg font-bold tracking-tight">
@@ -225,7 +222,7 @@ export function ChannelsPage({ connected, error }: { connected?: string; error?:
                   >
                     <div className="flex min-w-0 items-start gap-3.5">
                       <span className="relative shrink-0">
-                        <IconTile icon={MessageCircleMore} tone={active ? "primary" : "warning"} size="md" />
+                        <IconTile icon={MessageCircleMore} tone={active ? "primary" : "warning"} size="md" className={active ? "bg-zalo-soft text-zalo" : undefined} />
                         <span className="absolute -right-1 -bottom-1 flex size-3.5" aria-hidden>
                           {active && <span className="absolute inset-0 animate-ping-soft rounded-full bg-success motion-reduce:hidden" />}
                           <span className={cn("relative size-3.5 rounded-full ring-2 ring-card", active ? "bg-success" : "bg-warning")} />

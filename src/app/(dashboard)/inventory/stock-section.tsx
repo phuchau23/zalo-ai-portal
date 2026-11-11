@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Boxes, Check, CircleAlert, LoaderCircle, Package, PackageX, Pencil, Search, SearchX, SlidersHorizontal, TriangleAlert, Wallet, X, type LucideIcon } from "lucide-react";
-import { AnimatedNumber } from "@/components/common/animated-number";
 import { Field } from "@/components/common/field";
 import { FilterLayout, FilterSection } from "@/components/common/filter-layout";
 import { FilterPills } from "@/components/common/filter-pills";
+import { StatCard } from "@/components/common/stat-card";
 import { IconTile, type Tone } from "@/components/common/icon-tile";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Badge } from "@/components/ui/badge";
@@ -250,13 +250,8 @@ function StatTile({
   format?: (n: number) => string;
 }) {
   return (
-    <motion.li variants={fadeUp} className="surface flex min-w-0 flex-col gap-2 rounded-2xl p-4">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <IconTile icon={icon} tone={tone} size="sm" />
-      </div>
-      <AnimatedNumber value={value} format={format} className="text-xl font-bold tracking-tight break-words sm:text-2xl" />
-      {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
+    <motion.li variants={fadeUp} className="min-w-0">
+      <StatCard icon={icon} tone={tone} label={label} value={value} format={format} hint={hint} className="h-full" />
     </motion.li>
   );
 }

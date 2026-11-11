@@ -52,14 +52,6 @@ export function DropZone({
         busy && "pointer-events-none opacity-75",
       )}
     >
-      <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-dot-grid opacity-70 [mask-image:radial-gradient(ellipse_at_center,black_0%,transparent_70%)]" />
-      <span
-        aria-hidden
-        className={cn(
-          "pointer-events-none absolute top-1/2 left-1/2 -z-10 size-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl transition-opacity duration-300",
-          dragging ? "opacity-100" : "opacity-0 group-hover:opacity-100",
-        )}
-      />
       <input
         id={id}
         type="file"

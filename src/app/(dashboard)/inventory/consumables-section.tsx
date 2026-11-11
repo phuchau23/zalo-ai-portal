@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle, Package, Plus, Scissors, Sparkles, Trash2 } from "lucide-react";
+import { Bot, CircleAlert, CircleCheck, LoaderCircle, Package, Plus, Scissors, Trash2 } from "lucide-react";
 import { Field } from "@/components/common/field";
 import { IconTile } from "@/components/common/icon-tile";
 import { SectionHeader } from "@/components/common/page-header";
@@ -39,7 +39,7 @@ export function ConsumablesSection({ ctx }: { ctx: InventoryContext }) {
         <Field id="cs-service" label="Dịch vụ" hint="Chọn dịch vụ để xem hoặc đặt định mức vật tư mỗi buổi.">
           <Select value={serviceId} onValueChange={setServiceId} disabled={!services.data}>
             <SelectTrigger id="cs-service" className="h-11 w-full bg-background sm:h-10 sm:max-w-md *:data-[slot=select-value]:flex-1">
-              <Sparkles className="text-muted-foreground" aria-hidden />
+              <Bot className="text-muted-foreground" aria-hidden />
               <SelectValue placeholder={services.data ? "Chọn dịch vụ" : "Đang tải..."} />
             </SelectTrigger>
             <SelectContent>

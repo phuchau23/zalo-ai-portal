@@ -70,7 +70,6 @@ export function CashShiftSection({ branchId }: { branchId: string }) {
         <LoadingRows rows={2} columns={3} label="Đang tải ca thu ngân" />
       ) : shift ? (
         <section className="surface relative isolate flex flex-col gap-5 overflow-hidden rounded-2xl p-5">
-          <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 -z-10 size-64 rounded-full bg-success/10 blur-3xl" />
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <IconTile icon={LockOpen} tone="success" variant="solid" size="lg" />
@@ -215,7 +214,6 @@ function OpenShiftForm({ branchId, onOpened }: { branchId: string; onOpened: () 
 
   return (
     <form noValidate onSubmit={(e) => void submit(e)} className="surface relative isolate flex flex-col gap-4 overflow-hidden rounded-2xl p-5">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-dot-grid opacity-60 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
       <div className="flex items-start gap-3">
         <IconTile icon={Lock} tone="muted" size="lg" />
         <div className="flex flex-col gap-1">

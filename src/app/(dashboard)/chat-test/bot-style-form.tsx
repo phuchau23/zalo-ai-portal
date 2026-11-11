@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Bot, BriefcaseBusiness, CircleAlert, CircleCheck, LoaderCircle, Lock, MessagesSquare, Smile, Sparkles, Zap, type LucideIcon } from "lucide-react";
+import { Bot, BriefcaseBusiness, CircleAlert, CircleCheck, LoaderCircle, Lock, MessagesSquare, Smile, Zap, type LucideIcon } from "lucide-react";
 import { ErrorState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -209,7 +209,7 @@ function TonePreview({ tone }: { tone: string }) {
   return (
     <div className="flex flex-col gap-2 rounded-2xl border bg-canvas bg-dot-grid p-3">
       <p className="flex items-center gap-1.5 text-[11px] font-semibold text-ai">
-        <Sparkles className="size-3" aria-hidden />
+        <Bot className="size-3" aria-hidden />
         Ví dụ bot sẽ nhắn kiểu này
       </p>
       <AnimatePresence mode="wait" initial={false}>
@@ -222,7 +222,7 @@ function TonePreview({ tone }: { tone: string }) {
           transition={{ duration: 0.22, ease: easeOut }}
         >
           <span
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--ai),color-mix(in_oklch,var(--ai)_55%,var(--primary)))] text-white shadow-sm"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-sm"
             aria-hidden
           >
             <Bot className="size-3.5" />

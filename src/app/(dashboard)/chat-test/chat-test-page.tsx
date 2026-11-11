@@ -15,7 +15,6 @@ import {
   RotateCcw,
   SendHorizontal,
   Siren,
-  Sparkles,
   Trash2,
   UserRound,
 } from "lucide-react";
@@ -347,7 +346,7 @@ export function ChatTestPage() {
                       disabled={sending}
                       className="flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border bg-card px-3.5 py-1.5 text-left text-[13px] shadow-card transition-colors hover:border-primary/40 hover:text-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 pointer-coarse:min-h-11"
                     >
-                      <Sparkles className="size-3.5 shrink-0 text-primary" aria-hidden />
+                      <Bot className="size-3.5 shrink-0 text-primary" aria-hidden />
                       {s}
                     </motion.button>
                   ))}
@@ -525,7 +524,7 @@ function SideAvatar({ sender }: { sender: "bot" | "staff" }) {
     <span
       className={cn(
         "flex size-8 shrink-0 items-center justify-center rounded-full text-white shadow-sm ring-2 ring-background",
-        sender === "bot" ? "bg-[linear-gradient(135deg,var(--ai),color-mix(in_oklch,var(--ai)_55%,var(--primary)))]" : "bg-success",
+        sender === "bot" ? "bg-primary" : "bg-success",
       )}
       aria-hidden
     >
@@ -587,7 +586,7 @@ function MessageBubble({
         <span className="sr-only">{fromCustomer ? "Khách:" : staff ? "Nhân viên:" : `${botName}:`}</span>
         {!fromCustomer && startsRun && (
           <span className={cn("flex items-center gap-1 px-1 text-[11px] font-semibold", staff ? "text-success" : "text-ai")} aria-hidden>
-            {staff ? <UserRound className="size-3" /> : <Sparkles className="size-3" />}
+            {staff ? <UserRound className="size-3" /> : <Bot className="size-3" />}
             {staff ? "Nhân viên" : `Trợ lý AI · ${botName}`}
           </span>
         )}

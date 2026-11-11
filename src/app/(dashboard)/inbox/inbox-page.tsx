@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { Bot, Hand, MessagesSquare, Sparkles } from "lucide-react";
+import { Bot, Hand, MessagesSquare } from "lucide-react";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
@@ -120,22 +120,13 @@ export function InboxPage({ initialConversationId }: { initialConversationId?: s
 function NoConversation({ attentionCount, onShowAttention }: { attentionCount: number; onShowAttention: () => void }) {
   return (
     <div className="relative isolate flex h-full flex-col items-center justify-center gap-6 overflow-hidden bg-canvas px-6 text-center">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-dot-grid [mask-image:radial-gradient(ellipse_at_center,black_10%,transparent_70%)]" />
-      <div aria-hidden className="pointer-events-none absolute top-1/4 left-1/2 -z-10 size-80 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
-      <div aria-hidden className="relative flex size-36 items-center justify-center">
-        <span className="absolute inset-0 rounded-full border border-dashed border-primary/20" />
-        <span className="absolute inset-5 rounded-full border border-primary/15 bg-card/60" />
-        <span className="relative flex size-16 animate-float-slow items-center justify-center rounded-3xl bg-active-gradient text-white shadow-glow motion-reduce:animate-none">
-          <MessagesSquare className="size-7" />
-        </span>
-        <span className="absolute top-3 right-2 flex size-9 items-center justify-center rounded-2xl bg-ai text-white shadow-glow-ai">
-          <Sparkles className="size-4" />
-        </span>
-      </div>
+      <span aria-hidden className="flex size-12 items-center justify-center rounded-xl bg-muted text-foreground/70">
+        <MessagesSquare className="size-6" />
+      </span>
 
       <div className="flex max-w-md flex-col gap-2">
-        <h2 className="text-xl font-bold tracking-tight">Chọn một hội thoại để xem</h2>
+        <h2 className="text-xl font-semibold">Chọn một hội thoại để xem</h2>
         <p className="text-sm text-pretty text-muted-foreground">Bot trả lời khách 24/7. Bạn chỉ cần vào khi khách cần người thật.</p>
       </div>
 

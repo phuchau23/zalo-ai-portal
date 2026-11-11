@@ -14,13 +14,12 @@ import {
   Hourglass,
   ListFilter,
   Plus,
-  Sparkles,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
-import { AnimatedNumber } from "@/components/common/animated-number";
 import { FilterPills } from "@/components/common/filter-pills";
 import { IconTile, type Tone } from "@/components/common/icon-tile";
+import { MetricTile } from "@/components/common/metric-tile";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState, ErrorState, LoadingRows } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -462,19 +461,7 @@ function SummaryStats({ appointments, scope }: { appointments: Appointment[]; sc
   return (
     <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {stats.map((s) => (
-        <div key={s.label} className="surface flex items-center gap-3 rounded-2xl p-3.5">
-          <IconTile icon={s.icon} tone={s.tone} size="md" />
-          <div className="flex min-w-0 flex-col">
-            <dt className="flex items-center gap-1 truncate text-xs font-medium text-muted-foreground">
-              {s.label}
-              {s.tone === "ai" && <Sparkles className="size-3 text-ai" aria-hidden />}
-            </dt>
-            <dd className="text-2xl leading-tight font-bold tracking-tight">
-              <AnimatedNumber value={s.value} />
-            </dd>
-            <dd className="hidden truncate text-[11px] text-muted-foreground sm:block">{s.hint}</dd>
-          </div>
-        </div>
+        <MetricTile key={s.label} icon={s.icon} tone={s.tone} label={s.label} value={s.value} hint={s.hint} />
       ))}
     </dl>
   );

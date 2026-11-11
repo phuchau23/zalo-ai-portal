@@ -390,7 +390,6 @@ function CustomerDetails({
     <>
       <div className="relative flex flex-col items-center gap-3 overflow-hidden px-5 pt-8 pb-5 text-center">
         <div aria-hidden className="absolute inset-x-0 top-0 h-20 bg-brand-gradient opacity-[0.12]" />
-        <div aria-hidden className="absolute inset-x-0 top-0 h-20 bg-dot-grid opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
         <PersonAvatar name={c.contactName} size="xl" className="relative" />
         <div className="relative flex flex-col gap-0.5">
           <p className="text-base font-semibold">{c.contactName}</p>

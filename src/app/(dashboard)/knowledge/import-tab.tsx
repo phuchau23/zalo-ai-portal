@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Check, CircleAlert, Copy, FileSpreadsheet, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import { Bot, Check, CircleAlert, Copy, FileSpreadsheet, Lock, ShieldCheck } from "lucide-react";
 import { IconTile } from "@/components/common/icon-tile";
 import { SectionHeader } from "@/components/common/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -164,9 +164,8 @@ function AiPrompt() {
 
   return (
     <section className="surface relative flex flex-col gap-4 overflow-hidden p-5 md:p-6">
-      <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 size-64 rounded-full bg-ai/10 blur-3xl" />
       <SectionHeader
-        icon={Sparkles}
+        icon={Bot}
         tone="ai"
         className="relative"
         title="Nhờ AI chuyển tài liệu có sẵn sang mẫu"

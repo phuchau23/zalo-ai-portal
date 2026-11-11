@@ -330,7 +330,6 @@ export function CustomerWalletSection({ contactId }: { contactId: string }) {
       ) : (
         <div className="flex flex-col gap-3">
           <div className="relative isolate overflow-hidden rounded-xl bg-active-gradient p-4 text-white shadow-glow">
-            <div aria-hidden className="absolute -top-10 -right-6 -z-10 size-32 rounded-full bg-white/15 blur-2xl" />
             <p className="text-xs font-medium text-white/80">Số dư hiện có</p>
             <p className="tabular text-2xl font-bold tracking-tight">{formatMoney(data.balance)}</p>
           </div>

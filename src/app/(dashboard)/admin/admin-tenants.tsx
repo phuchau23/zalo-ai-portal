@@ -3,6 +3,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import {
+  Bot,
   Building2,
   CalendarClock,
   ChevronRight,
@@ -15,7 +16,6 @@ import {
   Search,
   SearchX,
   ShieldCheck,
-  Sparkles,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -129,7 +129,7 @@ export function AdminTenants() {
         <StatTile icon={Building2} label="Doanh nghiệp" hint={data ? `${active} đang hoạt động` : ""}>
           {data ? <AnimatedNumber value={tenants.length} /> : "—"}
         </StatTile>
-        <StatTile icon={Sparkles} tone="ai" label="Chi phí AI tháng này" hint={data ? `≈ ${formatVnd(costThisMonth)}` : ""}>
+        <StatTile icon={Bot} tone="ai" label="Chi phí AI tháng này" hint={data ? `≈ ${formatVnd(costThisMonth)}` : ""}>
           <span className="tabular">{data ? formatUsd(costThisMonth) : "—"}</span>
         </StatTile>
         <StatTile icon={MessagesSquare} tone="success" label="Hội thoại tháng này" hint="Khách thật, không tính Chat thử">
@@ -271,7 +271,6 @@ export function AdminTenants() {
 export function StatTile({ icon, tone = "primary", label, hint, children }: { icon: LucideIcon; tone?: Tone; label: string; hint?: string; children: ReactNode }) {
   return (
     <div className="surface relative flex flex-col gap-3 overflow-hidden p-4">
-      <div aria-hidden className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-primary/5 blur-2xl" />
       <div className="relative flex items-center gap-2.5">
         <IconTile icon={icon} tone={tone} size="sm" />
         <p className="text-xs font-medium text-pretty text-muted-foreground">{label}</p>

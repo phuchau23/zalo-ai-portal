@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { CalendarCog, CircleAlert, CircleCheck, LoaderCircle, Lock, Sparkles } from "lucide-react";
+import { Bot, CalendarCog, CircleAlert, CircleCheck, LoaderCircle, Lock } from "lucide-react";
 import { Field, describedBy } from "@/components/common/field";
 import { FormGroup, stickySaveBar } from "@/components/common/form-layout";
 import { SectionHeader } from "@/components/common/page-header";
@@ -219,7 +219,7 @@ export function CrmSettingsForm() {
               )}
               aria-hidden
             >
-              <Sparkles className="size-4" />
+              <Bot className="size-4" />
             </span>
             <span className="flex flex-1 flex-col">
               <span className="font-semibold">Bot tự chốt lịch qua chat</span>

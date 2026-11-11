@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { motion } from "motion/react";
-import { CircleAlert, LoaderCircle, Search, SearchX, Sparkles, Trophy } from "lucide-react";
+import { Bot, CircleAlert, LoaderCircle, Search, SearchX, Trophy } from "lucide-react";
 import { IconTile } from "@/components/common/icon-tile";
 import { EmptyState } from "@/components/common/states";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -49,7 +49,6 @@ export function SearchTab() {
   return (
     <div className="flex flex-col gap-5">
       <div className="surface relative flex flex-col gap-4 overflow-hidden p-5 md:p-6">
-        <div aria-hidden className="pointer-events-none absolute -top-24 left-1/3 size-64 rounded-full bg-primary/10 blur-3xl" />
         <div className="relative flex items-start gap-3">
           <IconTile icon={Search} variant="solid" size="md" />
           <div className="flex flex-col gap-0.5">
@@ -72,7 +71,7 @@ export function SearchTab() {
             />
           </div>
           <Button type="submit" size="lg" className="h-11 rounded-xl px-5" disabled={searching || !query.trim()}>
-            {searching ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Sparkles aria-hidden />}
+            {searching ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Bot aria-hidden />}
             {searching ? "Đang tìm..." : "Tìm"}
           </Button>
         </form>

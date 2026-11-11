@@ -21,7 +21,6 @@ import {
   Phone,
   Settings2,
   ShieldCheck,
-  Sparkles,
   Tag,
   Trash2,
   UserRound,
@@ -174,7 +173,6 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
       {/* Thẻ đầu hồ sơ: ảnh chữ cái lớn, tên, trạng thái, vài con số nhanh và việc hay làm. */}
       <section aria-labelledby="customer-name" className="surface relative isolate overflow-hidden rounded-2xl">
         <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-28 bg-brand-gradient opacity-[0.13]" />
-        <div aria-hidden className="absolute inset-x-0 top-0 -z-10 h-28 bg-dot-grid [mask-image:linear-gradient(to_bottom,black,transparent)]" />
         <div className="flex flex-col gap-5 p-5 sm:p-6 md:flex-row md:items-end">
           <PersonAvatar name={c.name} size="xl" />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -201,7 +199,7 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
             )}
             {latest && (
               <Button onClick={() => void analyze()} disabled={analyzing === "busy"} className="h-11 sm:h-9">
-                {analyzing === "busy" ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Sparkles aria-hidden />}
+                {analyzing === "busy" ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden /> : <Bot aria-hidden />}
                 AI chăm sóc khách này
               </Button>
             )}
@@ -223,7 +221,7 @@ export function CustomerProfile({ contactId }: { contactId: string }) {
       )}
       {analyzing === "queued" && openSuggestions.length === 0 && (
         <p role="status" className="flex items-start gap-2.5 rounded-2xl border border-ai/20 bg-ai-soft px-4 py-3 text-sm text-foreground/85">
-          <Sparkles className="mt-0.5 size-4 shrink-0 text-ai" aria-hidden />
+          <Bot className="mt-0.5 size-4 shrink-0 text-ai" aria-hidden />
           AI đang đọc lại cuộc trò chuyện… Nếu phù hợp, bot sẽ tự nhắn khách hoặc báo bạn liên hệ; khách chưa cần chăm sóc thì không làm gì.
         </p>
       )}
@@ -759,7 +757,7 @@ function NoteItem({ note, canDelete, contactId, onDeleted }: { note: ContactNote
         )}
         aria-hidden
       >
-        {note.kind === "service" ? <Sparkles className="size-3.5" /> : note.kind === "appointment" ? <CalendarDays className="size-3.5" /> : <NotebookPen className="size-3.5" />}
+        {note.kind === "service" ? <Bot className="size-3.5" /> : note.kind === "appointment" ? <CalendarDays className="size-3.5" /> : <NotebookPen className="size-3.5" />}
       </span>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <Badge variant={note.kind === "service" ? "success" : note.kind === "appointment" ? "info" : "secondary"}>{noteKindLabel(note.kind)}</Badge>

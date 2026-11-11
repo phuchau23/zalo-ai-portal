@@ -556,7 +556,6 @@ function PaymentForm({ invoice, busy, onDone, onQr }: { invoice: Invoice; busy: 
       onSubmit={(e) => void submit(e)}
       className="relative isolate flex flex-col gap-3 overflow-hidden rounded-2xl border border-primary/25 bg-card p-4 shadow-card ring-4 ring-primary/[0.04]"
     >
-      <div aria-hidden className="pointer-events-none absolute -top-16 -right-12 -z-10 size-44 rounded-full bg-primary/10 blur-2xl" />
       <h3 className="flex items-center gap-2 text-sm font-semibold">
         <IconTile icon={HandCoins} variant="solid" size="sm" />
         Thu tiền

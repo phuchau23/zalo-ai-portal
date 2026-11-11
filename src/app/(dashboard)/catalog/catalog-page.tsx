@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { Clock3, Layers, Lock, Package, Plus, Search, SearchX, Sparkles, type LucideIcon } from "lucide-react";
+import { Clock3, HandHeart, Layers, Lock, Package, Plus, Search, SearchX, type LucideIcon } from "lucide-react";
 import { FilterLayout, FilterSection } from "@/components/common/filter-layout";
 import { FilterPills } from "@/components/common/filter-pills";
 import { IconTile } from "@/components/common/icon-tile";
@@ -25,7 +25,7 @@ import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { CatalogItemDialog } from "./catalog-item-dialog";
 
-const tabIcons: Record<CatalogKind, LucideIcon> = { service: Sparkles, package: Layers, product: Package };
+const tabIcons: Record<CatalogKind, LucideIcon> = { service: HandHeart, package: Layers, product: Package };
 
 const emptyHints: Record<CatalogKind, string> = {
   service: "Thêm dịch vụ (ví dụ Massage 60 phút) để nhân viên đặt lịch và bot báo giá.",

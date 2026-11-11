@@ -111,7 +111,6 @@ export function TelegramConnect({
         )}
       >
         {/* Lưới chấm trang trí góc phải. */}
-        <div aria-hidden className="pointer-events-none absolute -top-6 -right-6 size-40 bg-dot-grid [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" />
 
         <div className="relative flex items-start gap-3">
           <IconTile icon={Send} tone={connected ? "success" : "primary"} variant="solid" size="md" />

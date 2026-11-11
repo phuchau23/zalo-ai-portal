@@ -12,7 +12,6 @@ import {
   MessageSquareText,
   SendHorizontal,
   Snowflake,
-  Sparkles,
   Target,
   Thermometer,
   Undo2,
@@ -209,7 +208,7 @@ export function SuggestionCard({
         {s.draft && !composing && (
           <figure className="flex flex-col items-end gap-1">
             <figcaption className="flex items-center gap-1 px-1 text-[11px] font-semibold text-ai">
-              <Sparkles className="size-3" aria-hidden />
+              <Bot className="size-3" aria-hidden />
               {s.status === "autosent" ? "Tin bot đã gửi" : s.scheduledSendAt ? "Tin bot sẽ gửi" : "Tin nháp AI viết sẵn"}
             </figcaption>
             <blockquote className="max-w-[92%] rounded-2xl rounded-br-md border border-ai/15 bg-ai-soft px-3.5 py-2.5 text-sm leading-relaxed text-pretty whitespace-pre-wrap sm:max-w-[80%]">

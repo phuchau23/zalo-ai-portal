@@ -247,7 +247,6 @@ function BusinessPreview({
   return (
     <div className="relative mb-2 flex flex-col gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:p-5">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/10 via-accent/40 to-transparent" />
-      <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-dot-grid [mask-image:linear-gradient(to_left,black,transparent)]" />
       <PersonAvatar name={name || "Doanh nghiệp"} size="xl" className="relative" />
       <div className="relative flex min-w-0 flex-1 flex-col gap-1">
         <span className="text-xs font-medium tracking-wider text-muted-foreground uppercase">Hồ sơ doanh nghiệp</span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { CalendarClock, CalendarOff, CircleAlert, CircleCheck, IdCard, LoaderCircle, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Bot, CalendarClock, CalendarOff, CircleAlert, CircleCheck, IdCard, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { Field } from "@/components/common/field";
 import { IconTile } from "@/components/common/icon-tile";
 import { SectionHeader } from "@/components/common/page-header";
@@ -115,7 +115,7 @@ function ServicesEditor({
 
   return (
     <section className={sectionCard}>
-      <SectionHeader icon={Sparkles} title="Dịch vụ làm được" description="Khi đặt lịch chỉ gợi ý nhân viên làm được dịch vụ đó." />
+      <SectionHeader icon={Bot} title="Dịch vụ làm được" description="Khi đặt lịch chỉ gợi ý nhân viên làm được dịch vụ đó." />
       <Label htmlFor={`sv-${staffId}-all`} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-normal sm:min-h-9">
         <Checkbox
           id={`sv-${staffId}-all`}

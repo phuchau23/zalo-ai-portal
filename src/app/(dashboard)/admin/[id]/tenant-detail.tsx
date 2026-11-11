@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
   BarChart3,
+  Bot,
   Building2,
   CalendarClock,
   Crown,
@@ -15,7 +16,6 @@ import {
   MessagesSquare,
   Package,
   Save,
-  Sparkles,
   Trash2,
   TriangleAlert,
   Users,
@@ -84,7 +84,6 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         className="surface relative flex flex-col gap-5 overflow-hidden p-5 sm:flex-row sm:items-center sm:p-6"
       >
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/10 via-accent/40 to-transparent" />
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-2/3 bg-dot-grid [mask-image:linear-gradient(to_left,black,transparent)]" />
         <PersonAvatar
           name={t.name}
           size="xl"
@@ -110,7 +109,7 @@ export function TenantDetail({ tenantId }: { tenantId: string }) {
         <StatTile icon={MessagesSquare} tone="success" label="Hội thoại tháng này" hint={t.quota === null ? "Không giới hạn" : `Hạn mức ${t.quota}`}>
           <AnimatedNumber value={t.conversationsThisMonth} />
         </StatTile>
-        <StatTile icon={Sparkles} tone="ai" label="Chi phí AI 12 tháng" hint={`≈ ${formatVnd(data.monthlyCosts.reduce((s, m) => s + m.costUsd, 0))}`}>
+        <StatTile icon={Bot} tone="ai" label="Chi phí AI 12 tháng" hint={`≈ ${formatVnd(data.monthlyCosts.reduce((s, m) => s + m.costUsd, 0))}`}>
           <span className="tabular">{formatUsd(data.monthlyCosts.reduce((s, m) => s + m.costUsd, 0))}</span>
         </StatTile>
         <StatTile icon={Users} label="Tài khoản" hint={`${owners} chủ doanh nghiệp`}>
@@ -292,7 +291,7 @@ function CostChart({ detail }: { detail: AdminTenantDetail }) {
             className="group relative flex h-full min-w-0 flex-1 items-end rounded-md outline-none hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/50"
           >
             <motion.div
-              className="w-full origin-bottom rounded-t-md bg-[linear-gradient(to_top,var(--chart-1),var(--ai))] opacity-85 transition-opacity group-hover:opacity-100"
+              className="w-full origin-bottom rounded-t-md bg-primary opacity-85 transition-opacity group-hover:opacity-100"
               style={{ height: `${(m.costUsd / top) * 100}%` }}
               initial={{ scaleY: 0 }}
               animate={{ scaleY: 1 }}

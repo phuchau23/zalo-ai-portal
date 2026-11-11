@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Boxes, CalendarClock, CircleAlert, Clock3, Layers, LoaderCircle, Package, Plus, Sparkles, Store, Tag, Trash2, type LucideIcon } from "lucide-react";
+import { Boxes, CalendarClock, CircleAlert, Clock3, HandHeart, Layers, LoaderCircle, Package, Plus, Store, Tag, Trash2, type LucideIcon } from "lucide-react";
 import { Field, describedBy } from "@/components/common/field";
 import { IconTile } from "@/components/common/icon-tile";
 import { Button } from "@/components/ui/button";
@@ -78,7 +78,7 @@ function toRequest(kind: CatalogKind, form: FormState): SaveRequest {
 
 let contentKey = 0;
 
-const kindIcons: Record<CatalogKind, LucideIcon> = { service: Sparkles, package: Layers, product: Package };
+const kindIcons: Record<CatalogKind, LucideIcon> = { service: HandHeart, package: Layers, product: Package };
 
 /** Thêm/sửa một mục danh mục: thông tin theo loại, chi nhánh bán, nội dung gói (gói liệu trình), trạng thái bán. */
 export function CatalogItemDialog({

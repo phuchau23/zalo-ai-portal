@@ -133,7 +133,7 @@ export function TracePanel({ trace, medicalSafety }: { trace: ChatTrace | null; 
                   </div>
                   <div className="h-1 overflow-hidden rounded-full bg-foreground/[0.07]" aria-hidden>
                     <div
-                      className={cn("h-full rounded-full", c.used ? "bg-[linear-gradient(90deg,var(--primary),var(--ai))]" : "bg-muted-foreground/40")}
+                      className={cn("h-full rounded-full", c.used ? "bg-primary" : "bg-muted-foreground/40")}
                       style={{ width: `${Math.min(100, percent)}%` }}
                     />
                   </div>

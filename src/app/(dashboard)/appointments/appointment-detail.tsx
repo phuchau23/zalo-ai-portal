@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Bot, CalendarClock, CircleAlert, CircleCheck, CircleDashed, ExternalLink, LoaderCircle, Receipt, Sparkles, UserRound } from "lucide-react";
+import { Bot, CalendarClock, CircleAlert, CircleCheck, CircleDashed, ExternalLink, LoaderCircle, Receipt, UserRound } from "lucide-react";
 import { IconTile } from "@/components/common/icon-tile";
 import { LeadStatusBadge } from "@/components/common/lead-status-badge";
 import { PersonAvatar } from "@/components/common/person-avatar";
@@ -334,7 +334,7 @@ export function AppointmentDetailDialog({
 
             <section className="relative flex flex-col gap-2 overflow-hidden rounded-2xl border border-ai/15 bg-ai-soft/60 p-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold">
-                <IconTile icon={Sparkles} tone="ai" variant="solid" size="sm" />
+                <IconTile icon={Bot} tone="ai" variant="solid" size="sm" />
                 Tóm tắt cho kỹ thuật viên
               </h3>
               {a.aiBrief ? (

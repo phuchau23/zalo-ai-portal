@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowDown, Bot, CheckCheck, CircleAlert, Clock3, HelpCircle, Megaphone, Sparkles, UserRound } from "lucide-react";
+import { ArrowDown, Bot, CheckCheck, CircleAlert, Clock3, HelpCircle, Megaphone, UserRound } from "lucide-react";
 import { PersonAvatar } from "@/components/common/person-avatar";
 import type { InboxMessage } from "@/lib/api/client";
 import { spring } from "@/lib/motion";
@@ -235,7 +235,7 @@ function SenderLabel({ message, staffName }: { message: InboxMessage; staffName:
   if (message.sender === "bot") {
     return (
       <span className="flex items-center gap-1 px-1 text-[11px] font-semibold text-ai">
-        {message.proactive ? <Sparkles className="size-3" aria-hidden /> : <Bot className="size-3" aria-hidden />}
+        {message.proactive ? <Bot className="size-3" aria-hidden /> : <Bot className="size-3" aria-hidden />}
         {message.proactive ? "Bot chủ động nhắn" : "Trợ lý AI"}
       </span>
     );
