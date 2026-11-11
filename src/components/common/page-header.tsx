@@ -6,9 +6,9 @@ import { IconTile } from "./icon-tile";
 import { PageHelp } from "./page-help";
 
 /**
- * Tiêu đề trang thống nhất: (nút quay lại) · ô biểu tượng dải màu · tiêu đề lớn + mô tả · nút thao tác bên phải
- * · "Cách dùng trang này" (gập được) cho người mới. Nằm trên nền lưới chấm + quầng sáng của tấm nội dung (AppShell).
- * `tone="ai"`: trang thuộc nhóm Trợ lý AI (ô biểu tượng màu tím).
+ * Tiêu đề trang thống nhất (design.md § Workbench): (quay lại) · tiêu đề lớn chữ Bricolage + mô tả · thao tác bên phải
+ * · "Cách dùng trang này" (gập được) cho người mới. Không đặt ô biểu tượng cạnh tiêu đề (dấu hiệu "giao diện AI");
+ * `icon`/`tone` giữ trong kiểu để các trang cũ không phải sửa, nhưng không vẽ.
  */
 export function PageHeader({
   title,
@@ -16,8 +16,6 @@ export function PageHeader({
   actions,
   back,
   meta,
-  icon: Icon,
-  tone = "primary",
   help,
   helpKey,
 }: {
@@ -34,24 +32,21 @@ export function PageHeader({
   helpKey?: string;
 }) {
   return (
-    <header className="flex flex-col gap-4 pb-2">
+    <header className="flex flex-col gap-3 pb-1">
       {back && (
         <Link
           href={back.href}
-          className="group inline-flex min-h-8 w-fit items-center gap-1.5 rounded-full border border-border/70 bg-card/80 py-1 pr-3.5 pl-2.5 text-sm text-muted-foreground shadow-card backdrop-blur transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none pointer-coarse:min-h-11"
+          className="group -ml-1 inline-flex min-h-8 w-fit items-center gap-1 rounded-md px-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none pointer-coarse:min-h-11"
         >
-          <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5 motion-reduce:transition-none" aria-hidden />
+          <ArrowLeft className="size-4" aria-hidden />
           {back.label}
         </Link>
       )}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          {Icon && <IconTile icon={Icon} tone={tone} variant="solid" size="lg" className="hidden sm:flex" />}
-          <div className="flex min-w-0 flex-col gap-1">
-            <h1 className="text-[22px] leading-tight font-bold tracking-tight text-balance sm:text-[28px]">{title}</h1>
-            {description && <p className="max-w-3xl text-sm text-pretty text-muted-foreground sm:text-[15px]">{description}</p>}
-            {meta}
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <h1 className="text-[28px] leading-[1.05] font-semibold text-balance sm:text-[36px]">{title}</h1>
+          {description && <p className="max-w-2xl text-sm text-pretty text-muted-foreground sm:text-[15px]">{description}</p>}
+          {meta}
         </div>
         {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>

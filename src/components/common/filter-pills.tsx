@@ -60,7 +60,7 @@ export function FilterPills<T extends string>({
       aria-label={label}
       className={cn(
         "flex max-w-full overflow-x-auto p-1 [scrollbar-width:none]",
-        soft ? "gap-0.5 rounded-xl bg-muted/80" : "w-fit gap-1 rounded-2xl border bg-card shadow-card",
+        soft ? "gap-0.5 rounded-xl bg-muted/80" : "w-fit gap-1 rounded-full border bg-card",
         className,
       )}
     >
@@ -75,7 +75,7 @@ export function FilterPills<T extends string>({
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative flex h-8 shrink-0 cursor-pointer items-center rounded-xl px-3 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none pointer-coarse:h-10",
+              "relative flex h-8 shrink-0 cursor-pointer items-center rounded-full px-3.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none pointer-coarse:h-10",
               soft && "flex-1 justify-center rounded-lg px-1.5 text-[13px]",
               active ? (soft ? "text-foreground" : "text-white") : "text-foreground/65 hover:bg-background/70 hover:text-foreground",
             )}
@@ -84,7 +84,7 @@ export function FilterPills<T extends string>({
               <motion.span
                 aria-hidden
                 layoutId={`filter-pill-${id}`}
-                className={cn("absolute inset-0", soft ? "rounded-lg bg-background shadow-sm ring-1 ring-foreground/5" : "rounded-xl bg-active-gradient shadow-glow")}
+                className={cn("absolute inset-0", soft ? "rounded-lg bg-background shadow-sm ring-1 ring-foreground/5" : "rounded-full bg-active-gradient")}
                 transition={spring}
               />
             )}

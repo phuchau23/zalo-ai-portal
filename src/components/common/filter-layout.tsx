@@ -4,7 +4,8 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 /**
- * Bố cục trang danh sách có bộ lọc (chủ dự án chốt 2026-11-01): từ màn lg chia 3/7 — cột bộ lọc bên trái (đứng yên khi cuộn),
+ * Bố cục trang danh sách có bộ lọc (chủ dự án chốt 2026-11-01): từ màn lg cột bộ lọc bên trái (đứng yên khi cuộn, rộng tối đa
+ * 17.5rem — 2026-11-06 bỏ tỷ lệ 3/7 vì bảng bị cắt cột ở màn 1440px),
  * khung nội dung lớn bên phải. Màn hẹp: bộ lọc nằm trên, nội dung bên dưới.
  * Trong cột bộ lọc: các `FilterSection` xếp dọc (ô tìm, khoảng ngày, `FilterPills variant="list"`, ô chọn...).
  * `onReset` (khi có lọc đang bật) hiện nút "Xóa lọc".
@@ -24,7 +25,7 @@ export function FilterLayout({
   className?: string;
 }) {
   return (
-    <div className={cn("grid items-start gap-5 lg:grid-cols-[minmax(15rem,3fr)_minmax(0,7fr)] lg:gap-6", className)}>
+    <div className={cn("grid items-start gap-5 lg:grid-cols-[minmax(14rem,17.5rem)_minmax(0,1fr)] lg:gap-6", className)}>
       <aside aria-label="Bộ lọc" className="surface flex min-w-0 flex-col gap-5 rounded-2xl p-4 lg:sticky lg:top-4 lg:p-5">
         <div className="flex items-center gap-2">
           <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden>

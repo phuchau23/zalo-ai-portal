@@ -25,7 +25,7 @@ export function LoadingRows({ rows = 5, columns = 4, label = "Đang tải dữ l
 
 /**
  * Trạng thái trống: nói rõ vì sao trống và bước tiếp theo.
- * Mặc định: thẻ trắng có lưới chấm mờ, biểu tượng dải màu nằm giữa hai vòng tròn (nhấp nhô nhẹ).
+ * Mặc định: khung viền đứt, căn trái — biểu tượng xám, tiêu đề, một câu lý do, nút việc tiếp theo bên phải (design.md).
  * `compact`: dùng bên trong một thẻ khác (không khung, không vòng tròn).
  */
 export function EmptyState({
@@ -59,18 +59,13 @@ export function EmptyState({
   }
 
   return (
-    <div className={cn("relative isolate flex flex-col items-center gap-5 overflow-hidden rounded-2xl border bg-card px-6 py-12 text-center shadow-card", className)}>
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-dot-grid [mask-image:radial-gradient(ellipse_at_center,black_0%,transparent_70%)]" />
-      <div aria-hidden className="relative flex size-28 items-center justify-center">
-        <span className={cn("absolute inset-0 rounded-full border border-dashed", tone === "ai" ? "border-ai/25" : "border-primary/20")} />
-        <span className={cn("absolute inset-4 rounded-full border", tone === "ai" ? "border-ai/15 bg-ai/5" : "border-primary/15 bg-primary/5")} />
-        <IconTile icon={Icon} tone={tone} variant="solid" size="lg" className="animate-float-slow motion-reduce:animate-none" />
+    <div className={cn("flex flex-col items-start gap-4 rounded-xl border border-dashed bg-card/60 px-6 py-8 sm:flex-row sm:items-center sm:gap-5 sm:px-8", className)}>
+      <IconTile icon={Icon} tone={tone === "ai" ? "ai" : "muted"} size="lg" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <p className="font-display text-lg leading-snug font-semibold">{title}</p>
+        {description && <p className="max-w-xl text-sm text-pretty text-muted-foreground">{description}</p>}
       </div>
-      <div className="flex max-w-md flex-col gap-1.5">
-        <p className="text-base font-semibold tracking-tight">{title}</p>
-        {description && <p className="text-sm text-pretty text-muted-foreground">{description}</p>}
-      </div>
-      {children && <div className="flex flex-wrap justify-center gap-2">{children}</div>}
+      {children && <div className="flex shrink-0 flex-wrap gap-2">{children}</div>}
     </div>
   );
 }

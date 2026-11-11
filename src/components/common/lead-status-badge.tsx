@@ -14,7 +14,7 @@ export const leadStatusLook: Record<LeadStatus, { icon: LucideIcon; tone: Tone; 
     icon: Flame,
     tone: "warning",
     badge:
-      "border-transparent bg-[linear-gradient(135deg,var(--warning),color-mix(in_oklch,var(--warning)_55%,var(--destructive)))] text-white shadow-[0_4px_12px_-6px_var(--warning)]",
+      "border-transparent bg-warning text-white shadow-[0_4px_12px_-6px_var(--warning)]",
   },
   won: { icon: BadgeCheck, tone: "success", badge: "border-success/25 bg-success/10 text-success" },
   lost: { icon: CircleSlash, tone: "muted", badge: "border-dashed border-border bg-muted/60 text-muted-foreground" },
