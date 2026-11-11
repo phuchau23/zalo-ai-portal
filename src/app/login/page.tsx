@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Bot, BotMessageSquare, CalendarCheck2, ReceiptText, ShieldCheck, TrendingUp, type LucideIcon } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { LogoMark } from "@/components/brand/logo";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { LoginForm } from "./login-form";
 
-export const metadata: Metadata = { title: "Đăng nhập — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Đăng nhập — Remi" };
 
-const points: { icon: LucideIcon; title: string; text: string }[] = [
-  { icon: Bot, title: "Trả lời khách 24/7", text: "Bot nhắn Zalo như nhân viên thật, đúng bảng giá và dịch vụ của bạn." },
-  { icon: CalendarCheck2, title: "Tự chốt và nhắc lịch", text: "Kiểm tra chỗ trống, giữ lịch, nhắc khách, hỏi thăm sau buổi làm." },
-  { icon: ReceiptText, title: "Bán hàng & gói liệu trình", text: "Hóa đơn, mã QR chuyển khoản, gói trừ buổi, kho, nhân viên." },
-  { icon: TrendingUp, title: "Báo cáo rõ ràng", text: "Doanh thu mỗi ngày, và bot mang về bao nhiêu tiền cho bạn." },
+/** Bốn việc Remi làm cho tiệm — liệt kê thẳng, không ô biểu tượng (design.md § Cấm). */
+const points: { title: string; text: string }[] = [
+  { title: "Trả lời khách trên Zalo", text: "Đúng bảng giá, dịch vụ của tiệm. Câu khó thì chuyển nhân viên." },
+  { title: "Giữ lịch, nhắc lịch", text: "Kiểm tra chỗ trống, nhắc khách trước giờ hẹn, hỏi thăm sau buổi làm." },
+  { title: "Thu ngân và gói liệu trình", text: "Hóa đơn, mã QR chuyển khoản, gói trừ buổi, kho, hoa hồng." },
+  { title: "Số liệu mỗi ngày", text: "Doanh thu, khách quay lại, và trợ lý mang về bao nhiêu." },
 ];
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
@@ -17,58 +19,43 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
   return (
     <main className="grid flex-1 bg-canvas lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
-      <section className="relative hidden overflow-hidden bg-brand-gradient p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-        {/* Hoa văn chấm + vòng sáng: chỉ trang trí. */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_1px_1px,rgb(255_255_255/0.35)_1px,transparent_0)] [background-size:22px_22px]"
-          aria-hidden
-        />
-        <div className="pointer-events-none absolute -top-24 -right-24 size-96 rounded-full bg-white/10 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-32 -left-24 size-96 rounded-full bg-white/10 blur-3xl" aria-hidden />
-
-        <div className="relative flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
-            <BotMessageSquare className="size-5" aria-hidden />
-          </span>
-          <span className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold tracking-tight">Trợ lý Zalo AI</span>
-            <span className="text-sm text-white/85">CRM & chăm sóc khách hàng</span>
-          </span>
+      {/* Khối thương hiệu: nền mực phẳng, chữ giấy — không dải màu, không hoa văn (design.md). */}
+      <section className="hidden bg-foreground p-10 text-background lg:flex lg:flex-col lg:justify-between xl:p-14">
+        <div className="flex items-center gap-2.5">
+          <LogoMark size={32} />
+          <span className="font-display text-[22px] leading-none font-bold tracking-[-0.03em]">remi</span>
         </div>
 
-        <div className="relative flex max-w-xl flex-col gap-8">
-          <h2 className="text-3xl leading-tight font-semibold text-balance xl:text-4xl">Chăm sóc khách trên Zalo và vận hành cả tiệm, trong một trang.</h2>
-
-          {/* Đoạn chat mẫu: cho người mới hình dung bot làm gì. */}
-          <figure className="flex max-w-md flex-col gap-2.5 rounded-2xl bg-white/12 p-4 ring-1 ring-white/20 backdrop-blur-sm" aria-label="Ví dụ bot trả lời khách">
-            <p className="w-fit max-w-[85%] self-end rounded-2xl rounded-br-md bg-white px-3.5 py-2 text-sm text-foreground shadow-sm">
-              Gói cổ vai gáy 60 phút giá bao nhiêu em?
+        <div className="flex max-w-xl flex-col gap-10">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-[44px] leading-[1.08] font-semibold text-balance xl:text-[60px]">
+              Giữ khách như <span className="rounded-lg bg-lime box-decoration-clone px-2 text-lime-foreground">người quen.</span>
+            </h2>
+            <p className="max-w-md text-[15px] leading-relaxed text-background/70">
+              Sổ khách, lịch hẹn, thu ngân và một trợ lý trả lời Zalo — cho tiệm spa, phòng khám, tiệm sửa chữa.
             </p>
-            <p className="w-fit max-w-[85%] rounded-2xl rounded-bl-md bg-white/20 px-3.5 py-2 text-sm text-white">
+          </div>
+
+          {/* Đoạn chat mẫu: cho người mới hình dung trợ lý làm gì. */}
+          <figure className="flex max-w-sm flex-col gap-2" aria-label="Ví dụ trợ lý trả lời khách">
+            <p className="w-fit max-w-[85%] self-end rounded-2xl rounded-br-sm bg-background px-3.5 py-2 text-sm text-foreground">Gói cổ vai gáy 60 phút giá bao nhiêu em?</p>
+            <p className="w-fit max-w-[85%] rounded-2xl rounded-bl-sm bg-background/12 px-3.5 py-2 text-sm">
               Dạ 550.000đ một lượt ạ. Chị muốn đặt giờ nào để em giữ chỗ cho mình nhé?
             </p>
-            <figcaption className="flex items-center gap-1.5 text-xs text-white/85">
-              <Bot className="size-3.5" aria-hidden />
-              Bot trả lời sau 3 giây, theo bảng giá doanh nghiệp đã nạp
-            </figcaption>
+            <figcaption className="text-xs text-background/55">Trợ lý trả lời theo bảng giá tiệm đã nạp.</figcaption>
           </figure>
 
-          <ul className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+          <dl className="grid gap-x-8 gap-y-5 border-t border-background/15 pt-6 sm:grid-cols-2">
             {points.map((p) => (
-              <li key={p.title} className="flex items-start gap-3">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20">
-                  <p.icon className="size-[18px]" aria-hidden />
-                </span>
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-sm font-semibold">{p.title}</span>
-                  <span className="text-sm leading-snug text-white/85">{p.text}</span>
-                </span>
-              </li>
+              <div key={p.title} className="flex flex-col gap-1">
+                <dt className="text-sm font-semibold">{p.title}</dt>
+                <dd className="text-sm leading-snug text-background/65">{p.text}</dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         </div>
 
-        <p className="relative flex items-center gap-2 text-sm text-white/85">
+        <p className="flex items-center gap-2 text-sm text-background/60">
           <ShieldCheck className="size-4" aria-hidden />
           Dữ liệu khách được mã hóa, tách riêng từng doanh nghiệp.
         </p>

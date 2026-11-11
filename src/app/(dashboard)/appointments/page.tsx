@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { LoadingRows } from "@/components/common/states";
 import { AppointmentsPage } from "./appointments-page";
 
-export const metadata: Metadata = { title: "Lịch hẹn — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Lịch hẹn — Remi" };
 
 export default function Page() {
   // useSearchParams (?date=, ?contactId=) cần Suspense để trang vẫn dựng tĩnh được.

@@ -3,7 +3,7 @@ import { FormGroup } from "@/components/common/form-layout";
 import { BotStyleForm } from "../chat-test/bot-style-form";
 import { SettingsForm } from "../settings/settings-form";
 
-export const metadata: Metadata = { title: "Giọng văn & xưng hô — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Giọng văn & xưng hô — Remi" };
 
 export default function Page() {
   return (

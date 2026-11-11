@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChatTestPage } from "./chat-test-page";
 
-export const metadata: Metadata = { title: "Chat thử — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Chat thử — Remi" };
 
 export default function Page() {
   return (

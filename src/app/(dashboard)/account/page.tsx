@@ -3,7 +3,7 @@ import { UserRound } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { ChangePasswordForm } from "./change-password-form";
 
-export const metadata: Metadata = { title: "Tài khoản — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Tài khoản — Remi" };
 
 export default function Page() {
   return (

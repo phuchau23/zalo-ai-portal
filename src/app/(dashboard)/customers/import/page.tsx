@@ -3,7 +3,7 @@ import { FileSpreadsheet } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { ContactImport } from "./contact-import";
 
-export const metadata: Metadata = { title: "Nhập danh sách khách — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Nhập danh sách khách — Remi" };
 
 export default function Page() {
   return (

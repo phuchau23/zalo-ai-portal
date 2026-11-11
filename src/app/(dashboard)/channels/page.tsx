@@ -3,7 +3,7 @@ import { Plug } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { ChannelsPage } from "./channels-page";
 
-export const metadata: Metadata = { title: "Kênh Zalo — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Kênh Zalo — Remi" };
 
 export default async function Page({ searchParams }: PageProps<"/channels">) {
   const { connected, error } = await searchParams;

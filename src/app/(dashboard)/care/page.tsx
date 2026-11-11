@@ -3,7 +3,7 @@ import { HeartHandshake } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { CarePage } from "./care-page";
 
-export const metadata: Metadata = { title: "Cần chăm sóc — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Cần chăm sóc — Remi" };
 
 export default function Page() {
   return (

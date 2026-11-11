@@ -111,7 +111,7 @@ export function elapsed(iso: string | null | undefined, now: number): string {
 
 /** Tên tab trình duyệt: "(3) Hộp thư" khi có khách đang chờ. */
 export function documentTitle(attentionCount: number): string {
-  return attentionCount > 0 ? `(${attentionCount}) Hộp thư — Trợ lý Zalo AI` : "Hộp thư — Trợ lý Zalo AI";
+  return attentionCount > 0 ? `(${attentionCount}) Hộp thư — Remi` : "Hộp thư — Remi";
 }
 
 export const senderLabels: Record<string, string> = {

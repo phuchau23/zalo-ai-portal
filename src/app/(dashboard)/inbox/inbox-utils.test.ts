@@ -111,7 +111,7 @@ describe("elapsed", () => {
 
 describe("documentTitle", () => {
   it("shows waiting count", () => {
-    expect(documentTitle(0)).toBe("Hộp thư — Trợ lý Zalo AI");
-    expect(documentTitle(3)).toBe("(3) Hộp thư — Trợ lý Zalo AI");
+    expect(documentTitle(0)).toBe("Hộp thư — Remi");
+    expect(documentTitle(3)).toBe("(3) Hộp thư — Remi");
   });
 });

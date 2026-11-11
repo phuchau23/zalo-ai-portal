@@ -3,7 +3,7 @@ import { Users } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { CustomersPage } from "./customers-page";
 
-export const metadata: Metadata = { title: "Khách hàng — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Khách hàng — Remi" };
 
 export default function Page() {
   return (

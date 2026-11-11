@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { BotMessageSquare, CircleAlert, Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { CircleAlert, Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { LogoMark, Wordmark } from "@/components/brand/logo";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,13 +39,11 @@ export function LoginForm({ next }: { next: string }) {
 
   return (
     <div className="flex w-full max-w-md flex-col gap-6">
-      <div className="flex items-center gap-3 lg:hidden">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-sm">
-          <BotMessageSquare className="size-5" aria-hidden />
-        </span>
-        <span className="flex flex-col leading-tight">
-          <span className="text-base font-semibold tracking-tight">Trợ lý Zalo AI</span>
-          <span className="text-sm text-muted-foreground">CRM & chăm sóc khách hàng</span>
+      <div className="flex items-center gap-2.5 lg:hidden">
+        <LogoMark size={30} />
+        <span className="flex flex-col gap-0.5">
+          <Wordmark />
+          <span className="text-xs text-muted-foreground">Giữ khách như người quen</span>
         </span>
       </div>
 

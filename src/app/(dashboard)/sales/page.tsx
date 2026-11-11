@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { isSalesTab } from "@/lib/sales";
 import { SalesPage } from "./sales-page";
 
-export const metadata: Metadata = { title: "Bán hàng — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Bán hàng — Remi" };
 
 export default async function Page({ searchParams }: PageProps<"/sales">) {
   const { tab, new: openNew } = await searchParams;

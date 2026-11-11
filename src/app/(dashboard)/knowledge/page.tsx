@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { KnowledgePage, type KnowledgeTab } from "./knowledge-page";
 
-export const metadata: Metadata = { title: "Kho kiến thức — Trợ lý Zalo AI" };
+export const metadata: Metadata = { title: "Kho kiến thức — Remi" };
 
 const tabs: KnowledgeTab[] = ["items", "import", "history", "documents", "search"];
 
