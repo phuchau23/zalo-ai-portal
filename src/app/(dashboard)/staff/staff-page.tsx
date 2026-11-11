@@ -23,6 +23,7 @@ import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
 import { StaffDetail } from "./staff-detail";
 import { StaffForm } from "./staff-form";
+import { StaffTabs } from "./staff-tabs";
 
 const ALL = "__all__";
 
@@ -90,6 +91,7 @@ export function StaffPage() {
           )
         }
       />
+      <StaffTabs />
 
       {!canEdit && (
         <Alert>
@@ -250,7 +252,6 @@ export function StaffPage() {
           <DialogContent className="max-h-[calc(100svh-2rem)] gap-0 overflow-y-auto p-0 sm:max-w-3xl">
             <div className="relative overflow-hidden border-b px-5 pt-6 pb-5 sm:px-6">
               <div aria-hidden className="absolute inset-x-0 top-0 h-full bg-primary/[0.07]" />
-              <div aria-hidden className="absolute inset-x-0 top-0 h-full bg-dot-grid opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
               <DialogHeader className="relative flex-row items-center gap-4 text-left">
                 <PersonAvatar name={openStaff.displayName} size="xl" />
                 <div className="flex min-w-0 flex-col gap-1">
