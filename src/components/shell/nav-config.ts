@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   BookOpenText,
   Boxes,
   CalendarDays,
@@ -55,6 +56,13 @@ const tenantGroups: NavGroup[] = [
         icon: LayoutDashboard,
         description: "Việc hôm nay, doanh thu, kết quả của trợ lý AI.",
         ownerOnly: true,
+      },
+      {
+        href: "/reports",
+        label: "Báo cáo",
+        icon: BarChart3,
+        description: "Doanh thu, khách, lấp đầy lịch, hiệu quả trợ lý AI, công nợ.",
+        permission: "view_reports",
       },
     ],
   },
