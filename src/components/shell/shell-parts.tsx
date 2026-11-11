@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BotMessageSquare, Building2, LogOut } from "lucide-react";
+import { Building2, LogOut } from "lucide-react";
+import { LogoMark, Wordmark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Me } from "@/lib/api/client";
@@ -19,19 +20,18 @@ export function initials(name: string) {
   return ((words.at(-2)?.[0] ?? "") + (words.at(-1)?.[0] ?? "")).toUpperCase() || "?";
 }
 
-/** Logo + tên sản phẩm. Ô vuông dải màu xanh → tím: "trợ lý AI trên kênh chat". */
+/** Logo + tên sản phẩm Remi (design.md § Thương hiệu). `compact`: chỉ logo + chữ, không dòng mô tả. */
 export function Brand({ className, compact = false }: { className?: string; compact?: boolean }) {
   return (
     <Link
       href="/"
+      aria-label="Remi — về trang Tổng quan"
       className={cn("flex items-center gap-2.5 rounded-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none", className)}
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-gradient text-white shadow-sm">
-        <BotMessageSquare className="size-4.5" aria-hidden />
-      </span>
-      <span className="flex min-w-0 flex-col leading-tight">
-        <span className="truncate text-[15px] font-semibold tracking-tight text-foreground">Trợ lý Zalo AI</span>
-        {!compact && <span className="truncate text-xs text-muted-foreground">CRM & chăm sóc khách</span>}
+      <LogoMark size={28} />
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <Wordmark className="text-[19px]" />
+        {!compact && <span className="truncate text-xs text-muted-foreground">Giữ khách như người quen</span>}
       </span>
     </Link>
   );

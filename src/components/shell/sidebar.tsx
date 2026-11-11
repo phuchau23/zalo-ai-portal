@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FocusEvent, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { BotMessageSquare, Building2, Check, ChevronsUpDown, LogOut, PanelLeftClose, PanelLeftOpen, Sparkles, UserRound } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, LogOut, PanelLeftClose, PanelLeftOpen, UserRound } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,7 @@ import {
 import type { Me } from "@/lib/api/client";
 import { spring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { LogoMark, Wordmark } from "@/components/brand/logo";
 import { isActive, type NavBadge, type NavGroup, type NavItem } from "./nav-config";
 import { initials, roleLabel } from "./shell-parts";
 
@@ -52,7 +53,20 @@ export function Sidebar({ me, groups, settings, pathname, counts, busy, collapse
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const open = !collapsed || peek || menuOpen;
 
+  const navRef = useRef<HTMLElement>(null);
+
   useEffect(() => () => clearPeekTimer(), []);
+
+  // Màn thấp (laptop 900px): menu dài hơn khung → kéo mục đang mở vào tầm nhìn khi đổi trang (chỉ cuộn trong menu).
+  useEffect(() => {
+    const nav = navRef.current;
+    const el = nav?.querySelector<HTMLElement>("[aria-current=page]");
+    if (!nav || !el) return;
+    const navBox = nav.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    if (box.top < navBox.top) nav.scrollTop -= navBox.top - box.top + 8;
+    else if (box.bottom > navBox.bottom) nav.scrollTop += box.bottom - navBox.bottom + 8;
+  }, [pathname]);
 
   function clearPeekTimer() {
     if (timer.current) clearTimeout(timer.current);
@@ -102,22 +116,15 @@ export function Sidebar({ me, groups, settings, pathname, counts, busy, collapse
         onFocus={onFocus}
         onBlur={onBlur}
       >
-        {/* Ánh sáng trang trí phía sau. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-32 -left-24 size-80 rounded-full bg-primary/[0.07] blur-3xl" />
-        </div>
-
-        <div className="relative flex h-[72px] shrink-0 items-center gap-2 pr-3 pl-[18px]">
+        <div className="relative flex h-[68px] shrink-0 items-center gap-2 pr-3 pl-[20px]">
           <Link
             href="/"
-            className="flex min-w-0 flex-1 items-center gap-3 rounded-xl focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+            aria-label="Remi — về trang Tổng quan"
+            className="flex min-w-0 flex-1 items-center gap-2.5 rounded-lg focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-active-gradient text-white shadow-glow">
-              <BotMessageSquare className="size-5" aria-hidden />
-            </span>
-            <Reveal open={open} className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-[15px] font-semibold tracking-tight text-foreground">Trợ lý Zalo AI</span>
-              <span className="truncate text-xs text-shell-muted">CRM & chăm sóc khách</span>
+            <LogoMark size={30} />
+            <Reveal open={open} className="flex min-w-0 items-baseline">
+              <Wordmark />
             </Reveal>
           </Link>
           <Reveal open={open}>
@@ -135,13 +142,13 @@ export function Sidebar({ me, groups, settings, pathname, counts, busy, collapse
 
         <TenantMenu me={me} open={open} busy={busy} onSwitch={onSwitchTenant} onOpenChange={setMenuOpen} />
 
-        <nav aria-label="Menu chính" className="scrollbar-thin relative flex flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto px-3 pt-3 pb-3">
+        <nav ref={navRef} aria-label="Menu chính" className="scrollbar-thin relative flex flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto px-3 pt-3 pb-3">
           {groups.map((group) => (
             <div key={group.id} className="flex flex-col gap-0.5">
               {group.label && (
                 <div className="relative flex h-6 items-center px-[17px]">
                   <Reveal open={open} className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider whitespace-nowrap text-shell-muted uppercase">
-                    {group.ai && <Sparkles className="size-3" aria-hidden />}
+                    
                     {group.label}
                   </Reveal>
                   <motion.span
@@ -185,18 +192,18 @@ function Reveal({ open, className, children }: { open: boolean; className?: stri
 function SidebarLink({ item, open, active, count }: { item: NavItem; open: boolean; active: boolean; count: number }) {
   const Icon = item.icon;
   const className = cn(
-    "group relative flex h-9 shrink-0 items-center gap-3 rounded-xl pr-3 pl-[17px] text-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
-    active ? "font-semibold text-primary" : "text-shell-foreground hover:bg-shell-accent hover:text-foreground",
+    "group relative flex h-9 shrink-0 items-center gap-3 rounded-full pr-3 pl-[17px] text-sm transition-colors focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none",
+    active ? "font-semibold text-background" : "text-shell-foreground hover:bg-shell-accent hover:text-foreground",
   );
   const content = (
     <>
       {active && (
-        <motion.span layoutId="sidebar-active" className="absolute inset-0 rounded-xl bg-primary/[0.09] ring-1 ring-primary/10 ring-inset" transition={spring}>
-          <span className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-primary" />
+        <motion.span layoutId="sidebar-active" className="absolute inset-0 rounded-full bg-foreground" transition={spring}>
+
         </motion.span>
       )}
       <span className="relative flex shrink-0">
-        <Icon className={cn("size-[18px] transition-transform duration-200 group-hover:scale-110 motion-reduce:transition-none", active ? "text-primary" : "text-shell-muted group-hover:text-foreground")} aria-hidden />
+        <Icon className={cn("size-[18px]", active ? "text-lime" : "text-shell-muted group-hover:text-foreground")} aria-hidden />
         {count > 0 && !open && <span className="absolute -top-1 -right-1.5 size-2.5 rounded-full bg-warning ring-2 ring-shell" aria-hidden />}
       </span>
       <Reveal open={open} className="relative flex-1 truncate">
@@ -207,7 +214,7 @@ function SidebarLink({ item, open, active, count }: { item: NavItem; open: boole
           <span
             className={cn(
               "tabular inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold",
-              "bg-primary text-primary-foreground",
+              "bg-lime text-lime-foreground",
             )}
           >
             {count > 99 ? "99+" : count}
@@ -247,7 +254,7 @@ function TenantMenu({
   const active = me.tenants.filter((t) => t.isActive);
   const body = (
     <>
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-card text-foreground/70 ring-1 ring-shell-border" aria-hidden>
         {tenant.name.trim() ? <span className="text-xs font-semibold">{initials(tenant.name)}</span> : <Building2 className="size-4" />}
       </span>
       <Reveal open={open} className="flex flex-1 flex-col text-left leading-tight">
@@ -311,7 +318,7 @@ function UserMenu({
         aria-label={`Tài khoản: ${me.name}`}
         className="flex h-12 w-full cursor-pointer items-center gap-3 rounded-xl pr-3 pl-[11px] text-left transition-colors hover:bg-shell-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
       >
-        <span className="relative flex size-[30px] shrink-0 items-center justify-center rounded-full bg-active-gradient text-[11px] font-semibold text-white ring-2 ring-background" aria-hidden>
+        <span className="relative flex size-[30px] shrink-0 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background ring-2 ring-background" aria-hidden>
           {initials(me.name)}
           <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full bg-success ring-2 ring-shell" />
         </span>

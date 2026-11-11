@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "motion/react";
-import { LayoutGrid, Sparkles } from "lucide-react";
+import { Bot, LayoutGrid } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import type { Me } from "@/lib/api/client";
 import { spring } from "@/lib/motion";
@@ -112,7 +112,7 @@ export function MobileTabBar({
             <section key={group.id} className="flex flex-col gap-2" aria-label={group.label ?? "Trang chính"}>
               {group.label && (
                 <h3 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  {group.ai && <Sparkles className="size-3 text-ai" aria-hidden />}
+                  {group.ai && <Bot className="size-3 text-ai" aria-hidden />}
                   {group.label}
                 </h3>
               )}

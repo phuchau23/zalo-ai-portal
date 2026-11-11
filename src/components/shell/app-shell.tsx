@@ -140,14 +140,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </a>
           <Sidebar {...navProps} collapsed={sidebarCollapsed} onToggleCollapsed={toggleCollapsed} />
 
-          <div className="flex min-w-0 flex-1 flex-col md:py-2 md:pr-2">
+          <div className="flex min-w-0 flex-1 flex-col">
             <MobileTopBar me={me} />
             <main
               id="main"
               ref={mainRef}
-              className="scrollbar-thin relative isolate flex min-w-0 flex-1 flex-col bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] md:overflow-y-auto md:rounded-[22px] md:pb-0 md:shadow-panel"
+              className="scrollbar-thin relative isolate flex min-w-0 flex-1 flex-col bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] md:overflow-y-auto md:border-l md:border-shell-border md:pb-0"
             >
-              {!fullBleed && <PanelAura />}
               <div
                 className={cn(
                   "relative mx-auto flex w-full flex-1 flex-col",
@@ -182,16 +181,5 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </TooltipProvider>
     </MotionConfig>
-  );
-}
-
-/** Nền trang trí phía sau tiêu đề trang: lưới chấm mờ dần + hai quầng sáng (xanh, tím). Không bắt sự kiện chuột. */
-function PanelAura() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 overflow-hidden md:rounded-t-[22px]">
-      <div className="absolute inset-0 bg-dot-grid opacity-70 [mask-image:linear-gradient(to_bottom,black_0%,transparent_85%)]" />
-      <div className="absolute -top-40 left-[12%] h-72 w-[34rem] rounded-full bg-primary/12 blur-3xl" />
-      <div className="absolute -top-32 right-[-6rem] h-64 w-[30rem] rounded-full bg-ai/12 blur-3xl" />
-    </div>
   );
 }
