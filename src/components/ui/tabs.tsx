@@ -58,7 +58,7 @@ const tabsListVariants = cva(
       variant: {
         default: "rounded-lg bg-muted p-[3px] group-data-horizontal/tabs:h-9",
         line: "gap-5 rounded-none bg-transparent p-0",
-        pill: "gap-1 rounded-2xl border bg-card p-1 shadow-card",
+        pill: "gap-1 rounded-full border bg-card p-1",
       },
     },
     defaultVariants: {
@@ -90,13 +90,13 @@ const triggerVariants: Record<TabsListVariant, string> = {
   default:
     "h-full flex-1 rounded-md px-2.5 text-foreground/60 hover:text-foreground data-active:text-foreground",
   line: "h-10 flex-none rounded-none px-0.5 hover:text-foreground data-active:text-primary",
-  pill: "h-9 flex-none rounded-xl px-3.5 text-foreground/65 hover:bg-muted/70 hover:text-foreground data-active:text-white data-active:hover:bg-transparent pointer-coarse:h-10",
+  pill: "h-9 flex-none rounded-full px-4 text-foreground/65 hover:bg-muted/70 hover:text-foreground data-active:text-white data-active:hover:bg-transparent pointer-coarse:h-10",
 }
 
 const indicatorVariants: Record<TabsListVariant, string> = {
   default: "inset-0 rounded-md bg-background shadow-sm ring-1 ring-foreground/5 dark:bg-input/40",
   line: "inset-x-0 -bottom-px h-0.5 rounded-full bg-primary",
-  pill: "inset-0 rounded-xl bg-active-gradient shadow-glow",
+  pill: "inset-0 rounded-full bg-active-gradient",
 }
 
 function TabsTrigger({
