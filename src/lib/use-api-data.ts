@@ -1,0 +1,99 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ApiResult } from "@/lib/api/call";
+import type { ApiProblem } from "@/lib/api/problem";
+
+type State<T> = { data?: T; problem?: ApiProblem; loading: boolean };
+
+/**
+ * Tải dữ liệu từ BE khi component hiện lên; `reload()` để tải lại (sau khi sửa, hoặc định kỳ).
+ * Giữ dữ liệu cũ trong lúc tải lại để màn hình không nhấp nháy.
+ */
+export function useApiData<T>(fetcher: () => Promise<ApiResult<T>>) {
+  const [state, setState] = useState<State<T>>({ loading: true });
+  const [version, setVersion] = useState(0);
+  const fetcherRef = useRef(fetcher);
+
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const result = await fetcherRef.current();
+      if (cancelled) return;
+      setState((previous) =>
+        result.ok ? { data: result.data, loading: false } : { data: previous.data, problem: result.problem, loading: false },
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [version]);
+
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  return { ...state, reload };
+}
+
+/**
+ * Như `useApiData` nhưng TỰ TẢI LẠI khi `key` đổi (khoảng ngày, chi nhánh, kỳ...). Trong lúc tải số mới vẫn giữ số cũ
+ * (`stale` = true) để biểu đồ không nháy trắng. `loading` chỉ true khi chưa có dữ liệu nào.
+ * Không gọi setState đồng bộ trong effect: trạng thái "đang tải" suy ra từ việc `key` đã trả lời hay chưa.
+ */
+export function useApiQuery<T>(fetcher: () => Promise<ApiResult<T>>, key: string) {
+  const [state, setState] = useState<State<T> & { key?: string }>({ loading: true });
+  const [version, setVersion] = useState(0);
+  const fetcherRef = useRef(fetcher);
+  const requestKey = `${key}#${version}`;
+
+  useEffect(() => {
+    fetcherRef.current = fetcher;
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const result = await fetcherRef.current();
+      if (cancelled) return;
+      setState((previous) =>
+        result.ok
+          ? { data: result.data, loading: false, key: requestKey }
+          : { data: previous.data, problem: result.problem, loading: false, key: requestKey },
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [requestKey]);
+
+  const reload = useCallback(() => setVersion((v) => v + 1), []);
+  const answered = state.key === requestKey;
+  return {
+    data: state.data,
+    problem: answered ? state.problem : undefined,
+    loading: !answered && state.data === undefined,
+    stale: !answered && state.data !== undefined,
+    reload,
+  };
+}
+
+/** Gọi `reload` mỗi `ms` khi `active` = true (ví dụ còn tài liệu đang xử lý). */
+export function usePolling(active: boolean, reload: () => void, ms = 3000) {
+  useEffect(() => {
+    if (!active) return;
+    const timer = setInterval(reload, ms);
+    return () => clearInterval(timer);
+  }, [active, reload, ms]);
+}
+
+/** Thời điểm hiện tại, cập nhật mỗi `ms` — cho chữ "đã chờ X phút", "còn X ngày". */
+export function useNow(ms = 30_000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(timer);
+  }, [ms]);
+  return now;
+}

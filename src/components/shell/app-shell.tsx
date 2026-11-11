@@ -2,29 +2,106 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { MotionConfig } from "motion/react";
+import { Building2 } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { EmptyState } from "@/components/common/states";
 import { useSession } from "@/components/session/session-provider";
 import { call } from "@/lib/api/call";
 import { api } from "@/lib/api/client";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
+import { ExpiryBanner, UsageBanner } from "./banners";
+import { MobileTabBar, MobileTopBar } from "./mobile-nav";
+import { buildNav } from "./nav-config";
+import { Sidebar } from "./sidebar";
+import { useNavCounts } from "./use-nav-counts";
 
-const navItems = [
-  { href: "/", label: "Tổng quan" },
-  { href: "/settings", label: "Cài đặt" },
-] as const;
+const collapsedKey = "sidebar:collapsed";
 
-const roleLabels: Record<string, string> = { owner: "Chủ doanh nghiệp", staff: "Nhân viên" };
+/** Trang chiếm trọn tấm nội dung, không lề, không giới hạn bề rộng (kiểu ứng dụng nhắn tin). */
+function isFullBleed(pathname: string) {
+  return pathname === "/inbox";
+}
 
+/**
+ * Khung trang quản trị.
+ * Máy tính: khung trắng (thanh bên, thu gọn được) bao quanh một tấm nội dung xám-xanh nhạt bo góc; tấm này tự cuộn, thanh bên đứng yên.
+ * Điện thoại: thanh trên + thanh dưới 4 mục + "Thêm"; cả trang cuộn như bình thường.
+ * Phần đầu tấm nội dung có lưới chấm và hai quầng sáng mờ (xanh, tím) làm nền cho tiêu đề trang.
+ */
 export function AppShell({ children }: { children: ReactNode }) {
   const { me, reload } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [pinnedOpen, setPinnedOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+  const counts = useNavCounts(me.currentTenant?.id);
+  const { groups, settings } = buildNav(me);
+  const fullBleed = isFullBleed(pathname);
+  const roomy = useMediaQuery("(min-width: 1600px)");
+  // Trang kiểu nhắn tin trên màn chưa đủ rộng: tự thu thanh bên thành dải biểu tượng để khung chat rộng hơn
+  // (không đổi lựa chọn đã lưu của người dùng; bấm ghim thì mở lại cho tới khi rời trang).
+  const autoRail = fullBleed && !roomy && !pinnedOpen;
+  const sidebarCollapsed = collapsed || autoRail;
 
-  const activeTenants = me.tenants.filter((t) => t.isActive);
+  // Trang /admin (super admin) và /account (đổi mật khẩu) không cần doanh nghiệp đang hoạt động.
+  const adminArea = (me.isSuperAdmin && pathname.startsWith("/admin")) || pathname.startsWith("/account");
+
+  useEffect(() => {
+    try {
+      // Đọc sau khi gắn lên trình duyệt (máy chủ không có localStorage), tránh lệch nội dung khi hydrate.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (window.localStorage.getItem(collapsedKey) === "1") setCollapsed(true);
+    } catch {
+      // Trình duyệt chặn localStorage: mặc định mở rộng.
+    }
+  }, []);
+
+  const persistCollapsed = useCallback((next: boolean) => {
+    setCollapsed(next);
+    try {
+      window.localStorage.setItem(collapsedKey, next ? "1" : "0");
+    } catch {
+      // Không lưu được thì lần sau mặc định mở rộng.
+    }
+  }, []);
+
+  const toggleCollapsed = useCallback(() => {
+    if (collapsed) persistCollapsed(false);
+    else if (autoRail) setPinnedOpen(true);
+    else {
+      setPinnedOpen(false);
+      persistCollapsed(true);
+    }
+  }, [collapsed, autoRail, persistCollapsed]);
+
+  // Rời trang nhắn tin thì bỏ ghim tạm.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- đặt lại theo trang đang mở
+    if (!fullBleed) setPinnedOpen(false);
+  }, [fullBleed]);
+
+  // Ctrl+B / Cmd+B: thu gọn hoặc mở rộng thanh bên.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key.toLowerCase() === "b" && (event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+        event.preventDefault();
+        toggleCollapsed();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleCollapsed]);
+
+  // Tấm nội dung tự cuộn (máy tính) nên Next.js không tự về đầu trang khi chuyển trang.
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [pathname]);
 
   async function switchTenant(tenantId: string) {
     setBusy(true);
@@ -42,81 +119,67 @@ export function AppShell({ children }: { children: ReactNode }) {
     router.replace("/login");
   }
 
-  return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <header className="flex flex-wrap items-center gap-3 border-b bg-background px-4 py-3">
-        <span className="font-semibold">Trợ lý Zalo AI</span>
-
-        {activeTenants.length > 1 && me.currentTenant ? (
-          <Select value={me.currentTenant.id} onValueChange={(id) => void switchTenant(id)} disabled={busy}>
-            <SelectTrigger className="w-56" aria-label="Chọn doanh nghiệp">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {activeTenants.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          me.currentTenant && <span className="text-sm text-muted-foreground">{me.currentTenant.name}</span>
-        )}
-
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-sm">
-            {me.name}
-            {me.currentTenant && (
-              <span className="text-muted-foreground"> · {roleLabels[me.currentTenant.role] ?? me.currentTenant.role}</span>
-            )}
-            {me.isSuperAdmin && <span className="text-muted-foreground"> · Super admin</span>}
-          </span>
-          <Button variant="outline" size="sm" onClick={() => void logout()} disabled={busy}>
-            Đăng xuất
-          </Button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 flex-col md:flex-row">
-        <nav className="flex gap-1 border-b bg-background p-2 md:w-52 md:flex-col md:border-r md:border-b-0">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "rounded-md px-3 py-2 text-sm hover:bg-muted",
-                pathname === item.href && "bg-muted font-medium",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-          {me.isSuperAdmin && (
-            // Trang của BE (qua rewrite), không phải trang Next.js, nên dùng <a>.
-            <a href="/hangfire" className="rounded-md px-3 py-2 text-sm hover:bg-muted">
-              Hàng đợi job
-            </a>
-          )}
-        </nav>
-
-        <main className="flex-1 p-4 md:p-6">{me.currentTenant ? children : <NoTenantNotice />}</main>
-      </div>
-    </div>
+  const navProps = { me, groups, settings, pathname, counts, busy, onSwitchTenant: (id: string) => void switchTenant(id), onLogout: () => void logout() };
+  const banners = me.currentTenant?.role === "owner" && (
+    <>
+      <ExpiryBanner expiresAt={me.currentTenant.expiresAt} />
+      <UsageBanner tenantId={me.currentTenant.id} />
+    </>
   );
-}
 
-function NoTenantNotice() {
   return (
-    <Card className="max-w-lg">
-      <CardHeader>
-        <CardTitle>Chưa có doanh nghiệp đang hoạt động</CardTitle>
-        <CardDescription>
-          Tài khoản của bạn chưa thuộc doanh nghiệp nào, hoặc doanh nghiệp đã bị tạm khóa. Liên hệ quản trị viên để
-          được thêm vào doanh nghiệp.
-        </CardDescription>
-      </CardHeader>
-      <CardContent />
-    </Card>
+    <MotionConfig reducedMotion="user">
+      <TooltipProvider delayDuration={250}>
+        {/* Máy tính: khung cao đúng bằng màn hình (flex-none để chiều cao không bị flex-1 của body nới theo nội dung). */}
+        <div className="flex min-h-svh flex-1 bg-canvas md:h-svh md:flex-none md:overflow-hidden md:bg-shell-gradient">
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-card focus:px-3 focus:py-2 focus:text-sm focus:shadow-card"
+          >
+            Bỏ qua menu, tới nội dung
+          </a>
+          <Sidebar {...navProps} collapsed={sidebarCollapsed} onToggleCollapsed={toggleCollapsed} />
+
+          <div className="flex min-w-0 flex-1 flex-col">
+            <MobileTopBar me={me} />
+            <main
+              id="main"
+              ref={mainRef}
+              className="scrollbar-thin relative isolate flex min-w-0 flex-1 flex-col bg-canvas pb-[calc(5rem+env(safe-area-inset-bottom))] md:overflow-y-auto md:border-l md:border-shell-border md:pb-0"
+            >
+              <div
+                className={cn(
+                  "relative mx-auto flex w-full flex-1 flex-col",
+                  fullBleed ? "min-h-0" : "px-4 py-5 sm:px-6 md:px-8 md:py-8",
+                )}
+              >
+                {adminArea ? (
+                  children
+                ) : me.currentTenant ? (
+                  <>
+                    {fullBleed ? <div className="flex shrink-0 flex-col px-3 pt-3 empty:hidden *:mb-0">{banners}</div> : banners}
+                    {children}
+                  </>
+                ) : (
+                  <EmptyState
+                    icon={Building2}
+                    title="Chưa có doanh nghiệp đang hoạt động"
+                    description="Tài khoản của bạn chưa thuộc doanh nghiệp nào, hoặc doanh nghiệp đã bị tạm khóa. Liên hệ quản trị viên để được thêm vào doanh nghiệp."
+                  >
+                    {me.isSuperAdmin && (
+                      <Link href="/admin" className={cn(buttonVariants({ variant: "outline" }), "h-11 sm:h-9")}>
+                        Mở trang quản trị hệ thống
+                      </Link>
+                    )}
+                  </EmptyState>
+                )}
+              </div>
+            </main>
+          </div>
+
+          <MobileTabBar {...navProps} />
+        </div>
+      </TooltipProvider>
+    </MotionConfig>
   );
 }
