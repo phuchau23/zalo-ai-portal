@@ -18,6 +18,7 @@ const handoffReasons: Record<string, string> = {
   staff_takeover: "Nhân viên đã tiếp quản",
   staff_replied_in_oa: "Nhân viên trả lời trong ứng dụng Zalo OA",
   quota_exceeded: "Hết hạn mức hội thoại tháng, khách mới cần nhân viên",
+  channel_blocked: "Zalo chưa cho OA gửi tin (xem trang Kênh Zalo), trả lời khách trong ứng dụng Zalo OA",
   other: "Lý do khác",
 };
 
