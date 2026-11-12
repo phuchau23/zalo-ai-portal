@@ -32,7 +32,15 @@ export function callbackNotice(params: { connected?: string | null; error?: stri
   };
 }
 
-/** Ý nghĩa mã lỗi gần nhất của kết nối (hiện cạnh trạng thái "Cần kết nối lại"). */
+/**
+ * Zalo chặn gửi tin ở cấp OA (chưa mua gói / chưa xác thực): kết nối vẫn "đang hoạt động" (kết nối lại không giúp được),
+ * tin khách vẫn vào và được chuyển nhân viên. BE tự xóa mã này khi gửi được tin trở lại.
+ */
+export function isSendBlocked(code: string | null | undefined): boolean {
+  return code === "zalo:-224" || code === "zalo:-221";
+}
+
+/** Ý nghĩa mã lỗi gần nhất của kết nối (hiện cạnh trạng thái "Cần kết nối lại" hoặc "Chưa gửi được tin"). */
 export function connectionErrorLabel(code: string | null | undefined): string | null {
   if (!code) return null;
   switch (code) {
@@ -44,6 +52,10 @@ export function connectionErrorLabel(code: string | null | undefined): string | 
     case "zalo:-219":
     case "zalo:-209":
       return "Ứng dụng Zalo đang bị tắt hoặc gỡ bỏ.";
+    case "zalo:-224":
+      return "OA chưa mua gói Zalo có tính năng gửi tin qua hệ thống, nên bot chưa trả lời được khách. Vào oa.zalo.me để nâng cấp gói OA.";
+    case "zalo:-221":
+      return "OA chưa được Zalo xác thực, nên bot chưa trả lời được khách. Vào oa.zalo.me để xác thực OA.";
     default:
       return `Zalo báo lỗi ${code.replace("zalo:", "")}.`;
   }

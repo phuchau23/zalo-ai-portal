@@ -43,7 +43,7 @@ import { formatDateTime } from "@/lib/format";
 import { fadeUp, stagger } from "@/lib/motion";
 import { useApiData } from "@/lib/use-api-data";
 import { cn } from "@/lib/utils";
-import { callbackNotice, connectionErrorLabel, type CallbackNotice } from "./callback-messages";
+import { callbackNotice, connectionErrorLabel, isSendBlocked, type CallbackNotice } from "./callback-messages";
 
 const connectSteps = ["Bấm Kết nối Zalo OA", "Đăng nhập Zalo bằng tài khoản quản trị OA", "Đồng ý cấp quyền — bot bắt đầu trả lời"];
 
@@ -212,12 +212,14 @@ export function ChannelsPage({ connected, error }: { connected?: string; error?:
               {connections.map((c) => {
                 const active = c.status === "active";
                 const errorLabel = connectionErrorLabel(c.lastError);
+                // Kết nối còn hiệu lực nhưng Zalo chặn gửi (OA chưa mua gói...) → cảnh báo, không bắt kết nối lại.
+                const blocked = active && isSendBlocked(c.lastError);
                 return (
                   <li
                     key={c.id}
                     className={cn(
                       "flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:justify-between",
-                      !active && "border-warning/40",
+                      (!active || blocked) && "border-warning/40",
                     )}
                   >
                     <div className="flex min-w-0 items-start gap-3.5">
@@ -232,7 +234,12 @@ export function ChannelsPage({ connected, error }: { connected?: string; error?:
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-semibold">{c.name ?? "Zalo OA"}</span>
                           <span className="tabular rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">ID {c.externalId}</span>
-                          {active ? (
+                          {blocked ? (
+                            <Badge variant="warning">
+                              <CircleAlert aria-hidden />
+                              Chưa gửi được tin
+                            </Badge>
+                          ) : active ? (
                             <Badge variant="success">
                               <CircleCheck aria-hidden />
                               Đang hoạt động
@@ -245,9 +252,11 @@ export function ChannelsPage({ connected, error }: { connected?: string; error?:
                           )}
                         </div>
                         <p className="text-sm text-pretty text-muted-foreground">
-                          {active
-                            ? `Kết nối lúc ${formatDateTime(c.createdAt)}. Hệ thống tự gia hạn quyền truy cập, chỉ cần kết nối lại nếu Zalo báo lỗi.`
-                            : `${errorLabel ?? "Kết nối không còn hiệu lực."} Bot đã dừng trả lời ở OA này cho tới khi bạn kết nối lại.`}
+                          {blocked
+                            ? `${errorLabel} Trong lúc chờ, tin khách vẫn vào Hộp thư và được chuyển cho nhân viên — hãy trả lời khách trong ứng dụng Zalo OA. Cảnh báo tự mất khi gửi được tin.`
+                            : active
+                              ? `Kết nối lúc ${formatDateTime(c.createdAt)}. Hệ thống tự gia hạn quyền truy cập, chỉ cần kết nối lại nếu Zalo báo lỗi.`
+                              : `${errorLabel ?? "Kết nối không còn hiệu lực."} Bot đã dừng trả lời ở OA này cho tới khi bạn kết nối lại.`}
                         </p>
                       </div>
                     </div>
